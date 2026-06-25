@@ -1,8 +1,8 @@
 {
-  "name": "ariana-framework-v2-list-signal-preview",
+  "name": "ariana-framework-v2-list-operations-preview",
   "private": true,
-  "version": "0.2.5-alpha.0",
-  "description": "Ariana Framework v2 compiler preview with targeted list scheduling support.",
+  "version": "0.2.7-alpha.0",
+  "description": "Ariana Framework v2 compiler preview with listSignal-driven update, insert, and remove operations.",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -16,7 +16,8 @@
     "build:counter": "npm --workspace @ariana/counter-app run build",
     "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench",
     "benchmark:list": "npm --prefix benchmarks/list-update install && npm --prefix benchmarks/list-update run bench",
-    "benchmark:scheduler": "npm --prefix benchmarks/list-scheduler run bench"
+    "benchmark:scheduler": "npm --prefix benchmarks/list-scheduler run bench",
+    "benchmark:ops": "npm --prefix benchmarks/list-operations install && npm --prefix benchmarks/list-operations run bench"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
