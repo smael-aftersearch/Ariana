@@ -1,6 +1,9 @@
 name: Publish alpha packages to npm
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -28,10 +31,10 @@ jobs:
       - run: npm test
       - run: npm run verify:release
       - name: Publish dry run
-        if: ${{ github.event.inputs.dry_run == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
         run: npm run publish:npm:dry
       - name: Publish to npm
-        if: ${{ github.event.inputs.dry_run == 'false' }}
+        if: ${{ github.event_name == 'push' || github.event.inputs.dry_run == 'false' }}
         run: npm run publish:npm
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
