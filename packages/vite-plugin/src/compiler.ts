@@ -113,7 +113,6 @@ function transformControlBlocks(
 function findNextControlMarker(source: string, start: number): { kind: 'if' | 'for'; index: number } | undefined {
   const ifIndex = source.indexOf('@if', start);
   const forIndex = source.indexOf('@for', start);
-
   if (ifIndex === -1 && forIndex === -1) return undefined;
   if (ifIndex !== -1 && (forIndex === -1 || ifIndex < forIndex)) return { kind: 'if', index: ifIndex };
   return { kind: 'for', index: forIndex };
@@ -122,39 +121,20 @@ function findNextControlMarker(source: string, start: number): { kind: 'if' | 'f
 function readControlBlock(source: string, markerIndex: number, marker: '@if' | '@for'): { expression: string; content: string; endIndex: number } {
   let cursor = markerIndex + marker.length;
   while (source[cursor] && /\s/.test(source[cursor])) cursor++;
-
-  if (source[cursor] !== '(') {
-    throw new Error(`Invalid Ariana ${marker} block: missing condition.`);
-  }
-
+  if (source[cursor] !== '(') throw new Error(`Invalid Ariana ${marker} block: missing condition.`);
   const expressionEnd = findMatching(source, cursor, '(', ')');
   const expression = source.slice(cursor + 1, expressionEnd).trim();
-
   cursor = expressionEnd + 1;
   while (source[cursor] && /\s/.test(source[cursor])) cursor++;
-
-  if (source[cursor] !== '{') {
-    throw new Error(`Invalid Ariana ${marker} block: missing body.`);
-  }
-
+  if (source[cursor] !== '{') throw new Error(`Invalid Ariana ${marker} block: missing body.`);
   const blockEnd = findMatching(source, cursor, '{', '}');
-  const content = source.slice(cursor + 1, blockEnd);
-
-  return { expression, content, endIndex: blockEnd + 1 };
+  return { expression, content: source.slice(cursor + 1, blockEnd), endIndex: blockEnd + 1 };
 }
 
 function parseForExpression(expression: string): { itemName: string; iterableExpression: string; trackExpression?: string } {
   const match = expression.match(/^\s*([A-Za-z_$][\w$]*)\s+of\s+(.+?)(?:;\s*track\s+(.+))?\s*$/);
-
-  if (!match) {
-    throw new Error(`Invalid Ariana @for expression: ${expression}`);
-  }
-
-  return {
-    itemName: match[1],
-    iterableExpression: match[2].trim(),
-    trackExpression: match[3]?.trim()
-  };
+  if (!match) throw new Error(`Invalid Ariana @for expression: ${expression}`);
+  return { itemName: match[1], iterableExpression: match[2].trim(), trackExpression: match[3]?.trim() };
 }
 
 function appendBindingLines(
@@ -195,15 +175,7 @@ function appendBindingLines(
   appendForBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localAccess);
 }
 
-function appendIfBlockLines(
-  lines: string[],
-  segment: CompiledTemplateSegment,
-  rootVar: string,
-  ctxVar: string,
-  cleanupsVar: string,
-  prefix: string,
-  localAccess: LocalAccessMap
-) {
+function appendIfBlockLines(lines: string[], segment: CompiledTemplateSegment, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap) {
   segment.ifBlocks.forEach((block, index) => {
     const anchor = `${prefix}_if_anchor_${index}`;
     const mountedNodes = `${prefix}_if_nodes_${index}`;
@@ -212,7 +184,6 @@ function appendIfBlockLines(
     const fragment = `${prefix}_if_fragment_${index}`;
     const nodes = `${prefix}_if_new_nodes_${index}`;
     const nestedPrefix = `${prefix}_if_${index}`;
-
     lines.push(`  const ${anchor} = ${rootVar}.querySelector('[data-ari-if-anchor="${block.anchorId}"]');`);
     lines.push(`  let ${mountedNodes} = [];`);
     lines.push(`  let ${childCleanups} = [];`);
@@ -232,21 +203,12 @@ function appendIfBlockLines(
   });
 }
 
-function appendForBlockLines(
-  lines: string[],
-  segment: CompiledTemplateSegment,
-  rootVar: string,
-  ctxVar: string,
-  cleanupsVar: string,
-  prefix: string,
-  localAccess: LocalAccessMap
-) {
+function appendForBlockLines(lines: string[], segment: CompiledTemplateSegment, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap) {
   segment.forBlocks.forEach((block, index) => {
     if (canUseFastRowBinding(block.segment)) {
       appendFastForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index);
       return;
     }
-
     appendSignalForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index);
   });
 }
@@ -257,16 +219,7 @@ function canUseFastRowBinding(segment: CompiledTemplateSegment): boolean {
 
 type ForBlock = CompiledTemplateSegment['forBlocks'][number];
 
-function appendFastForBlockLines(
-  lines: string[],
-  block: ForBlock,
-  rootVar: string,
-  ctxVar: string,
-  cleanupsVar: string,
-  prefix: string,
-  localAccess: LocalAccessMap,
-  index: number
-) {
+function appendFastForBlockLines(lines: string[], block: ForBlock, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap, index: number) {
   const anchor = `${prefix}_for_anchor_${index}`;
   const values = `${prefix}_for_values_${index}`;
   const records = `${prefix}_for_records_${index}`;
@@ -278,25 +231,20 @@ function appendFastForBlockLines(
   const fragment = `${prefix}_for_fragment_${index}`;
   const nodes = `${prefix}_for_nodes_${index}`;
   const nestedPrefix = `${prefix}_for_fast_${index}`;
-  const keyLocalAccess: LocalAccessMap = {
-    ...localAccess,
-    [block.itemName]: block.itemName,
-    $index: '$index'
-  };
-  const rowLocalAccess: LocalAccessMap = {
-    ...localAccess,
-    [block.itemName]: `${record}.item`,
-    $index: `${record}.index`
-  };
-  const keyExpression = block.trackExpression
-    ? compileExpression(block.trackExpression, ctxVar, keyLocalAccess)
-    : '$index';
+  const sync = `${prefix}_for_sync_${index}`;
+  const source = `${prefix}_for_source_${index}`;
+  const changeRecord = `${prefix}_for_change_record_${index}`;
+  const sourceExpression = getSimpleListSourceExpression(block.iterableExpression, ctxVar, localAccess);
+  const keyLocalAccess: LocalAccessMap = { ...localAccess, [block.itemName]: block.itemName, $index: '$index' };
+  const rowLocalAccess: LocalAccessMap = { ...localAccess, [block.itemName]: `${record}.item`, $index: `${record}.index` };
+  const keyExpression = block.trackExpression ? compileExpression(block.trackExpression, ctxVar, keyLocalAccess) : '$index';
 
   lines.push(`  const ${anchor} = ${rootVar}.querySelector('[data-ari-for-anchor="${block.anchorId}"]');`);
   lines.push(`  let ${records} = new Map();`);
   lines.push(`  if (${anchor}) { ${anchor}.removeAttribute('data-ari-for-anchor');`);
   lines.push(`    ${cleanupsVar}.push(() => { for (const entry of ${records}.values()) { for (const cleanup of entry.cleanups.splice(0)) cleanup(); for (const node of entry.nodes) node.parentNode?.removeChild(node); } ${records}.clear(); });`);
-  lines.push(`    ${cleanupsVar}.push(__ari_effect(() => {`);
+  if (sourceExpression) lines.push(`    const ${source} = ${sourceExpression};`);
+  lines.push(`    const ${sync} = () => {`);
   lines.push(`      const ${oldRecords} = ${records};`);
   lines.push(`      ${records} = new Map();`);
   lines.push(`      const ${values} = Array.from((${compileExpression(block.iterableExpression, ctxVar, localAccess)}) ?? []);`);
@@ -331,34 +279,37 @@ function appendFastForBlockLines(
   lines.push(`          for (const node of ${removedRecord}.nodes) node.parentNode?.removeChild(node);`);
   lines.push(`        }`);
   lines.push(`      }`);
-  lines.push(`    }));`);
+  lines.push(`    };`);
+  lines.push(`    ${sync}();`);
+  if (sourceExpression) {
+    lines.push(`    if (${source} && typeof ${source}.subscribeChanges === 'function') {`);
+    lines.push(`      ${cleanupsVar}.push(${source}.subscribeChanges((change) => {`);
+    lines.push(`        if (change.type === 'update') {`);
+    lines.push(`          const ${changeRecord} = ${records}.get(change.key);`);
+    lines.push(`          if (${changeRecord}) { ${changeRecord}.item = change.item; ${changeRecord}.index = change.index; ${changeRecord}.update(); return; }`);
+    lines.push(`        }`);
+    lines.push(`        ${sync}();`);
+    lines.push(`      }));`);
+    lines.push(`    } else { ${cleanupsVar}.push(__ari_effect(${sync})); }`);
+  } else {
+    lines.push(`    ${cleanupsVar}.push(__ari_effect(${sync}));`);
+  }
   lines.push(`  }`);
 }
 
-function appendFastRowInitLines(
-  lines: string[],
-  segment: CompiledTemplateSegment,
-  fragmentVar: string,
-  ctxVar: string,
-  recordVar: string,
-  prefix: string,
-  localAccess: LocalAccessMap
-) {
+function appendFastRowInitLines(lines: string[], segment: CompiledTemplateSegment, fragmentVar: string, ctxVar: string, recordVar: string, prefix: string, localAccess: LocalAccessMap) {
   const updateLines: string[] = [];
-
   segment.textBindings.forEach((expression, index) => {
     const variable = `${prefix}_text_${index}`;
     lines.push(`          const ${variable} = ${fragmentVar}.querySelector('[data-ari-text="${index}"]');`);
     updateLines.push(`if (${variable}) ${variable}.textContent = String((${compileExpression(expression, ctxVar, localAccess)}) ?? '');`);
   });
-
   segment.classBindings.forEach((binding, index) => {
     const variable = `${prefix}_class_${index}`;
     lines.push(`          const ${variable} = ${fragmentVar}.querySelector('[${binding.marker}]');`);
     lines.push(`          if (${variable}) ${variable}.removeAttribute('${binding.marker}');`);
     updateLines.push(`if (${variable}) ${variable}.classList.toggle(${JSON.stringify(binding.className)}, Boolean(${compileExpression(binding.expression, ctxVar, localAccess)}));`);
   });
-
   segment.propBindings.forEach((binding, index) => {
     const variable = `${prefix}_prop_${index}`;
     const propertyName = JSON.stringify(binding.propertyName);
@@ -366,133 +317,50 @@ function appendFastRowInitLines(
     lines.push(`          if (${variable}) ${variable}.removeAttribute('${binding.marker}');`);
     updateLines.push(`if (${variable}) { const value = ${compileExpression(binding.expression, ctxVar, localAccess)}; if (${propertyName} in ${variable}) ${variable}[${propertyName}] = value; else if (value == null || value === false) ${variable}.removeAttribute(${propertyName}); else ${variable}.setAttribute(${propertyName}, String(value)); }`);
   });
-
   segment.eventBindings.forEach((binding, index) => {
     const variable = `${prefix}_event_${index}`;
     const listener = `${prefix}_listener_${index}`;
     lines.push(`          const ${variable} = ${fragmentVar}.querySelector('[${binding.marker}]');`);
     lines.push(`          if (${variable}) { ${variable}.removeAttribute('${binding.marker}'); const ${listener} = ($event) => { ${compileStatement(binding.statement, ctxVar, localAccess)}; }; ${variable}.addEventListener(${JSON.stringify(binding.eventName)}, ${listener}); ${recordVar}.cleanups.push(() => ${variable}.removeEventListener(${JSON.stringify(binding.eventName)}, ${listener})); }`);
   });
-
   lines.push(`          ${recordVar}.update = () => { ${updateLines.join(' ')} };`);
 }
 
-function appendSignalForBlockLines(
-  lines: string[],
-  block: ForBlock,
-  rootVar: string,
-  ctxVar: string,
-  cleanupsVar: string,
-  prefix: string,
-  localAccess: LocalAccessMap,
-  index: number
-) {
-  const anchor = `${prefix}_for_anchor_${index}`;
-  const values = `${prefix}_for_values_${index}`;
-  const records = `${prefix}_for_records_${index}`;
-  const oldRecords = `${prefix}_for_old_records_${index}`;
-  const key = `${prefix}_for_key_${index}`;
-  const record = `${prefix}_for_record_${index}`;
-  const nextRecord = `${prefix}_for_next_record_${index}`;
-  const template = `${prefix}_for_template_${index}`;
-  const fragment = `${prefix}_for_fragment_${index}`;
-  const nodes = `${prefix}_for_nodes_${index}`;
-  const childCleanups = `${prefix}_for_cleanups_${index}`;
-  const itemSignal = `${prefix}_for_item_signal_${index}`;
-  const indexSignal = `${prefix}_for_index_signal_${index}`;
-  const nestedPrefix = `${prefix}_for_${index}`;
-  const itemLocalAccess: LocalAccessMap = {
-    ...localAccess,
-    [block.itemName]: `${record}.item()`,
-    $index: `${record}.index()`
-  };
-  const keyLocalAccess: LocalAccessMap = {
-    ...localAccess,
-    [block.itemName]: block.itemName,
-    $index: '$index'
-  };
-  const keyExpression = block.trackExpression
-    ? compileExpression(block.trackExpression, ctxVar, keyLocalAccess)
-    : '$index';
+function appendSignalForBlockLines(lines: string[], block: ForBlock, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap, index: number) {
+  appendFastForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index);
+}
 
-  lines.push(`  const ${anchor} = ${rootVar}.querySelector('[data-ari-for-anchor="${block.anchorId}"]');`);
-  lines.push(`  let ${records} = new Map();`);
-  lines.push(`  if (${anchor}) { ${anchor}.removeAttribute('data-ari-for-anchor');`);
-  lines.push(`    ${cleanupsVar}.push(() => { for (const entry of ${records}.values()) { for (const cleanup of entry.cleanups.splice(0)) cleanup(); for (const node of entry.nodes) node.parentNode?.removeChild(node); } ${records}.clear(); });`);
-  lines.push(`    ${cleanupsVar}.push(__ari_effect(() => {`);
-  lines.push(`      const ${oldRecords} = ${records};`);
-  lines.push(`      ${records} = new Map();`);
-  lines.push(`      const ${values} = Array.from((${compileExpression(block.iterableExpression, ctxVar, localAccess)}) ?? []);`);
-  lines.push(`      let previousNode = ${anchor};`);
-  lines.push(`      for (let i = 0; i < ${values}.length; i++) {`);
-  lines.push(`        const ${block.itemName} = ${values}[i];`);
-  lines.push(`        const $index = i;`);
-  lines.push(`        const ${key} = ${keyExpression};`);
-  lines.push(`        let ${record} = ${oldRecords}.get(${key});`);
-  lines.push(`        if (${record}) {`);
-  lines.push(`          ${record}.item.set(${block.itemName});`);
-  lines.push(`          ${record}.index.set(i);`);
-  lines.push(`          ${records}.set(${key}, ${record});`);
-  lines.push(`        } else {`);
-  lines.push(`          const ${itemSignal} = __ari_signal(${block.itemName});`);
-  lines.push(`          const ${indexSignal} = __ari_signal(i);`);
-  lines.push(`          const ${childCleanups} = [];`);
-  lines.push(`          const ${template} = document.createElement('template');`);
-  lines.push(`          ${template}.innerHTML = ${JSON.stringify(block.segment.html)};`);
-  lines.push(`          const ${fragment} = ${template}.content.cloneNode(true);`);
-  lines.push(`          const ${nodes} = Array.from(${fragment}.childNodes);`);
-  lines.push(`          ${record} = { item: ${itemSignal}, index: ${indexSignal}, nodes: ${nodes}, cleanups: ${childCleanups} };`);
-  appendBindingLines(lines, block.segment, fragment, ctxVar, `${record}.cleanups`, `${nestedPrefix}_item`, itemLocalAccess);
-  lines.push(`          ${records}.set(${key}, ${record});`);
-  lines.push(`        }`);
-  lines.push(`        for (const node of ${record}.nodes) { if (previousNode.nextSibling !== node) previousNode.after(node); previousNode = node; }`);
-  lines.push(`      }`);
-  lines.push(`      for (const [key, ${nextRecord}] of ${oldRecords}) {`);
-  lines.push(`        if (!${records}.has(key)) {`);
-  lines.push(`          for (const cleanup of ${nextRecord}.cleanups.splice(0)) cleanup();`);
-  lines.push(`          for (const node of ${nextRecord}.nodes) node.parentNode?.removeChild(node);`);
-  lines.push(`        }`);
-  lines.push(`      }`);
-  lines.push(`    }));`);
-  lines.push(`  }`);
+function getSimpleListSourceExpression(expression: string, contextName: string, localAccess: LocalAccessMap): string | undefined {
+  const match = expression.match(/^\s*([A-Za-z_$][\w$]*)\s*\(\s*\)\s*$/);
+  if (!match) return undefined;
+  const name = match[1];
+  if (localAccess[name] || isGlobalFunction(name)) return undefined;
+  return `${contextName}.${name}`;
 }
 
 function findMatching(source: string, start: number, open: string, close: string): number {
   let depth = 0;
   let quote: string | null = null;
-
   for (let i = start; i < source.length; i++) {
     const char = source[i];
     const previous = source[i - 1];
-
     if (quote) {
-      if (char === quote && previous !== '\\') {
-        quote = null;
-      }
+      if (char === quote && previous !== '\\') quote = null;
       continue;
     }
-
     if (char === '"' || char === "'" || char === '`') {
       quote = char;
       continue;
     }
-
     if (char === open) depth++;
     if (char === close) depth--;
-
-    if (depth === 0) {
-      return i;
-    }
+    if (depth === 0) return i;
   }
-
   throw new Error(`Ariana template parser could not find matching ${close}.`);
 }
 
 function compileExpression(expression: string, contextName = 'ctx', localAccess: LocalAccessMap = {}): string {
-  const withLocals = expression.replace(/(?<![\w.$])([A-Za-z_$][\w$]*|\$index)/g, (match, name: string) => {
-    return localAccess[name] ?? match;
-  });
-
+  const withLocals = expression.replace(/(?<![\w.$])([A-Za-z_$][\w$]*|\$index)/g, (match, name: string) => localAccess[name] ?? match);
   return withLocals.replace(/(?<![\w.$])([A-Za-z_$][\w$]*)\s*\(/g, (match, name: string) => {
     if (isGlobalFunction(name)) return match;
     return `${contextName}.${name}(`;
