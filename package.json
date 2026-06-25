@@ -1,8 +1,8 @@
 {
-  "name": "ariana-framework-v2-list-compiler-preview",
+  "name": "ariana-framework-v2-keyed-list-preview",
   "private": true,
-  "version": "0.2.2-alpha.0",
-  "description": "Ariana Framework v2 compiler preview with simple list support.",
+  "version": "0.2.3-alpha.0",
+  "description": "Ariana Framework v2 compiler preview with keyed list support.",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -14,7 +14,8 @@
     "typecheck": "tsc -b packages/core packages/vite-plugin examples/counter-app --pretty",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
     "build:counter": "npm --workspace @ariana/counter-app run build",
-    "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench"
+    "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench",
+    "benchmark:list": "npm --prefix benchmarks/list-update install && npm --prefix benchmarks/list-update run bench"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
