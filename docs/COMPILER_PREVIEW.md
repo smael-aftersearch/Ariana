@@ -29,7 +29,7 @@ import style from './counter.css?raw';
 })
 ```
 
-Now, for simple templates, the plugin reads the HTML file during transform and generates a `render` function:
+Now, for supported templates, the plugin reads the HTML file during transform and generates a `render` function:
 
 ```ts
 @Component({
@@ -46,12 +46,14 @@ Now, for simple templates, the plugin reads the HTML file during transform and g
 
 ## Supported in this compiler preview
 
-The current compiler preview supports simple templates with:
+The current compiler preview supports templates with:
 
 - text interpolation: `{{ count() }}`
 - event binding: `(click)="increment()"`
 - property binding: `[value]="step()"`
 - class binding: `[class.high]="count() >= 10"`
+- simple conditional blocks: `@if (show()) { ... }`
+- nested bindings inside compiled conditional blocks
 - external CSS through `styleUrl`
 
 Example:
@@ -61,6 +63,10 @@ Example:
 <button (click)="increment()">+</button>
 <input [value]="step()" />
 <p [class.high]="count() >= 10">Status</p>
+
+@if (showDetails()) {
+  <p>Double: {{ double() }}</p>
+}
 ```
 
 ---
@@ -71,14 +77,21 @@ The compiler intentionally falls back to the v1 runtime renderer when it sees un
 
 Currently unsupported in the compiler preview:
 
-- `@if`
 - `@for`
+- `@else` / `@else if`
 - child component compilation
-- structural control flow
 - advanced expression analysis
 - template type-checking
 
 This fallback is intentional. It lets Ariana move forward safely without breaking existing v1 templates.
+
+---
+
+## Current conditional compiler limits
+
+The current `@if` compiler is intentionally simple. It supports basic truthy/falsy conditional blocks and nested text/event/property/class bindings inside the block.
+
+It does not yet support `@else`, `@else if`, keyed retention, child component creation inside compiled branches, or template type-checking.
 
 ---
 
@@ -100,8 +113,8 @@ Ariana v2 compiled-render path:
   available in core runtime
 
 Ariana v2 compiler preview:
-  implemented in Vite plugin for simple templates
+  implemented in Vite plugin for simple templates and simple conditional blocks
 
 Next:
-  real template AST, safer expression compiler, control-flow compiler, child component compiler
+  real template AST, safer expression compiler, @for compiler, child component compiler
 ```
