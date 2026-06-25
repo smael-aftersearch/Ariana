@@ -1,0 +1,19 @@
+{
+  "name": "@ariana/counter-app",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "typecheck": "tsc -b --pretty"
+  },
+  "dependencies": {
+    "@ariana/core": "workspace:*",
+    "@ariana/vite-plugin": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0"
+  }
+}
