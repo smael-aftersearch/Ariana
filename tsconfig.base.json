@@ -4,6 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "strict": true,
+    "noImplicitOverride": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": true,
     "skipLibCheck": true,
@@ -11,6 +12,10 @@
     "declaration": true,
     "sourceMap": true,
     "declarationMap": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "p\u0061ths": {
+      "@ariana/core": ["packages/core/src/index.ts"],
+      "@ariana/vite-plugin": ["packages/vite-plugin/src/index.ts"]
+    }
   }
 }
