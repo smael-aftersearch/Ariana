@@ -1,7 +1,7 @@
 {
   "name": "@ariana/vite-plugin",
-  "version": "0.2.3-alpha.0",
-  "description": "Vite plugin for Ariana resource transforms and keyed list compiler preview.",
+  "version": "0.2.4-alpha.0",
+  "description": "Vite plugin for Ariana resource transforms, keyed lists, and fast row binding compiler preview.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
