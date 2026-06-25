@@ -1,4 +1,4 @@
-import { formControl, formGroup, required, minLength } from '../../packages/forms/dist/index.js';
+import { formControl, formGroup, required, minLength, asyncUnique } from '../../packages/forms/dist/index.js';
 import { createQueryClient } from '../../packages/query/dist/index.js';
 import { test, assert, equal } from './test-runner.mjs';
 
@@ -21,6 +21,25 @@ test('forms: formControl validates and tracks dirty/touched state', () => {
   equal(control.touched(), false);
 });
 
+test('forms: formControl supports async validators and pending state', async () => {
+  const control = formControl('taken', {
+    asyncValidators: [asyncUnique(async value => value !== 'taken')]
+  });
+
+  const validation = control.validateAsync();
+  equal(control.pending(), true);
+  const errors = await validation;
+  equal(control.pending(), false);
+  assert(errors?.unique !== undefined);
+  equal(control.valid(), false);
+
+  control.setValue('available');
+  equal(control.asyncErrors(), undefined);
+  const nextErrors = await control.validateAsync();
+  equal(nextErrors, undefined);
+  equal(control.valid(), true);
+});
+
 test('forms: formGroup aggregates value, validity and patch updates', () => {
   const group = formGroup({
     name: formControl('', [required()]),
@@ -32,6 +51,22 @@ test('forms: formGroup aggregates value, validity and patch updates', () => {
   equal(group.valid(), true);
   equal(group.value().name, 'Ariana');
   equal(group.value().email, 'a@example.com');
+});
+
+test('forms: formGroup runs async validation across controls', async () => {
+  const group = formGroup({
+    username: formControl('taken', { asyncValidators: [asyncUnique(async value => value !== 'taken')] }),
+    email: formControl('a@example.com')
+  });
+
+  const errors = await group.validateAsync();
+  assert(errors?.username?.unique !== undefined);
+  equal(group.valid(), false);
+
+  group.patchValue({ username: 'new-user' });
+  const nextErrors = await group.validateAsync();
+  equal(nextErrors, undefined);
+  equal(group.valid(), true);
 });
 
 test('query: set/get/invalidate/clear update query state', () => {
