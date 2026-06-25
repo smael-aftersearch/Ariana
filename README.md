@@ -1,29 +1,57 @@
 # Ariana Framework
 
-**Ariana** is a TypeScript-first, class-based frontend framework experiment focused on building large, structured UI applications with predictable performance.
+**Ariana** is a TypeScript-first, class-based frontend framework experiment for building large, structured UI applications with predictable performance.
 
-Ariana starts from the parts we like in Angular — class components, clear metadata, dependency injection, external HTML/CSS, and enterprise structure — but removes the historical complexity we do not want:
+Ariana is currently an **AI-built framework prototype**. The repository is being designed, documented, and implemented through an AI engineering workflow led by **ChatGPT, GPT-5.5 Thinking**, acting as an AI software engineering assistant under human direction.
+
+This is intentionally stated in the README because transparency matters. The code, architecture notes, roadmap, and technical decisions are produced through AI-assisted engineering and must be reviewed, tested, benchmarked, and hardened before production use.
+
+> Ariana v1 is an alpha prototype. It proves the component model, reactivity model, rendering direction, and project structure. It is not production-ready yet.
+
+---
+
+## AI authorship
+
+This repository is fully AI-assisted at this stage.
+
+```txt
+AI assistant: ChatGPT
+Model identity: GPT-5.5 Thinking
+Role: AI software engineering assistant
+Responsibilities: architecture, documentation, v1 prototype implementation, roadmap planning, benchmark planning
+```
+
+The AI assistant reviewed the trade-offs of Angular, React, Vue, Svelte, Solid, Qwik, Astro, Next/Nuxt-style rendering, and Blazor/Razor-style ergonomics. The conclusion was to start Ariana with a narrow and testable direction:
+
+```txt
+Angular-like class structure
++ Solid-like signal reactivity
++ Svelte-like compiler direction
++ external HTML/CSS by default
+- NgModule
+- standalone flag
+- Zone.js
+- Virtual DOM
+- global change detection
+```
+
+Detailed AI engineering notes are available in [docs/AI_ENGINEERING.md](docs/AI_ENGINEERING.md).
+
+---
+
+## What Ariana is trying to prove
+
+Ariana v1 tries to prove that a framework can keep the disciplined, class-based developer experience that many Angular developers like, while removing historical pieces that are not needed in a new framework:
 
 - no `NgModule`
 - no `standalone: true`
 - no Zone.js
 - no global change detection
 - no Virtual DOM
-- no implicit framework magic that creates unpredictable architecture
+- no forced single-file component format
+- no implicit module/standalone complexity
 
-> Ariana v1 is an alpha prototype. It proves the component model, reactivity model, rendering direction, and project structure. It is not production-ready yet.
-
----
-
-## فارسی
-
-آریانا یک فریم‌ورک فرانت‌اند بر پایه TypeScript است که هدفش ساخت اپلیکیشن‌های بزرگ، منظم و سریع است.
-
-ایده اصلی این است:
-
-> ساختار تمیز و کلاس‌محور شبیه Angular، اما بدون ماژول، بدون `standalone`، بدون Zone.js، بدون Change Detection سراسری و بدون Virtual DOM.
-
-در آریانا همه‌ی کامپوننت‌ها ذاتاً مستقل هستند، پس چیزی به اسم `standalone: true` نداریم. این مفهوم فقط در Angular به خاطر تاریخچه‌ی `NgModule` معنی دارد.
+In Ariana, every component is independent by design. Because there is no module system, there is no need for a `standalone` flag.
 
 ---
 
@@ -36,7 +64,7 @@ Status:
   Experimental / prototype
 
 Main goal:
-  Prove a fast, class-based, signal-driven component runtime.
+  Prove a class-based, signal-driven component runtime with external HTML/CSS.
 ```
 
 Implemented in this repository:
@@ -58,34 +86,6 @@ Implemented in this repository:
 - basic `@for`
 - basic child component mounting
 - counter demo app
-
----
-
-## Why Ariana?
-
-Modern frontend frameworks usually force one of these trade-offs:
-
-| Framework style | Good part | Problem Ariana tries to avoid |
-|---|---|---|
-| Angular | Structure, DI, enterprise discipline | NgModule history, Zone.js, heavy mental model |
-| React | Composition, ecosystem | component rerender cost, external-library sprawl |
-| Vue | Readability | less strict enterprise architecture by default |
-| Svelte | compiler output | different syntax and less Angular-like enterprise feel |
-| Solid | fine-grained reactivity | smaller ecosystem and less opinionated structure |
-| Qwik | resumability | very complex architecture for v1 |
-
-Ariana v1 chooses this direction:
-
-```txt
-Angular-like class structure
-+ Signal-based fine-grained updates
-+ External HTML/CSS by default
-+ Compiler-ready template design
-- NgModule
-- standalone flag
-- Virtual DOM
-- Zone.js
-```
 
 ---
 
@@ -154,11 +154,12 @@ examples/
   counter-app/          Ariana v1 demo app
 
 docs/
-  ARCHITECTURE.md       technical architecture
-  GETTING_STARTED.md    local setup
-  ROADMAP.md            v1/v2/v3/v4 plan
-  DECISIONS.md          core technical decisions
-  BENCHMARK_PLAN.md     React comparison plan
+  ARCHITECTURE.md
+  GETTING_STARTED.md
+  ROADMAP.md
+  DECISIONS.md
+  BENCHMARK_PLAN.md
+  AI_ENGINEERING.md
 ```
 
 ---
@@ -170,28 +171,10 @@ Requirements:
 - Node.js 20+
 - npm 10+
 
-Install:
-
 ```bash
 npm install
-```
-
-Build all packages and the example:
-
-```bash
 npm run build
-```
-
-Run the counter demo:
-
-```bash
 npm run demo:counter
-```
-
-Clean build output:
-
-```bash
-npm run clean
 ```
 
 ---
@@ -218,7 +201,7 @@ Goal: replace the runtime template parser with a compile-time renderer.
 
 - real template compiler
 - direct DOM instruction generation
-- no `new Function` in production output
+- production-safe expression handling
 - template diagnostics
 - first React benchmark suite
 - performance budget rules
@@ -276,6 +259,12 @@ Benchmark plan: [docs/BENCHMARK_PLAN.md](docs/BENCHMARK_PLAN.md)
 - the v1 renderer is temporary and will be replaced by a compiler
 
 More: [docs/DECISIONS.md](docs/DECISIONS.md)
+
+---
+
+## Human review required
+
+Ariana is being built by AI and must be reviewed as such. Before production use, the project needs human code review, benchmark validation, API design review, test coverage, and package publishing review.
 
 ---
 
