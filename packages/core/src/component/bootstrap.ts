@@ -1,0 +1,47 @@
+import { Injector, runInInjectionContext, type Provider } from '../di/index.js';
+import { renderComponent } from '../template/render.js';
+import { getComponentMetadata } from './component.js';
+import type { ComponentType } from './metadata.js';
+
+export type BootstrapOptions = {
+  providers?: Provider[];
+};
+
+export function bootstrap<T>(
+  componentType: ComponentType<T>,
+  host: string | HTMLElement,
+  options: BootstrapOptions = {}
+): T {
+  const hostElement = typeof host === 'string'
+    ? document.querySelector(host)
+    : host;
+
+  if (!hostElement) {
+    throw new Error(`Ariana bootstrap failed: host element not found (${String(host)}).`);
+  }
+
+  const metadata = getComponentMetadata(componentType);
+  const rootInjector = new Injector(options.providers ?? []);
+  const componentInjector = rootInjector.createChild(metadata.providers ?? []);
+  const component = runInInjectionContext(componentInjector, () => new componentType());
+
+  renderComponent(component, metadata, hostElement as HTMLElement, componentInjector);
+
+  if (hasLifecycle(component, 'onInit')) {
+    component.onInit();
+  }
+
+  return component;
+}
+
+function hasLifecycle<TName extends string>(
+  instance: unknown,
+  method: TName
+): instance is Record<TName, () => void> {
+  return Boolean(
+    instance &&
+    typeof instance === 'object' &&
+    method in instance &&
+    typeof (instance as Record<TName, unknown>)[method] === 'function'
+  );
+}
