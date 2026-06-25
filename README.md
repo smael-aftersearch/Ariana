@@ -6,7 +6,7 @@ Ariana is currently an **AI-built framework prototype**. The repository is being
 
 This is intentionally stated in the README because transparency matters. The code, architecture notes, roadmap, and technical decisions are produced through AI-assisted engineering and must be reviewed, tested, benchmarked, and hardened before production use.
 
-> Ariana v1 is an alpha prototype. It proves the component model, reactivity model, rendering direction, and project structure. It is not production-ready yet.
+> Ariana is currently in v2 compiler preview. It proves the class-based component model, signal reactivity, compiled-render runtime path, and the first limited template compiler. It is not production-ready yet.
 
 ---
 
@@ -41,7 +41,7 @@ Detailed AI engineering notes are available in [docs/AI_ENGINEERING.md](docs/AI_
 
 ## What Ariana is trying to prove
 
-Ariana v1 tries to prove that a framework can keep the disciplined, class-based developer experience that many Angular developers like, while removing historical pieces that are not needed in a new framework:
+Ariana tries to prove that a framework can keep the disciplined, class-based developer experience that many Angular developers like, while removing historical pieces that are not needed in a new framework:
 
 - no `NgModule`
 - no `standalone: true`
@@ -58,13 +58,13 @@ In Ariana, every component is independent by design. Because there is no module 
 ## Current status
 
 ```txt
-Ariana v1 alpha
+Ariana v2 compiler preview
 
 Status:
   Experimental / prototype
 
 Main goal:
-  Prove a class-based, signal-driven component runtime with external HTML/CSS.
+  Prove a class-based, signal-driven component runtime with external HTML/CSS and a first limited compiler path.
 ```
 
 Implemented in this repository:
@@ -77,14 +77,15 @@ Implemented in this repository:
 - `bootstrap()`
 - basic dependency injection with `inject()`
 - external `templateUrl` / `styleUrl`
-- Vite plugin for converting external templates/styles into raw imports
+- Vite plugin that compiles simple templates into render functions
+- runtime fallback for unsupported templates
 - basic interpolation: `{{ count() }}`
 - event binding: `(click)="increment()"`
 - property binding: `[value]="step()"`
 - class binding: `[class.high]="count() >= 10"`
-- basic `@if`
-- basic `@for`
-- basic child component mounting
+- basic `@if` through runtime fallback
+- basic `@for` through runtime fallback
+- basic child component mounting through runtime fallback
 - counter demo app
 
 ---
@@ -117,23 +118,6 @@ export class CounterPage {
 }
 ```
 
-```html
-<section class="counter-page">
-  <h1>Ariana Counter</h1>
-
-  <p>Count: {{ count() }}</p>
-  <p>Double: {{ double() }}</p>
-  <p [class.high]="count() >= 10">Status: {{ status() }}</p>
-
-  <button (click)="decrement()">-</button>
-  <button (click)="increment()">+</button>
-
-  @if (showDetails()) {
-    <p>This block is rendered only when showDetails is true.</p>
-  }
-</section>
-```
-
 ---
 
 ## Repository structure
@@ -145,13 +129,13 @@ packages/
       reactivity/       signal, computed, effect
       component/        Component, Route, bootstrap
       di/               Injector, inject, providers
-      template/         alpha runtime template renderer
+      template/         alpha runtime renderer + compiled-render path
 
   vite-plugin/
-    src/                templateUrl/styleUrl transform
+    src/                templateUrl/styleUrl transform + first compiler preview
 
 examples/
-  counter-app/          Ariana v1 demo app
+  counter-app/          Ariana demo app
 
 docs/
   ARCHITECTURE.md
@@ -160,6 +144,7 @@ docs/
   DECISIONS.md
   BENCHMARK_PLAN.md
   AI_ENGINEERING.md
+  COMPILER_PREVIEW.md
 ```
 
 ---
@@ -175,6 +160,7 @@ Requirements:
 npm install
 npm run build
 npm run demo:counter
+npm run benchmark:micro
 ```
 
 ---
@@ -199,12 +185,13 @@ Goal: prove the heart of Ariana.
 
 Goal: replace the runtime template parser with a compile-time renderer.
 
-- real template compiler
-- direct DOM instruction generation
-- production-safe expression handling
-- template diagnostics
-- first React benchmark suite
-- performance budget rules
+- compiled-render runtime path
+- first limited Vite compiler preview
+- direct DOM instruction direction
+- production-safe expression handling later
+- template diagnostics later
+- React/Vue/Solid/Angular benchmark suite
+- performance budget rules later
 
 ### v3 — Enterprise application layer
 
@@ -241,9 +228,7 @@ The actual target is more precise:
 
 > Ariana should have less framework overhead than React for fine-grained UI updates, form-heavy screens, single-row updates, and signal-bound text/attribute updates.
 
-The current v1 renderer is a runtime prototype. Real React comparisons should happen after v2 introduces the production compiler.
-
-Benchmark plan: [docs/BENCHMARK_PLAN.md](docs/BENCHMARK_PLAN.md)
+Benchmark reports are available in the `docs/` folder.
 
 ---
 
@@ -256,7 +241,7 @@ Benchmark plan: [docs/BENCHMARK_PLAN.md](docs/BENCHMARK_PLAN.md)
 - `inject()` is preferred over constructor reflection
 - external HTML/CSS is the default
 - signals are the core state primitive
-- the v1 renderer is temporary and will be replaced by a compiler
+- the v1 renderer is temporary and is being replaced by compiler-generated render functions
 
 More: [docs/DECISIONS.md](docs/DECISIONS.md)
 
