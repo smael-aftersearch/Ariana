@@ -1,6 +1,6 @@
 {
   "name": "@ariana/vite-plugin",
-  "version": "0.2.1-alpha.0",
+  "version": "0.2.2-alpha.0",
   "description": "Vite plugin for Ariana resource transforms and compiler preview.",
   "type": "module",
   "main": "./dist/index.js",
