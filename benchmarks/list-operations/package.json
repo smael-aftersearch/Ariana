@@ -1,0 +1,14 @@
+{
+  "name": "@ariana/benchmark-list-operations",
+  "version": "0.2.7-alpha.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "node bench.mjs"
+  },
+  "dependencies": {
+    "@ariana/core": "file:../../packages/core",
+    "@ariana/vite-plugin": "file:../../packages/vite-plugin",
+    "jsdom": "^29.1.1"
+  }
+}
