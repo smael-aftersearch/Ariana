@@ -1,0 +1,13 @@
+{
+  "name": "@ariana/rendering",
+  "version": "0.4.0-alpha.0",
+  "description": "Ariana v4 rendering preview.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty"
+  },
+  "sideEffects": false
+}
