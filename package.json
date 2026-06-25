@@ -12,6 +12,7 @@
     "build": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin examples/counter-app",
     "clean": "node scripts/clean.mjs",
     "typecheck": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin examples/counter-app --pretty",
+    "test": "node tests/unit/test-runner.mjs",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
     "build:counter": "npm --workspace @ariana/counter-app run build",
     "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench",
