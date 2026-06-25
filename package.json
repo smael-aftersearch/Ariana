@@ -1,8 +1,8 @@
 {
-  "name": "ariana-framework-v2-keyed-list-preview",
+  "name": "ariana-framework-v2-fast-row-binding-preview",
   "private": true,
-  "version": "0.2.3-alpha.0",
-  "description": "Ariana Framework v2 compiler preview with keyed list support.",
+  "version": "0.2.4-alpha.0",
+  "description": "Ariana Framework v2 compiler preview with fast row binding support.",
   "type": "module",
   "workspaces": [
     "packages/*",
