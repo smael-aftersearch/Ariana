@@ -1,8 +1,8 @@
 {
-  "name": "ariana-framework-v2-compiler-preview",
+  "name": "ariana-framework-v2-list-compiler-preview",
   "private": true,
-  "version": "0.2.1-alpha.0",
-  "description": "Ariana Framework v2 compiler preview - TypeScript-first class-based UI framework prototype.",
+  "version": "0.2.2-alpha.0",
+  "description": "Ariana Framework v2 compiler preview with simple list support.",
   "type": "module",
   "workspaces": [
     "packages/*",
