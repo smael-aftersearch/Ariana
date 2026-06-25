@@ -1,0 +1,34 @@
+<section class="counter-page">
+  <header>
+    <p class="eyebrow">Ariana v1 alpha</p>
+    <h1>No VDOM. No Zone. Class-based TypeScript.</h1>
+  </header>
+
+  <div class="counter-card" [class.high]="count() >= 10">
+    <p class="label">Count</p>
+    <strong>{{ count() }}</strong>
+    <span>Status: {{ status() }}</span>
+  </div>
+
+  <div class="actions">
+    <button (click)="decrement()">-</button>
+    <button (click)="increment()">+</button>
+    <button (click)="reset()">Reset</button>
+  </div>
+
+  <label class="field">
+    Step
+    <input type="number" [value]="step()" (input)="changeStep($event.target.value)" />
+  </label>
+
+  <button class="secondary" (click)="toggleDetails()">
+    Toggle details
+  </button>
+
+  @if (showDetails()) {
+    <div class="details">
+      <p>Double: {{ double() }}</p>
+      <p>Current step: {{ step() }}</p>
+    </div>
+  }
+</section>
