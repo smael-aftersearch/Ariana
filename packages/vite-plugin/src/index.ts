@@ -74,7 +74,7 @@ function transformComponentResources(code: string, id: string, compileTemplates:
   });
 
   if (usedCompiler && !code.includes('effect as __ari_effect')) {
-    imports.unshift(`import { effect as __ari_effect } from '@ariana/core';`);
+    imports.unshift(`import { effect as __ari_effect, signal as __ari_signal } from '@ariana/core';`);
   }
 
   if (imports.length > 0) {
