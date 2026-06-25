@@ -1,4 +1,4 @@
-import type { Constructor, Provider } from '../di/index.js';
+import type { Constructor, Injector, Provider } from '../di/index.js';
 
 export type ComponentOptions = {
   selector: string;
@@ -8,6 +8,7 @@ export type ComponentOptions = {
   style?: string;
   components?: Constructor[];
   providers?: Provider[];
+  render?: (component: unknown, host: HTMLElement, injector: Injector) => void | (() => void);
 };
 
 export type RouteOptions = {
