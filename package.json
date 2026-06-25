@@ -1,8 +1,8 @@
 {
-  "name": "ariana-framework-v1-alpha",
+  "name": "ariana-framework-v2-compiled-preview",
   "private": true,
-  "version": "0.1.0-alpha.0",
-  "description": "Ariana Framework v1 alpha - TypeScript-first class-based UI framework prototype.",
+  "version": "0.2.0-alpha.0",
+  "description": "Ariana Framework v2 compiled-render preview - TypeScript-first class-based UI framework prototype.",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -13,7 +13,8 @@
     "clean": "node scripts/clean.mjs",
     "typecheck": "tsc -b packages/core packages/vite-plugin examples/counter-app --pretty",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
-    "build:counter": "npm --workspace @ariana/counter-app run build"
+    "build:counter": "npm --workspace @ariana/counter-app run build",
+    "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
