@@ -1,0 +1,12 @@
+{
+  "name": "@ariana/benchmark-islands",
+  "version": "0.4.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bench": "node bench.mjs"
+  },
+  "dependencies": {
+    "@ariana/rendering": "file:../../packages/rendering"
+  }
+}
