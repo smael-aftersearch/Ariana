@@ -1,17 +1,17 @@
 {
-  "name": "ariana-framework-v3-enterprise-preview",
+  "name": "ariana-framework-v4-release-ready",
   "private": true,
-  "version": "0.3.0-alpha.0",
-  "description": "Ariana Framework v3 enterprise preview with v2 compiler completion, list operations, AST groundwork, and typed router.",
+  "version": "0.4.0-alpha.0",
+  "description": "Ariana Framework v4 release-ready preview with npm package artifacts and guarded publish workflow.",
   "type": "module",
   "workspaces": [
     "packages/*",
     "examples/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/core packages/compiler packages/router packages/vite-plugin examples/counter-app",
+    "build": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin examples/counter-app",
     "clean": "node scripts/clean.mjs",
-    "typecheck": "tsc -b packages/core packages/compiler packages/router packages/vite-plugin examples/counter-app --pretty",
+    "typecheck": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin examples/counter-app --pretty",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
     "build:counter": "npm --workspace @ariana/counter-app run build",
     "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench",
@@ -19,7 +19,15 @@
     "benchmark:scheduler": "npm --prefix benchmarks/list-scheduler run bench",
     "benchmark:ops": "npm --prefix benchmarks/list-operations install && npm --prefix benchmarks/list-operations run bench",
     "benchmark:router": "npm --prefix benchmarks/router install && npm --prefix benchmarks/router run bench",
-    "benchmark:ast": "npm --prefix benchmarks/compiler-ast install && npm --prefix benchmarks/compiler-ast run bench"
+    "benchmark:ast": "npm --prefix benchmarks/compiler-ast install && npm --prefix benchmarks/compiler-ast run bench",
+    "benchmark:forms": "npm --prefix benchmarks/forms install && npm --prefix benchmarks/forms run bench",
+    "benchmark:query": "npm --prefix benchmarks/query install && npm --prefix benchmarks/query run bench",
+    "benchmark:rendering": "npm --prefix benchmarks/rendering install && npm --prefix benchmarks/rendering run bench",
+    "benchmark:release": "npm run benchmark:ops && npm run benchmark:router && npm run benchmark:ast && npm run benchmark:forms && npm run benchmark:query && npm run benchmark:rendering",
+    "pack:npm": "node scripts/pack-npm.mjs",
+    "publish:npm": "node scripts/publish-npm.mjs",
+    "publish:npm:dry": "node scripts/publish-npm.mjs --dry-run",
+    "verify:release": "node scripts/verify-release.mjs"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
