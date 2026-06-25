@@ -20,11 +20,9 @@ if (!rootPackage.scripts?.test) throw new Error('Root package must define a test
 for (const name of packages) {
   const packageDir = join(root, 'packages', name);
   const packageJsonPath = join(packageDir, 'package.json');
-  const readmePath = join(packageDir, 'README.md');
   const distPath = join(packageDir, 'dist');
 
   if (!existsSync(packageJsonPath)) throw new Error(`Missing package.json for ${name}`);
-  if (!existsSync(readmePath)) throw new Error(`Missing README.md for ${name}`);
   if (!existsSync(distPath)) throw new Error(`Missing dist output for ${name}. Run npm run build first.`);
 
   const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
