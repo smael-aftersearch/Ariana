@@ -35,6 +35,7 @@ The current compiler preview supports templates with:
 - class binding: `[class.high]="count() >= 10"`
 - simple conditional blocks: `@if (show()) { ... }`
 - keyed loops: `@for (item of items(); track item.id) { ... }`
+- fast row binding for simple loop bodies
 - nested bindings inside compiled `@if` and `@for` blocks
 - access to loop locals such as `item` and `$index`
 - external CSS through `styleUrl`
@@ -57,19 +58,13 @@ Example:
 
 ## Keyed `@for` behavior
 
-Compiled `@for` now uses the `track` expression.
+Compiled `@for` uses the `track` expression.
 
-The generated code keeps a `Map` of row records. Each record stores:
+The generated code keeps a `Map` of row records. Each record stores the stable key, DOM nodes, cleanup callbacks, the latest row item, the latest row index, and a generated `update()` function for simple row bodies.
 
-- the stable key
-- DOM nodes for that row
-- cleanup callbacks
-- an item signal
-- an index signal
+When the list updates, Ariana reuses records with the same key, updates the item/index values, calls the row updater only when the item or index changed, moves DOM nodes only when order changes, and removes records whose keys disappeared.
 
-When the list updates, Ariana reuses records with the same key, updates the item/index signals, moves DOM nodes only when order changes, and removes records whose keys disappeared.
-
-This is still a preview implementation, but it no longer recreates the whole list on every update.
+For complex rows that contain nested control flow, Ariana falls back to the signal-based row strategy. This is still a preview implementation, but it no longer recreates the whole list on every update.
 
 ---
 
@@ -91,7 +86,7 @@ Currently unsupported in the compiler preview:
 
 The current compiler is still string/regex-based. It should be replaced with a real template AST.
 
-The keyed list implementation is correct enough for preview testing, but it still has mount overhead because each row creates signal-based row bindings.
+The keyed list implementation is correct enough for preview testing. Simple rows now use a direct row updater, while complex rows still use signal-based row bindings. The next bottleneck is list-level scheduling because the top-level list effect still scans the whole list on each update.
 
 ---
 
@@ -105,8 +100,8 @@ Ariana v2 compiled-render path:
   available in core runtime
 
 Ariana v2 compiler preview:
-  simple templates, simple conditionals, keyed loops
+  simple templates, simple conditionals, keyed loops, fast simple-row updates
 
 Next:
-  real template AST, safer expression compiler, faster keyed row updates, child component compiler
+  real template AST, safer expression compiler, list-level scheduling, child component compiler
 ```
