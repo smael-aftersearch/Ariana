@@ -10,27 +10,6 @@ This is not the final compiler. It is the current bridge from the v1 runtime tem
 
 The Vite plugin no longer only converts external resources into raw imports. For supported templates, it reads the external HTML file during transform and generates a `render` function directly inside component metadata.
 
-Before:
-
-```ts
-@Component({
-  templateUrl: './counter.html',
-  styleUrl: './counter.css'
-})
-```
-
-Earlier v1 transform:
-
-```ts
-import template from './counter.html?raw';
-import style from './counter.css?raw';
-
-@Component({
-  template,
-  style
-})
-```
-
 Current compiler-preview transform for supported templates:
 
 ```ts
@@ -55,7 +34,7 @@ The current compiler preview supports templates with:
 - property binding: `[value]="step()"`
 - class binding: `[class.high]="count() >= 10"`
 - simple conditional blocks: `@if (show()) { ... }`
-- simple loops: `@for (item of items(); track item.id) { ... }`
+- keyed loops: `@for (item of items(); track item.id) { ... }`
 - nested bindings inside compiled `@if` and `@for` blocks
 - access to loop locals such as `item` and `$index`
 - external CSS through `styleUrl`
@@ -63,9 +42,6 @@ The current compiler preview supports templates with:
 Example:
 
 ```html
-<p>Count: {{ count() }}</p>
-<button (click)="increment()">+</button>
-
 @if (showDetails()) {
   <p>Double: {{ double() }}</p>
 }
@@ -79,6 +55,24 @@ Example:
 
 ---
 
+## Keyed `@for` behavior
+
+Compiled `@for` now uses the `track` expression.
+
+The generated code keeps a `Map` of row records. Each record stores:
+
+- the stable key
+- DOM nodes for that row
+- cleanup callbacks
+- an item signal
+- an index signal
+
+When the list updates, Ariana reuses records with the same key, updates the item/index signals, moves DOM nodes only when order changes, and removes records whose keys disappeared.
+
+This is still a preview implementation, but it no longer recreates the whole list on every update.
+
+---
+
 ## Fallback behavior
 
 The compiler intentionally falls back to the v1 runtime renderer when it sees unsupported or invalid syntax.
@@ -86,31 +80,18 @@ The compiler intentionally falls back to the v1 runtime renderer when it sees un
 Currently unsupported in the compiler preview:
 
 - `@else` / `@else if`
-- keyed DOM retention for `@for`
 - child component compilation
 - advanced expression analysis
 - template type-checking
 - source mapped compiler diagnostics
 
-This fallback is intentional. It lets Ariana move forward safely without breaking existing v1 templates.
-
 ---
 
-## Current control-flow compiler limits
+## Current limits
 
-The current `@if` compiler supports truthy/falsy blocks and nested bindings.
+The current compiler is still string/regex-based. It should be replaced with a real template AST.
 
-The current `@for` compiler supports simple rerendering of the loop body. It accepts a `track` expression, but the generated code does not yet use it for keyed DOM reuse. Every list update currently clears and recreates the loop body.
-
-This is acceptable for a compiler preview, but the real v2 compiler should implement keyed reconciliation.
-
----
-
-## Why this matters
-
-The v2 performance benchmark showed that Ariana can be very fast when the template path is compiled into direct render logic.
-
-The next step is to grow this compiler until the manual compiled-preview path becomes fully generated from normal `.html` templates.
+The keyed list implementation is correct enough for preview testing, but it still has mount overhead because each row creates signal-based row bindings.
 
 ---
 
@@ -124,8 +105,8 @@ Ariana v2 compiled-render path:
   available in core runtime
 
 Ariana v2 compiler preview:
-  implemented in Vite plugin for simple templates, simple conditionals, and simple loops
+  simple templates, simple conditionals, keyed loops
 
 Next:
-  real template AST, safer expression compiler, keyed @for reconciliation, child component compiler
+  real template AST, safer expression compiler, faster keyed row updates, child component compiler
 ```
