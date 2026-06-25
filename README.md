@@ -83,7 +83,7 @@ Implemented in this repository:
 - event binding: `(click)="increment()"`
 - property binding: `[value]="step()"`
 - class binding: `[class.high]="count() >= 10"`
-- basic `@if` through runtime fallback
+- simple `@if` compiled by the Vite compiler preview
 - basic `@for` through runtime fallback
 - basic child component mounting through runtime fallback
 - counter demo app
@@ -187,6 +187,7 @@ Goal: replace the runtime template parser with a compile-time renderer.
 
 - compiled-render runtime path
 - first limited Vite compiler preview
+- simple `@if` compiler support
 - direct DOM instruction direction
 - production-safe expression handling later
 - template diagnostics later
