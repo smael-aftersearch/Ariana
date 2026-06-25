@@ -1,23 +1,25 @@
 {
-  "name": "ariana-framework-v2-list-operations-preview",
+  "name": "ariana-framework-v3-enterprise-preview",
   "private": true,
-  "version": "0.2.7-alpha.0",
-  "description": "Ariana Framework v2 compiler preview with listSignal-driven update, insert, and remove operations.",
+  "version": "0.3.0-alpha.0",
+  "description": "Ariana Framework v3 enterprise preview with v2 compiler completion, list operations, AST groundwork, and typed router.",
   "type": "module",
   "workspaces": [
     "packages/*",
     "examples/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/core packages/vite-plugin examples/counter-app",
+    "build": "tsc -b packages/core packages/compiler packages/router packages/vite-plugin examples/counter-app",
     "clean": "node scripts/clean.mjs",
-    "typecheck": "tsc -b packages/core packages/vite-plugin examples/counter-app --pretty",
+    "typecheck": "tsc -b packages/core packages/compiler packages/router packages/vite-plugin examples/counter-app --pretty",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
     "build:counter": "npm --workspace @ariana/counter-app run build",
     "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench",
     "benchmark:list": "npm --prefix benchmarks/list-update install && npm --prefix benchmarks/list-update run bench",
     "benchmark:scheduler": "npm --prefix benchmarks/list-scheduler run bench",
-    "benchmark:ops": "npm --prefix benchmarks/list-operations install && npm --prefix benchmarks/list-operations run bench"
+    "benchmark:ops": "npm --prefix benchmarks/list-operations install && npm --prefix benchmarks/list-operations run bench",
+    "benchmark:router": "npm --prefix benchmarks/router install && npm --prefix benchmarks/router run bench",
+    "benchmark:ast": "npm --prefix benchmarks/compiler-ast install && npm --prefix benchmarks/compiler-ast run bench"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
