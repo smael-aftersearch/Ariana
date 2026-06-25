@@ -1,7 +1,7 @@
 {
   "name": "@ariana/core",
-  "version": "0.2.0-alpha.0",
-  "description": "Ariana Framework core runtime with compiled-render preview support.",
+  "version": "0.2.5-alpha.0",
+  "description": "Ariana Framework core runtime with listSignal targeted scheduling support.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
