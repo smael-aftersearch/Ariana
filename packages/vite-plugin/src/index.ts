@@ -1,6 +1,8 @@
 import { dirname, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
+import { parseTemplateToAst } from '@ariana/compiler';
 import { compileTemplateToRender } from './compiler.js';
+
 
 type VitePlugin = {
   name: string;
@@ -11,6 +13,7 @@ type VitePlugin = {
 export type ArianaVitePluginOptions = {
   include?: RegExp;
   compileTemplates?: boolean;
+  strictTemplates?: boolean;
 };
 
 type ResourceTransformResult = {
@@ -21,6 +24,7 @@ type ResourceTransformResult = {
 export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
   const include = options.include ?? /\.(ts|tsx)$/;
   const compileTemplates = options.compileTemplates ?? true;
+  const strictTemplates = options.strictTemplates ?? true;
 
   return {
     name: 'ariana-framework-template-url',
@@ -30,7 +34,7 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
         return null;
       }
 
-      const result = transformComponentResources(code, id, compileTemplates);
+      const result = transformComponentResources(code, id, compileTemplates, strictTemplates);
       return result.code === code ? null : result.code;
     }
   };
@@ -38,7 +42,7 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
 
 export default ariana;
 
-function transformComponentResources(code: string, id: string, compileTemplates: boolean): ResourceTransformResult {
+function transformComponentResources(code: string, id: string, compileTemplates: boolean, strictTemplates: boolean): ResourceTransformResult {
   const directory = dirname(id);
   let importIndex = 0;
   const imports: string[] = [];
@@ -56,9 +60,16 @@ function transformComponentResources(code: string, id: string, compileTemplates:
 
     if (templateUrl) {
       const template = readTextResource(directory, templateUrl);
-      const compiled = compileTemplates
+      const diagnostics = parseTemplateToAst(template).diagnostics;
+      const blockingDiagnostic = diagnostics.find(diagnostic => diagnostic.level === 'error');
+
+      if (blockingDiagnostic && strictTemplates) {
+        throw new Error(`Ariana template error in ${templateUrl}: ${blockingDiagnostic.code} ${blockingDiagnostic.message}`);
+      }
+
+      const compiled = compileTemplates && !blockingDiagnostic
         ? compileTemplateToRender(template)
-        : { reason: 'compiler disabled' };
+        : { reason: blockingDiagnostic?.message ?? 'compiler disabled' };
 
       if ('renderCode' in compiled) {
         nextBody = replaceStringProperty(nextBody, 'templateUrl', `render: ${compiled.renderCode}`);
