@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
+const releaseVersion = '0.4.0-alpha.0';
 const packages = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
 const requiredRootFiles = ['README.md', 'CHANGELOG.md', 'LICENSE', 'RELEASE_CHECKLIST.md', 'SECURITY.md'];
 
@@ -12,6 +13,10 @@ for (const file of requiredRootFiles) {
 
 const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 if (!rootPackage.version) throw new Error('Root package version is missing.');
+if (!rootPackage.scripts?.build) throw new Error('Root package must define a build script.');
+if (!rootPackage.scripts?.test) throw new Error('Root package must define a test script.');
+
+const packageNames = new Map();
 
 for (const name of packages) {
   const packageDir = join(root, 'packages', name);
@@ -25,9 +30,16 @@ for (const name of packages) {
 
   const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
   if (!pkg.name?.startsWith('@ariana/')) throw new Error(`Unexpected package name for ${name}: ${pkg.name}`);
-  if (pkg.version !== '0.4.0-alpha.0') throw new Error(`Unexpected version for ${pkg.name}: ${pkg.version}`);
+  if (!pkg.version) throw new Error(`Missing package version for ${pkg.name}`);
+  if (name !== 'vite-plugin' && pkg.version !== releaseVersion) throw new Error(`Unexpected version for ${pkg.name}: ${pkg.version}`);
   if (!pkg.main || !pkg.types) throw new Error(`Package ${pkg.name} must define main and types.`);
+  if (!pkg.scripts?.build) throw new Error(`Package ${pkg.name} must define a build script.`);
+  packageNames.set(name, pkg.name);
 }
+
+const vitePackage = JSON.parse(readFileSync(join(root, 'packages', 'vite-plugin', 'package.json'), 'utf8'));
+const vitePeers = { ...(vitePackage.peerDependencies ?? {}), ...(vitePackage.dependencies ?? {}) };
+if (!vitePeers['@ariana/compiler']) throw new Error('@ariana/vite-plugin must declare @ariana/compiler as a dependency or peer dependency.');
 
 execFileSync('node', ['scripts/pack-npm.mjs'], { cwd: root, stdio: 'inherit' });
 
