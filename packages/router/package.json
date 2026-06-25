@@ -1,0 +1,16 @@
+{
+  "name": "@ariana/router",
+  "version": "0.3.0-alpha.0",
+  "description": "Ariana v3 typed router preview.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@ariana/core": "file:../core"
+  }
+}
