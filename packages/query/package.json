@@ -1,0 +1,16 @@
+{
+  "name": "@ariana/query",
+  "version": "0.3.5-alpha.0",
+  "description": "Ariana v3 query/cache preview.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@ariana/core": "file:../core"
+  }
+}
