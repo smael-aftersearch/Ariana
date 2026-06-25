@@ -1,20 +1,15 @@
 import { getActiveComputation } from './runtime.js';
-import type { Signal, Subscriber } from './types.js';
+import type { Cleanup, Signal, Subscriber } from './types.js';
 
 export function signal<T>(initialValue: T): Signal<T> {
   let value = initialValue;
   const subscribers = new Set<Subscriber>();
 
   const read = (() => {
-    const computation = getActiveComputation();
+    const active = getActiveComputation();
 
-    if (computation) {
-      subscribers.add(() => computation.run());
-      computation.track({
-        delete(subscriber) {
-          subscribers.delete(() => subscriber.run());
-        }
-      });
+    if (active) {
+      active.track({ subscribe: read.subscribe });
     }
 
     return value;
@@ -36,7 +31,9 @@ export function signal<T>(initialValue: T): Signal<T> {
     read.set(updater(value));
   };
 
-  read.subscribe = (subscriber: Subscriber) => {
+  read.peek = () => value;
+
+  read.subscribe = (subscriber: Subscriber): Cleanup => {
     subscribers.add(subscriber);
 
     return () => {
