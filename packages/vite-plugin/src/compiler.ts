@@ -2,6 +2,8 @@ type CompileResult =
   | { renderCode: string; reason?: never }
   | { renderCode?: never; reason: string };
 
+type LocalAccessMap = Record<string, string>;
+
 export function compileTemplateToRender(template: string): CompileResult {
   try {
     const idState = { ifId: 0, forId: 0 };
@@ -11,7 +13,7 @@ export function compileTemplateToRender(template: string): CompileResult {
     lines.push(`function __ari_render(ctx, host) {`);
     lines.push(`  host.innerHTML = ${JSON.stringify(segment.html)};`);
     lines.push(`  const cleanups = [];`);
-    appendBindingLines(lines, segment, 'host', 'ctx', 'cleanups', 'root', []);
+    appendBindingLines(lines, segment, 'host', 'ctx', 'cleanups', 'root', {});
     lines.push(`  return () => { for (const cleanup of cleanups.splice(0)) cleanup(); };`);
     lines.push(`}`);
 
@@ -162,35 +164,35 @@ function appendBindingLines(
   ctxVar: string,
   cleanupsVar: string,
   prefix: string,
-  localNames: string[]
+  localAccess: LocalAccessMap
 ) {
   segment.textBindings.forEach((expression, index) => {
     const variable = `${prefix}_text_${index}`;
     lines.push(`  const ${variable} = ${rootVar}.querySelector('[data-ari-text="${index}"]');`);
-    lines.push(`  if (${variable}) ${cleanupsVar}.push(__ari_effect(() => { ${variable}.textContent = String((${compileExpression(expression, ctxVar, localNames)}) ?? ''); }));`);
+    lines.push(`  if (${variable}) ${cleanupsVar}.push(__ari_effect(() => { ${variable}.textContent = String((${compileExpression(expression, ctxVar, localAccess)}) ?? ''); }));`);
   });
 
   segment.classBindings.forEach((binding, index) => {
     const variable = `${prefix}_class_${index}`;
     lines.push(`  const ${variable} = ${rootVar}.querySelector('[${binding.marker}]');`);
-    lines.push(`  if (${variable}) { ${variable}.removeAttribute('${binding.marker}'); ${cleanupsVar}.push(__ari_effect(() => { ${variable}.classList.toggle(${JSON.stringify(binding.className)}, Boolean(${compileExpression(binding.expression, ctxVar, localNames)})); })); }`);
+    lines.push(`  if (${variable}) { ${variable}.removeAttribute('${binding.marker}'); ${cleanupsVar}.push(__ari_effect(() => { ${variable}.classList.toggle(${JSON.stringify(binding.className)}, Boolean(${compileExpression(binding.expression, ctxVar, localAccess)})); })); }`);
   });
 
   segment.propBindings.forEach((binding, index) => {
     const variable = `${prefix}_prop_${index}`;
     lines.push(`  const ${variable} = ${rootVar}.querySelector('[${binding.marker}]');`);
-    lines.push(`  if (${variable}) { ${variable}.removeAttribute('${binding.marker}'); ${cleanupsVar}.push(__ari_effect(() => { const value = ${compileExpression(binding.expression, ctxVar, localNames)}; if (${JSON.stringify(binding.propertyName)} in ${variable}) ${variable}[${JSON.stringify(binding.propertyName)}] = value; else if (value == null || value === false) ${variable}.removeAttribute(${JSON.stringify(binding.propertyName)}); else ${variable}.setAttribute(${JSON.stringify(binding.propertyName)}, String(value)); })); }`);
+    lines.push(`  if (${variable}) { ${variable}.removeAttribute('${binding.marker}'); ${cleanupsVar}.push(__ari_effect(() => { const value = ${compileExpression(binding.expression, ctxVar, localAccess)}; if (${JSON.stringify(binding.propertyName)} in ${variable}) ${variable}[${JSON.stringify(binding.propertyName)}] = value; else if (value == null || value === false) ${variable}.removeAttribute(${JSON.stringify(binding.propertyName)}); else ${variable}.setAttribute(${JSON.stringify(binding.propertyName)}, String(value)); })); }`);
   });
 
   segment.eventBindings.forEach((binding, index) => {
     const variable = `${prefix}_event_${index}`;
     const listener = `${prefix}_listener_${index}`;
     lines.push(`  const ${variable} = ${rootVar}.querySelector('[${binding.marker}]');`);
-    lines.push(`  if (${variable}) { ${variable}.removeAttribute('${binding.marker}'); const ${listener} = ($event) => { ${compileStatement(binding.statement, ctxVar, localNames)}; }; ${variable}.addEventListener(${JSON.stringify(binding.eventName)}, ${listener}); ${cleanupsVar}.push(() => ${variable}.removeEventListener(${JSON.stringify(binding.eventName)}, ${listener})); }`);
+    lines.push(`  if (${variable}) { ${variable}.removeAttribute('${binding.marker}'); const ${listener} = ($event) => { ${compileStatement(binding.statement, ctxVar, localAccess)}; }; ${variable}.addEventListener(${JSON.stringify(binding.eventName)}, ${listener}); ${cleanupsVar}.push(() => ${variable}.removeEventListener(${JSON.stringify(binding.eventName)}, ${listener})); }`);
   });
 
-  appendIfBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localNames);
-  appendForBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localNames);
+  appendIfBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localAccess);
+  appendForBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localAccess);
 }
 
 function appendIfBlockLines(
@@ -200,7 +202,7 @@ function appendIfBlockLines(
   ctxVar: string,
   cleanupsVar: string,
   prefix: string,
-  localNames: string[]
+  localAccess: LocalAccessMap
 ) {
   segment.ifBlocks.forEach((block, index) => {
     const anchor = `${prefix}_if_anchor_${index}`;
@@ -217,12 +219,12 @@ function appendIfBlockLines(
     lines.push(`  if (${anchor}) { ${anchor}.removeAttribute('data-ari-if-anchor'); ${cleanupsVar}.push(__ari_effect(() => {`);
     lines.push(`    for (const cleanup of ${childCleanups}.splice(0)) cleanup();`);
     lines.push(`    for (const node of ${mountedNodes}.splice(0)) node.parentNode?.removeChild(node);`);
-    lines.push(`    if (Boolean(${compileExpression(block.expression, ctxVar, localNames)})) {`);
+    lines.push(`    if (Boolean(${compileExpression(block.expression, ctxVar, localAccess)})) {`);
     lines.push(`      const ${template} = document.createElement('template');`);
     lines.push(`      ${template}.innerHTML = ${JSON.stringify(block.segment.html)};`);
     lines.push(`      const ${fragment} = ${template}.content.cloneNode(true);`);
     lines.push(`      const ${nodes} = Array.from(${fragment}.childNodes);`);
-    appendBindingLines(lines, block.segment, fragment, ctxVar, childCleanups, nestedPrefix, localNames);
+    appendBindingLines(lines, block.segment, fragment, ctxVar, childCleanups, nestedPrefix, localAccess);
     lines.push(`      ${anchor}.after(${fragment});`);
     lines.push(`      ${mountedNodes} = ${nodes};`);
     lines.push(`    }`);
@@ -237,43 +239,77 @@ function appendForBlockLines(
   ctxVar: string,
   cleanupsVar: string,
   prefix: string,
-  localNames: string[]
+  localAccess: LocalAccessMap
 ) {
   segment.forBlocks.forEach((block, index) => {
     const anchor = `${prefix}_for_anchor_${index}`;
-    const mountedNodes = `${prefix}_for_nodes_${index}`;
-    const childCleanups = `${prefix}_for_cleanups_${index}`;
     const values = `${prefix}_for_values_${index}`;
+    const records = `${prefix}_for_records_${index}`;
+    const oldRecords = `${prefix}_for_old_records_${index}`;
+    const key = `${prefix}_for_key_${index}`;
+    const record = `${prefix}_for_record_${index}`;
+    const nextRecord = `${prefix}_for_next_record_${index}`;
     const template = `${prefix}_for_template_${index}`;
     const fragment = `${prefix}_for_fragment_${index}`;
-    const itemFragment = `${prefix}_for_item_fragment_${index}`;
-    const itemNodes = `${prefix}_for_item_nodes_${index}`;
+    const nodes = `${prefix}_for_nodes_${index}`;
+    const childCleanups = `${prefix}_for_cleanups_${index}`;
+    const itemSignal = `${prefix}_for_item_signal_${index}`;
+    const indexSignal = `${prefix}_for_index_signal_${index}`;
     const nestedPrefix = `${prefix}_for_${index}`;
-    const indexName = `$index`;
-    const forLocalNames = [...localNames, block.itemName, indexName];
+    const itemLocalAccess: LocalAccessMap = {
+      ...localAccess,
+      [block.itemName]: `${record}.item()`,
+      $index: `${record}.index()`
+    };
+    const keyLocalAccess: LocalAccessMap = {
+      ...localAccess,
+      [block.itemName]: block.itemName,
+      $index: '$index'
+    };
+    const keyExpression = block.trackExpression
+      ? compileExpression(block.trackExpression, ctxVar, keyLocalAccess)
+      : '$index';
 
     lines.push(`  const ${anchor} = ${rootVar}.querySelector('[data-ari-for-anchor="${block.anchorId}"]');`);
-    lines.push(`  let ${mountedNodes} = [];`);
-    lines.push(`  let ${childCleanups} = [];`);
-    lines.push(`  if (${anchor}) { ${anchor}.removeAttribute('data-ari-for-anchor'); ${cleanupsVar}.push(__ari_effect(() => {`);
-    lines.push(`    for (const cleanup of ${childCleanups}.splice(0)) cleanup();`);
-    lines.push(`    for (const node of ${mountedNodes}.splice(0)) node.parentNode?.removeChild(node);`);
-    lines.push(`    const ${values} = Array.from((${compileExpression(block.iterableExpression, ctxVar, localNames)}) ?? []);`);
-    lines.push(`    const ${fragment} = document.createDocumentFragment();`);
-    lines.push(`    const ${itemNodes} = [];`);
-    lines.push(`    for (let i = 0; i < ${values}.length; i++) {`);
-    lines.push(`      const ${block.itemName} = ${values}[i];`);
-    lines.push(`      const ${indexName} = i;`);
-    lines.push(`      const ${template} = document.createElement('template');`);
-    lines.push(`      ${template}.innerHTML = ${JSON.stringify(block.segment.html)};`);
-    lines.push(`      const ${itemFragment} = ${template}.content.cloneNode(true);`);
-    lines.push(`      ${itemNodes}.push(...Array.from(${itemFragment}.childNodes));`);
-    appendBindingLines(lines, block.segment, itemFragment, ctxVar, childCleanups, `${nestedPrefix}_item`, forLocalNames);
-    lines.push(`      ${fragment}.append(${itemFragment});`);
-    lines.push(`    }`);
-    lines.push(`    ${anchor}.after(${fragment});`);
-    lines.push(`    ${mountedNodes} = ${itemNodes};`);
-    lines.push(`  })); }`);
+    lines.push(`  let ${records} = new Map();`);
+    lines.push(`  if (${anchor}) { ${anchor}.removeAttribute('data-ari-for-anchor');`);
+    lines.push(`    ${cleanupsVar}.push(() => { for (const entry of ${records}.values()) { for (const cleanup of entry.cleanups.splice(0)) cleanup(); for (const node of entry.nodes) node.parentNode?.removeChild(node); } ${records}.clear(); });`);
+    lines.push(`    ${cleanupsVar}.push(__ari_effect(() => {`);
+    lines.push(`      const ${oldRecords} = ${records};`);
+    lines.push(`      ${records} = new Map();`);
+    lines.push(`      const ${values} = Array.from((${compileExpression(block.iterableExpression, ctxVar, localAccess)}) ?? []);`);
+    lines.push(`      let previousNode = ${anchor};`);
+    lines.push(`      for (let i = 0; i < ${values}.length; i++) {`);
+    lines.push(`        const ${block.itemName} = ${values}[i];`);
+    lines.push(`        const $index = i;`);
+    lines.push(`        const ${key} = ${keyExpression};`);
+    lines.push(`        let ${record} = ${oldRecords}.get(${key});`);
+    lines.push(`        if (${record}) {`);
+    lines.push(`          ${record}.item.set(${block.itemName});`);
+    lines.push(`          ${record}.index.set(i);`);
+    lines.push(`          ${records}.set(${key}, ${record});`);
+    lines.push(`        } else {`);
+    lines.push(`          const ${itemSignal} = __ari_signal(${block.itemName});`);
+    lines.push(`          const ${indexSignal} = __ari_signal(i);`);
+    lines.push(`          const ${childCleanups} = [];`);
+    lines.push(`          const ${template} = document.createElement('template');`);
+    lines.push(`          ${template}.innerHTML = ${JSON.stringify(block.segment.html)};`);
+    lines.push(`          const ${fragment} = ${template}.content.cloneNode(true);`);
+    lines.push(`          const ${nodes} = Array.from(${fragment}.childNodes);`);
+    lines.push(`          ${record} = { item: ${itemSignal}, index: ${indexSignal}, nodes: ${nodes}, cleanups: ${childCleanups} };`);
+    appendBindingLines(lines, block.segment, fragment, ctxVar, `${record}.cleanups`, `${nestedPrefix}_item`, itemLocalAccess);
+    lines.push(`          ${records}.set(${key}, ${record});`);
+    lines.push(`        }`);
+    lines.push(`        for (const node of ${record}.nodes) { if (previousNode.nextSibling !== node) previousNode.after(node); previousNode = node; }`);
+    lines.push(`      }`);
+    lines.push(`      for (const [key, ${nextRecord}] of ${oldRecords}) {`);
+    lines.push(`        if (!${records}.has(key)) {`);
+    lines.push(`          for (const cleanup of ${nextRecord}.cleanups.splice(0)) cleanup();`);
+    lines.push(`          for (const node of ${nextRecord}.nodes) node.parentNode?.removeChild(node);`);
+    lines.push(`        }`);
+    lines.push(`      }`);
+    lines.push(`    }));`);
+    lines.push(`  }`);
   });
 }
 
@@ -308,15 +344,19 @@ function findMatching(source: string, start: number, open: string, close: string
   throw new Error(`Ariana template parser could not find matching ${close}.`);
 }
 
-function compileExpression(expression: string, contextName = 'ctx', localNames: string[] = []): string {
-  return expression.replace(/(?<![\w.$])([A-Za-z_$][\w$]*)\s*\(/g, (match, name: string) => {
-    if (isGlobalFunction(name) || localNames.includes(name)) return match;
+function compileExpression(expression: string, contextName = 'ctx', localAccess: LocalAccessMap = {}): string {
+  const withLocals = expression.replace(/(?<![\w.$])([A-Za-z_$][\w$]*|\$index)/g, (match, name: string) => {
+    return localAccess[name] ?? match;
+  });
+
+  return withLocals.replace(/(?<![\w.$])([A-Za-z_$][\w$]*)\s*\(/g, (match, name: string) => {
+    if (isGlobalFunction(name)) return match;
     return `${contextName}.${name}(`;
   });
 }
 
-function compileStatement(statement: string, contextName = 'ctx', localNames: string[] = []): string {
-  return compileExpression(statement, contextName, localNames);
+function compileStatement(statement: string, contextName = 'ctx', localAccess: LocalAccessMap = {}): string {
+  return compileExpression(statement, contextName, localAccess);
 }
 
 function isGlobalFunction(name: string): boolean {
