@@ -9,8 +9,8 @@
     "typecheck": "tsc -b --pretty"
   },
   "dependencies": {
-    "@ariana/core": "workspace:*",
-    "@ariana/vite-plugin": "workspace:*"
+    "@ariana/core": "file:../../packages/core",
+    "@ariana/vite-plugin": "file:../../packages/vite-plugin"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
