@@ -1,44 +1,46 @@
 import type { Cleanup } from './types.js';
 
 export type Dependency = {
-  delete(subscriber: ReactiveComputation): void;
+  subscribe(subscriber: () => void): Cleanup;
 };
 
-let activeComputation: ReactiveComputation | undefined;
-
-export function getActiveComputation() {
-  return activeComputation;
-}
-
 export class ReactiveComputation {
-  private readonly dependencies = new Set<Dependency>();
+  private cleanups: Cleanup[] = [];
 
   constructor(private readonly callback: () => void) {}
 
-  run() {
+  run = () => {
     this.cleanup();
-
-    const previous = activeComputation;
-    activeComputation = this;
+    pushComputation(this);
 
     try {
       this.callback();
     } finally {
-      activeComputation = previous;
+      popComputation();
     }
-  }
+  };
 
   track(dependency: Dependency) {
-    this.dependencies.add(dependency);
+    this.cleanups.push(dependency.subscribe(this.run));
   }
 
-  cleanup(): Cleanup {
-    for (const dependency of this.dependencies) {
-      dependency.delete(this);
+  cleanup() {
+    for (const cleanup of this.cleanups.splice(0)) {
+      cleanup();
     }
-
-    this.dependencies.clear();
-
-    return () => undefined;
   }
+}
+
+const stack: ReactiveComputation[] = [];
+
+export function getActiveComputation(): ReactiveComputation | undefined {
+  return stack[stack.length - 1];
+}
+
+function pushComputation(computation: ReactiveComputation) {
+  stack.push(computation);
+}
+
+function popComputation() {
+  stack.pop();
 }
