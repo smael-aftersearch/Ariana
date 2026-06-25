@@ -1,6 +1,6 @@
 import { dirname, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { parseTemplateToAst } from '@ariana/compiler';
+import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
 
 
