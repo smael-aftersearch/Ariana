@@ -1,4 +1,5 @@
 import { Injector, runInInjectionContext, type Provider } from '../di/index.js';
+import { renderCompiledComponent } from '../template/compiled.js';
 import { renderComponent } from '../template/render.js';
 import { getComponentMetadata } from './component.js';
 import type { ComponentType } from './metadata.js';
@@ -25,7 +26,11 @@ export function bootstrap<T>(
   const componentInjector = rootInjector.createChild(metadata.providers ?? []);
   const component = runInInjectionContext(componentInjector, () => new componentType());
 
-  renderComponent(component, metadata, hostElement as HTMLElement, componentInjector);
+  if (metadata.render) {
+    renderCompiledComponent(component, metadata, hostElement as HTMLElement, componentInjector);
+  } else {
+    renderComponent(component, metadata, hostElement as HTMLElement, componentInjector);
+  }
 
   if (hasLifecycle(component, 'onInit')) {
     component.onInit();
