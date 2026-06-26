@@ -21,3 +21,4 @@ jobs:
       - run: npm run inspect:tarballs
       - run: npm run smoke:install
       - run: npm run smoke:create-ariana
+      - run: npm run smoke:generated-app
