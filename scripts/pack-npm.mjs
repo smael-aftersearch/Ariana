@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -42,6 +42,11 @@ for (const name of packages) {
 
   console.log(`Packing ${pkg.name}...`);
   execFileSync('npm', ['pack', stagePackageDir, '--pack-destination', outDir], { cwd: root, stdio: 'inherit' });
+
+  const generatedName = `ariana-framework-${name}-${releaseVersion}.tgz`;
+  const workflowName = `ariana-${name}-${releaseVersion}.tgz`;
+  const generatedPath = join(outDir, generatedName);
+  if (existsSync(generatedPath)) renameSync(generatedPath, join(outDir, workflowName));
 }
 
 rmSync(stagingDir, { recursive: true, force: true });
