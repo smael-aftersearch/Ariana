@@ -5,10 +5,11 @@ import { execFileSync } from 'node:child_process';
 const root = process.cwd();
 const outDir = join(root, 'npm-packages');
 const dryRun = process.argv.includes('--dry-run');
+const packageOrder = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
 
 if (!dryRun && !process.env.NPM_TOKEN) {
   console.error('NPM_TOKEN is not set. Refusing to publish.');
-  console.error('Run `npm run pack:npm` to create tarballs, then publish with an authenticated npm account.');
+  console.error('Run the release verification first, then publish with an authenticated npm account.');
   process.exit(1);
 }
 
@@ -16,9 +17,16 @@ if (!existsSync(outDir)) {
   execFileSync('npm', ['run', 'pack:npm'], { cwd: root, stdio: 'inherit' });
 }
 
-const tarballs = readdirSync(outDir).filter(name => name.endsWith('.tgz')).sort();
+const tarballs = readdirSync(outDir).filter(name => name.endsWith('.tgz'));
+if (tarballs.length !== packageOrder.length) throw new Error(`Expected ${packageOrder.length} tarballs, found ${tarballs.length}.`);
 
-for (const tarball of tarballs) {
+const orderedTarballs = packageOrder.map(name => {
+  const match = tarballs.find(tarball => tarball.startsWith(`ariana-${name}-`));
+  if (!match) throw new Error(`Missing tarball for @ariana/${name}.`);
+  return match;
+});
+
+for (const tarball of orderedTarballs) {
   const fullPath = join(outDir, tarball);
   if (dryRun) {
     console.log(`Dry-run publish check for ${tarball}...`);
