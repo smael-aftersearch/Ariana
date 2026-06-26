@@ -50,4 +50,9 @@ execFileSync('node', ['scripts/pack-npm.mjs'], { cwd: root, stdio: 'inherit' });
 const tarballs = readdirSync(join(root, 'npm-packages')).filter(name => name.endsWith('.tgz'));
 if (tarballs.length !== packages.length) throw new Error(`Expected ${packages.length} npm tarballs, found ${tarballs.length}.`);
 
+for (const name of packages) {
+  const expectedPrefix = `ariana-${name}-`;
+  if (!tarballs.some(tarball => tarball.startsWith(expectedPrefix))) throw new Error(`Missing tarball for @ariana/${name}.`);
+}
+
 console.log('Release verification passed.');
