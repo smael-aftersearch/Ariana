@@ -24,3 +24,45 @@ test('vite plugin: transforms component templateUrl and styleUrl into runtime me
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('vite plugin: keeps decorator syntax valid during transform', async () => {
+  const dir = join(tmpdir(), `ari-vite-decorator-${Date.now()}`);
+  mkdirSync(dir, { recursive: true });
+  try {
+    writeFileSync(join(dir, 'cmp.html'), '<p>Hello {{ title }}</p>');
+    const source = `
+      import { Component } from '@ariana-framework/core';
+      @Component({ selector: 'x-cmp', templateUrl: './cmp.html' })
+      class Cmp { title = 'Ariana'; }
+    `;
+    const plugin = ariana({ compileTemplates: false });
+    const output = await plugin.transform?.(source, join(dir, 'cmp.ts'));
+    assert(typeof output === 'string', 'decorator transform should return code');
+    assert(output.includes('@Component({'), 'decorator prefix should be preserved');
+    assert(output.includes('template:'), 'templateUrl should become template metadata');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('vite plugin: typeCheckTemplates reports unknown interpolation roots when members are provided', async () => {
+  const dir = join(tmpdir(), `ari-vite-typecheck-${Date.now()}`);
+  mkdirSync(dir, { recursive: true });
+  try {
+    writeFileSync(join(dir, 'cmp.html'), '<p>{{ missingTitle }}</p>');
+    const source = `
+      import { Component } from '@ariana-framework/core';
+      Component({ selector: 'x-cmp', templateUrl: './cmp.html' })(class Cmp {});
+    `;
+    const plugin = ariana({ compileTemplates: false, typeCheckTemplates: true, templateTypeCheckMembers: ['title'] });
+    let failed = false;
+    try {
+      await plugin.transform?.(source, join(dir, 'cmp.ts'));
+    } catch (error) {
+      failed = String(error).includes('ARI_TYPE_UNKNOWN_MEMBER');
+    }
+    assert(failed, 'unknown template member should fail strict typecheck');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
