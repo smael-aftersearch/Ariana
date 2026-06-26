@@ -7,12 +7,12 @@ test('bootstrapApplication returns destroyable ref and runs lifecycle hooks', ()
   let afterRender = 0;
   let destroy = 0;
 
-  @Component({ selector: 'life-page', template: '<p>Life</p>' })
   class LifePage {
     onInit() { init++; }
     afterRender() { afterRender++; }
     onDestroy() { destroy++; }
   }
+  Component({ selector: 'life-page', template: '<p>Life</p>' })(LifePage);
 
   const ref = bootstrapApplication(LifePage, host);
   equal(init, 1);
