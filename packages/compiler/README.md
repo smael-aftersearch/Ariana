@@ -1,4 +1,4 @@
-# @ariana/compiler
+# @ariana-framework/compiler
 
 Template parsing and diagnostics for Ariana.
 
@@ -9,10 +9,16 @@ Template parsing and diagnostics for Ariana.
 - Emits coded diagnostics for invalid templates.
 - Provides source spans for compiler tooling.
 
+## Install
+
+```bash
+npm install @ariana-framework/compiler
+```
+
 ## Usage
 
 ```ts
-import { parseTemplateToAst } from '@ariana/compiler';
+import { parseTemplateToAst } from '@ariana-framework/compiler';
 
 const result = parseTemplateToAst('<h1>{{ title }}</h1>');
 
@@ -25,4 +31,4 @@ console.log(result.ast);
 
 ## Status
 
-This package is production-track alpha. The AST parser is now the diagnostic source used by the Ariana Vite plugin. Full AST-driven code generation is the next compiler milestone.
+Official early release. The AST parser is the diagnostic source used by the Ariana Vite plugin. Full AST-driven code generation is the next compiler milestone.
