@@ -44,9 +44,10 @@ export function bootstrapApplication<T>(
   const component = runInInjectionContext(componentInjector, () => new componentType());
 
   if (metadata.render) {
-    renderCompiledComponent(component, metadata, hostElement as HTMLElement, componentInjector);
+    renderCompiledComponent(component, metadata, hostElement as HTMLElement, componentInjector, cleanupScope);
   } else {
-    renderComponent(component, metadata, hostElement as HTMLElement, componentInjector);
+    const cleanup = renderComponent(component, metadata, hostElement as HTMLElement, componentInjector);
+    if (typeof cleanup === 'function') cleanupScope.add(cleanup);
   }
 
   if (hasLifecycle(component, 'onInit')) component.onInit();
