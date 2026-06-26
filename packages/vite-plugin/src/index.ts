@@ -87,7 +87,7 @@ function transformComponentResources(code: string, id: string, compileTemplates:
       }
     }
 
-    return `@Component({${nextBody}})`;
+    return `Component({${nextBody}})`;
   });
 
   if (usedCompiler && !code.includes('effect as __ari_effect')) {
