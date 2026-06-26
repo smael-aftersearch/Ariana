@@ -26,18 +26,19 @@ export type FormControlOptions<T> = {
 };
 
 export function formControl<T>(initialValue: T, validatorsOrOptions: readonly Validator<T>[] | FormControlOptions<T> = []): FormControl<T> {
-  const validators = Array.isArray(validatorsOrOptions) ? validatorsOrOptions : validatorsOrOptions.validators ?? [];
-  const asyncValidators = Array.isArray(validatorsOrOptions) ? [] : validatorsOrOptions.asyncValidators ?? [];
+  const options = normalizeControlOptions(validatorsOrOptions);
+  const validators = options.validators;
+  const asyncValidators = options.asyncValidators;
   const value = signal(initialValue);
   const touched = signal(false);
   const dirty = signal(false);
   const pending = signal(false);
   const asyncErrors = signal<ValidationErrors | undefined>(undefined);
-  const errors = computed(() => mergeErrors([mergeErrors(validators.map(validator => validator(value()))), asyncErrors()]));
+  const errors = computed(() => mergeErrors([mergeErrors(validators.map((validator: Validator<T>) => validator(value()))), asyncErrors()]));
   const valid = computed(() => errors() === undefined && !pending());
   let asyncRunId = 0;
 
-  async function validateAsync() {
+  async function validateAsync(): Promise<ValidationErrors | undefined> {
     if (asyncValidators.length === 0) {
       asyncErrors.set(undefined);
       return undefined;
@@ -47,7 +48,8 @@ export function formControl<T>(initialValue: T, validatorsOrOptions: readonly Va
     pending.set(true);
 
     try {
-      const result = mergeErrors(await Promise.all(asyncValidators.map(validator => validator(value.peek()))));
+      const results = await Promise.all(asyncValidators.map((validator: AsyncValidator<T>) => validator(value.peek())));
+      const result = mergeErrors(results);
       if (runId === asyncRunId) asyncErrors.set(result);
       return result;
     } finally {
@@ -63,17 +65,17 @@ export function formControl<T>(initialValue: T, validatorsOrOptions: readonly Va
     errors,
     asyncErrors,
     valid,
-    setValue(nextValue) {
+    setValue(nextValue: T) {
       if (!Object.is(value.peek(), nextValue)) {
         value.set(nextValue);
         dirty.set(true);
         asyncErrors.set(undefined);
       }
     },
-    patchValue(nextValue) { this.setValue(nextValue); },
+    patchValue(nextValue: T) { this.setValue(nextValue); },
     markTouched() { touched.set(true); },
     validateAsync,
-    reset(nextValue = initialValue) {
+    reset(nextValue: T = initialValue) {
       asyncRunId++;
       value.set(nextValue);
       touched.set(false);
@@ -98,7 +100,7 @@ export function formGroup<TShape extends Record<string, FormControl<unknown>>>(c
     }
     return Object.keys(result).length === 0 ? undefined : result;
   });
-  const pending = computed(() => Object.values(controls).some(control => control.pending()));
+  const pending = computed(() => Object.values(controls).some((control: FormControl<unknown>) => control.pending()));
   const valid = computed(() => errors() === undefined && !pending());
   return {
     controls,
@@ -107,7 +109,7 @@ export function formGroup<TShape extends Record<string, FormControl<unknown>>>(c
     pending,
     errors,
     patchValue(nextValue: Record<string, unknown>) {
-      for (const key of Object.keys(nextValue)) if (controls[key]) controls[key].patchValue(nextValue[key] as never);
+      for (const key of Object.keys(nextValue)) if (controls[key]) controls[key].patchValue(nextValue[key]);
     },
     markTouched() { for (const control of Object.values(controls)) control.markTouched(); },
     async validateAsync() {
@@ -125,6 +127,15 @@ export const minLength = (length: number): Validator<string> => value => value.l
 
 export function asyncUnique<T>(isUnique: (value: T) => Promise<boolean>, message = 'notUnique'): AsyncValidator<T> {
   return async value => await isUnique(value) ? undefined : { unique: message };
+}
+
+function normalizeControlOptions<T>(input: readonly Validator<T>[] | FormControlOptions<T>): Required<FormControlOptions<T>> {
+  if (isValidatorList(input)) return { validators: input, asyncValidators: [] };
+  return { validators: input.validators ?? [], asyncValidators: input.asyncValidators ?? [] };
+}
+
+function isValidatorList<T>(input: readonly Validator<T>[] | FormControlOptions<T>): input is readonly Validator<T>[] {
+  return Array.isArray(input);
 }
 
 function mergeErrors(errors: Array<ValidationErrors | undefined>): ValidationErrors | undefined {
