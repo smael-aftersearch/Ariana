@@ -22,21 +22,23 @@ Release when a milestone is coherent:
 | prod-78..prod-89 | Done | Tarball inspection, compiler golden tests, Vite fixture, design contracts. |
 | prod-90..prod-104 | Done | Effect cleanup, FormArray prototype, mutation prototype, lazy route resolver, typecheck groundwork. |
 | prod-105..prod-123 | Done/partial | Bootstrap ref, FormArray async, Vite typecheck option, create-ariana skeleton, CLI smoke. |
+| prod-124..prod-133 | Done/partial | Typecheck export path, generated app smoke, query invalidation tests, lazy/router/typecheck/cleanup plans. |
 
 ## Current batch
 
 | ID | Task | Status |
 | --- | --- | --- |
-| prod-124 | Fix CI failures from batch 5 | In progress |
-| prod-125 | Compiler typecheck public export safe path | Done |
-| prod-126 | create-ariana build config safe path | Partial |
-| prod-127 | Generated app smoke validation | In progress |
-| prod-128 | Query invalidation helper tests | Done |
-| prod-129 | Mutation invalidation/after-success tests | Done |
-| prod-130 | Lazy router guards/preload design | Pending |
-| prod-131 | Vite typecheck real context | Pending |
-| prod-132 | Component cleanup/render scope design | Pending |
-| prod-133 | Docs/API surface sync | In progress |
+| prod-134 | Fix generated app smoke CI failures | In progress |
+| prod-135 | Fix Vite fixture component transform | In progress |
+| prod-136 | Finalize compiler typecheck subpath docs | Done |
+| prod-137 | Promote create-ariana build safely | Deferred until Node types/build config are stable |
+| prod-138 | Add QueryClient direct prefix invalidation API | Done |
+| prod-139 | Component cleanup scope event listener plan | Done |
+| prod-140 | Generated app smoke script | Done |
+| prod-141 | CI generated app smoke step | Done |
+| prod-142 | QueryClient invalidateMatching tests | Done |
+| prod-143 | Supplemental docs index | Done |
+| prod-144 | Production tracker maintenance | Done |
 
 ## Next milestone target: 0.5.0
 
@@ -46,6 +48,7 @@ Ariana 0.5.0 should mean:
 - tarballs have no stale internal workspace imports
 - Vite fixture builds
 - create-ariana skeleton is validated
+- generated app smoke build passes
 - core lifecycle has a destroy contract
 - forms include a first FormArray path
 - query includes mutation/invalidation groundwork
