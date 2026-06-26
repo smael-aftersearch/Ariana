@@ -149,3 +149,6 @@ function joinPaths(basePath: string, routePath: string): string {
   if (routePath === '/') return '/';
   return normalizePath(`${basePath}/${routePath}`);
 }
+
+export { resolveLazyRoute, resolveLazyRoutes } from './lazy.js';
+export type { LazyRouteDefinition } from './lazy.js';
