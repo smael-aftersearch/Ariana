@@ -66,3 +66,20 @@ test('vite plugin: typeCheckTemplates reports unknown interpolation roots when m
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('vite plugin: infers template members from component class source', async () => {
+  const dir = join(tmpdir(), `ari-vite-infer-${Date.now()}`);
+  mkdirSync(dir, { recursive: true });
+  try {
+    writeFileSync(join(dir, 'cmp.html'), '<p>{{ title }}</p><button (click)="save()">Save</button>');
+    const source = `
+      import { Component } from '@ariana-framework/core';
+      Component({ selector: 'x-cmp', templateUrl: './cmp.html' })(class Cmp { title = 'Ariana'; save() {} });
+    `;
+    const plugin = ariana({ compileTemplates: false, typeCheckTemplates: true });
+    const output = await plugin.transform?.(source, join(dir, 'cmp.ts'));
+    assert(typeof output === 'string', 'inferred typecheck members should allow valid template members');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
