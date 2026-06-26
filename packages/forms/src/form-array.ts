@@ -12,6 +12,7 @@ export type FormArray<T> = {
   push(control: FormControl<T>): void;
   removeAt(index: number): void;
   move(from: number, to: number): void;
+  validateAsync(): Promise<ValidationErrors | undefined>;
   reset(): void;
 };
 
@@ -20,14 +21,7 @@ export function formArray<T>(initialControls: readonly FormControl<T>[] = []): F
   const value = computed(() => controls().map(control => control.value()));
   const length = computed(() => controls().length);
   const pending = computed(() => controls().some(control => control.pending()));
-  const errors = computed(() => {
-    const result: ValidationErrors = {};
-    controls().forEach((control, index) => {
-      const controlErrors = control.errors();
-      if (controlErrors) result[index] = controlErrors;
-    });
-    return Object.keys(result).length === 0 ? undefined : result;
-  });
+  const errors = computed(() => collectErrors(controls()));
   const valid = computed(() => errors() === undefined && !pending());
 
   return {
@@ -50,8 +44,21 @@ export function formArray<T>(initialControls: readonly FormControl<T>[] = []): F
       next.splice(to, 0, control);
       controls.set(next);
     },
+    async validateAsync() {
+      await Promise.all(controls.peek().map(control => control.validateAsync()));
+      return collectErrors(controls.peek());
+    },
     reset() {
       for (const control of controls.peek()) control.reset();
     }
   };
+}
+
+function collectErrors<T>(controls: readonly FormControl<T>[]): ValidationErrors | undefined {
+  const result: ValidationErrors = {};
+  controls.forEach((control, index) => {
+    const controlErrors = control.errors();
+    if (controlErrors) result[index] = controlErrors;
+  });
+  return Object.keys(result).length === 0 ? undefined : result;
 }
