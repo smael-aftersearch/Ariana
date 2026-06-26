@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 const root = process.cwd();
 const outDir = join(root, 'npm-packages');
 const stagingDir = join(root, '.npm-pack-staging');
-const releaseVersion = '0.4.0-alpha.0';
+const releaseVersion = '0.4.0';
 const packages = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
 
 rmSync(outDir, { recursive: true, force: true });
