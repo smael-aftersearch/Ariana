@@ -1,5 +1,5 @@
-import { signal } from '@ariana-framework/core';
-import type { Provider } from '@ariana-framework/core';
+import { signal } from '@ariana/core';
+import type { Provider } from '@ariana/core';
 
 export type RouteData = Record<string, unknown>;
 export type RouteGuard = (context: RouteContext) => boolean | string | Promise<boolean | string>;
