@@ -1,0 +1,17 @@
+{
+  "name": "@ariana/vite-fixture",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@ariana-framework/core": "file:../../packages/core",
+    "@ariana-framework/vite-plugin": "file:../../packages/vite-plugin"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0"
+  }
+}
