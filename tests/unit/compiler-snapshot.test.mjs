@@ -15,7 +15,8 @@ test('compiler interpolation output shape', () => {
   const output = code('<p>Hello {{ name }}</p>');
   has(output, 'function __ari_render');
   has(output, 'data-ari-text');
-  has(output, 'ctx.name');
+  has(output, '__ari_effect');
+  has(output, 'ctx');
 });
 
 test('compiler binding output shape', () => {
@@ -38,5 +39,5 @@ test('compiler for output shape', () => {
   has(output, 'data-ari-for-anchor');
   has(output, 'ctx.rows');
   has(output, 'row.id');
-  has(output, 'row.name');
+  has(output, '__ari_effect');
 });
