@@ -15,6 +15,7 @@
     "test": "node tests/unit/test-runner.mjs",
     "smoke:install": "node scripts/install-smoke.mjs",
     "smoke:create-ariana": "node scripts/create-ariana-smoke.mjs",
+    "smoke:generated-app": "node scripts/generated-app-smoke.mjs",
     "inspect:tarballs": "node scripts/inspect-tarballs.mjs",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
     "build:counter": "npm --workspace @ariana/counter-app run build",
