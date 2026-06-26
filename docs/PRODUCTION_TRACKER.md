@@ -24,17 +24,18 @@ Release when a milestone is coherent:
 | prod-105..prod-123 | Done/partial | Bootstrap ref, FormArray async, Vite typecheck option, create-ariana skeleton, CLI smoke. |
 | prod-124..prod-133 | Done/partial | Typecheck export path, generated app smoke, query invalidation tests, lazy/router/typecheck/cleanup plans. |
 | prod-134..prod-154 | Done/partial | Generated app/Vite smoke hardening, query invalidation API docs, compiler typecheck docs, transform tests. |
+| prod-155..prod-166 | Done/partial | Vite transform hardening, typecheck member option, generated app router/forms/query coverage, 0.5 checklist. |
 
 ## Current batch
 
 | ID | Task | Status |
 | --- | --- | --- |
-| prod-155 | Fix CI failures reported by GitHub Actions | Pending log review |
-| prod-156 | Wire Vite typecheck to real compiler context | Pending |
-| prod-157 | Pass cleanup scope into generated event listeners | Pending |
-| prod-158 | Promote create-ariana build after Node typings decision | Pending |
-| prod-159 | Add generated app fixture coverage for router/forms/query | Pending |
-| prod-160 | Prepare 0.5.0 release checklist draft | Pending |
+| prod-167 | Fix CI failures reported by GitHub Actions | Pending log review |
+| prod-168 | Pass cleanup scope into generated event listeners | Pending |
+| prod-169 | Promote create-ariana build after Node typings decision | Pending |
+| prod-170 | Wire Vite typecheck to inferred class members | Pending |
+| prod-171 | Add generated app browser interaction coverage | Pending |
+| prod-172 | Prepare 0.5.0 changelog draft | Pending |
 
 ## Next milestone target: 0.5.0
 
@@ -50,6 +51,7 @@ Ariana 0.5.0 should mean:
 - query includes mutation/invalidation groundwork
 - router includes a first lazy route path
 - compiler diagnostics and typecheck groundwork are documented
+- 0.5.0 checklist is complete
 
 ## Do not do yet
 
