@@ -1,27 +1,49 @@
-# Ariana Release Checklist
+# Ariana 0.4.0 Release Checklist
 
-## Before publish
+## Before official publish
 
-- Confirm package scope ownership on npm.
-- Configure npm authentication in the publishing environment.
-- Run the release verification command.
-- Review tarballs under `npm-packages/`.
-- Confirm package names and versions.
-- Confirm docs and changelog.
+- Confirm npm scope ownership for `@ariana`.
+- Confirm `NPM_TOKEN` exists in GitHub Actions secrets.
+- Run CI on `main`.
+- Run the official npm publish workflow in dry-run mode.
+- Confirm package names and versions are all `0.4.0`.
+- Confirm changelog and release notes are updated.
 
-## Local release commands
+## Required commands
 
 ```bash
+npm install
+npm run build
+npm test
 npm run verify:release
-npm run pack:npm
+npm run publish:npm:dry
 ```
 
-## Publish command
+## Official publish options
+
+### Option 1: Git tag
 
 ```bash
-npm run publish:npm
+git pull origin main
+git tag v0.4.0
+git push origin v0.4.0
 ```
 
-## GitHub Actions publish
+### Option 2: GitHub Actions manual run
 
-Add the npm authentication secret in repository settings, then run the npm publish workflow manually.
+Run `Publish official packages to npm` and set `dry_run=false`.
+
+## Release gates
+
+The publish workflow must pass:
+
+- install
+- build
+- unit tests
+- release verification
+- tarball generation
+- official npm publish
+
+## NPM tag
+
+Official publishing uses the `latest` npm tag.
