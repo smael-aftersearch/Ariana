@@ -1,45 +1,8 @@
 # Ariana Framework
 
-**Ariana** is a TypeScript-first, class-based frontend framework experiment for building large, structured UI applications with predictable performance.
+**Ariana** is a TypeScript-first, class-based frontend framework for building structured UI applications with signal-based reactivity, compiler-assisted templates, and explicit rendering paths.
 
-Ariana is currently an **AI-built framework prototype**. The repository is being designed, documented, and implemented through an AI engineering workflow led by **ChatGPT, GPT-5.5 Thinking**, acting as an AI software engineering assistant under human direction.
-
-> Ariana is experimental. It is not production-ready. Human review, tests, security review, and benchmark validation are required before real use.
-
----
-
-## AI authorship
-
-```txt
-AI assistant: ChatGPT
-Model identity: GPT-5.5 Thinking
-Role: AI software engineering assistant
-Responsibilities: architecture, documentation, prototype implementation, roadmap planning, benchmark planning
-```
-
-The AI assistant reviewed ideas from Angular, React, Vue, Svelte, Solid, Qwik, Astro, Next/Nuxt-style rendering, and Blazor/Razor-style ergonomics.
-
-The selected direction is:
-
-```txt
-Angular-like class structure
-+ Solid-like signal reactivity
-+ Svelte-like compiler direction
-+ external HTML/CSS by default
-- NgModule
-- standalone flag
-- Zone.js
-- Virtual DOM
-- global change detection
-```
-
-More: [docs/AI_ENGINEERING.md](docs/AI_ENGINEERING.md)
-
----
-
-## What Ariana is trying to prove
-
-Ariana keeps the disciplined, class-based developer experience many Angular developers like, while removing historical pieces that are not needed in a new framework:
+Ariana keeps the disciplined class-based developer experience many Angular developers like, while removing historical pieces that are not needed in a new framework:
 
 - no `NgModule`
 - no `standalone: true`
@@ -52,33 +15,43 @@ In Ariana, every component is independent by design. Because there is no module 
 
 ---
 
-## Current status
+## Status
 
 ```txt
-Ariana v2 compiler preview
-Status: Experimental / prototype
-Main goal: class components + signals + external HTML/CSS + limited compiler-generated render functions
+Ariana 0.4.0
+Status: Official early release
+Release line: core runtime, compiler diagnostics, router, forms, query, rendering, Vite plugin
 ```
 
-Implemented now:
+Ariana is still a young framework and should be evaluated carefully before production use. The current release line focuses on package structure, release safety, compiler direction, unit tests, benchmarks, and a stable npm publishing path.
 
-- `signal()`
-- `computed()`
-- `effect()`
-- `@Component()`
-- `@Route()` metadata
-- `bootstrap()`
-- basic dependency injection with `inject()`
-- external `templateUrl` / `styleUrl`
-- Vite plugin compiler preview
-- interpolation: `{{ count() }}`
-- event binding: `(click)="increment()"`
-- property binding: `[value]="step()"`
-- class binding: `[class.high]="count() >= 10"`
-- simple conditional blocks
-- simple loop blocks
-- runtime fallback for unsupported templates
-- counter demo app
+---
+
+## Packages
+
+```txt
+@ariana/core          core runtime, signals, DI, component metadata
+@ariana/compiler      template AST parser and diagnostics
+@ariana/router        typed router with guards, data, providers, nested routes
+@ariana/forms         signal-based forms and validation
+@ariana/query         query/cache client
+@ariana/rendering     SSR shell, SSG helpers, island utilities
+@ariana/vite-plugin   resource transform and template diagnostics integration
+```
+
+---
+
+## Install
+
+```bash
+npm install @ariana/core
+```
+
+Optional packages:
+
+```bash
+npm install @ariana/router @ariana/forms @ariana/query @ariana/rendering @ariana/vite-plugin
+```
 
 ---
 
@@ -109,11 +82,16 @@ export class CounterPage {
 ## Repository structure
 
 ```txt
-packages/core          core runtime, reactivity, DI, component metadata, render paths
-packages/vite-plugin   resource transform and compiler preview
+packages/core          core runtime, reactivity, DI, component metadata
+packages/compiler      template AST parser and diagnostics
+packages/router        routing package
+packages/forms         forms package
+packages/query         query/cache package
+packages/rendering     rendering and island helpers
+packages/vite-plugin   Vite integration
 examples/counter-app   demo application
-benchmarks/micro-update small framework comparison benchmark
-docs/                  architecture, roadmap, decisions, compiler notes, benchmark reports
+benchmarks/            benchmark suites
+docs/                  release, architecture, roadmap, and production notes
 ```
 
 ---
@@ -123,58 +101,34 @@ docs/                  architecture, roadmap, decisions, compiler notes, benchma
 ```bash
 npm install
 npm run build
+npm test
+npm run verify:release
+```
+
+Counter example:
+
+```bash
 npm run demo:counter
-npm run benchmark:micro
 ```
 
 ---
 
-## Roadmap
+## Release gates
 
-### v1 — Core runtime alpha
+Ariana releases are guarded by:
 
-- class-based component model
-- signals
-- bootstrap
-- simple DI
-- runtime template renderer
-- Vite resource transform
-
-### v2 — Compiler and performance baseline
-
-- compiled-render runtime path
-- limited Vite compiler preview
-- simple conditional compiler support
-- simple loop compiler support
-- framework benchmark suite
-- future keyed list reconciliation
-- future safe expression compiler
-
-### v3 — Enterprise application layer
-
-- typed router
-- guards
-- route-level providers
-- typed forms
-- HTTP/query layer
-- architecture rules
-
-### v4 — Rendering modes and advanced delivery
-
-- SSR
-- SSG
-- islands
-- hydration/resume experiments
-- chunk analyzer
-- devtools
+- full package build
+- unit tests
+- release verification
+- npm tarball generation
+- tarball count and name validation
+- guarded npm publish workflow
 
 ---
 
 ## Performance philosophy
 
-Ariana should not claim to be faster than React in every scenario before proper benchmarks exist.
-
-The practical target is lower framework overhead for fine-grained UI updates, form-heavy screens, single-row updates, and signal-bound text/attribute updates.
+Ariana should not claim to be faster than every framework in every scenario. The practical target is lower framework overhead for fine-grained UI updates, form-heavy screens, single-row updates, and signal-bound text or attribute updates.
 
 Benchmark reports are available in `docs/`.
 
@@ -182,4 +136,4 @@ Benchmark reports are available in `docs/`.
 
 ## License
 
-License is not selected yet.
+MIT
