@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@ariana-framework/core": ["packages/core/src/index.ts"],
+      "@ariana-framework/forms": ["packages/forms/src/index.ts"],
+      "@ariana-framework/query": ["packages/query/src/index.ts"],
+      "@ariana-framework/router": ["packages/router/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}
