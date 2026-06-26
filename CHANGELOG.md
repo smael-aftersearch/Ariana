@@ -1,8 +1,27 @@
 # Changelog
 
+## 0.4.1 - 2026-06-26
+
+### Official npm scope migration
+
+- Prepared official npm publishing under the `@ariana-framework` organization scope.
+- Staged publish packages as `@ariana-framework/*@0.4.1`.
+- Updated npm package staging so internal workspace package names do not have to be published before install/build.
+- Updated docs and release checklist for the `@ariana-framework` scope.
+
+### Packages
+
+- `@ariana-framework/core`
+- `@ariana-framework/compiler`
+- `@ariana-framework/router`
+- `@ariana-framework/forms`
+- `@ariana-framework/query`
+- `@ariana-framework/rendering`
+- `@ariana-framework/vite-plugin`
+
 ## 0.4.0 - 2026-06-26
 
-### Official release
+### Official release preparation
 
 - Promoted Ariana packages from alpha to official `0.4.0`.
 - Switched npm publishing from the `alpha` tag to the `latest` tag.
@@ -19,14 +38,6 @@
 - `@ariana/query`
 - `@ariana/rendering`
 - `@ariana/vite-plugin`
-
-### Release gates
-
-- Build must pass for all packages and the counter example.
-- Unit tests must pass.
-- Release verification must pass.
-- NPM tarballs must be generated and validated.
-- Official publish uses the `latest` npm tag.
 
 ## 0.4.0-alpha.0 - 2026-06-25
 
