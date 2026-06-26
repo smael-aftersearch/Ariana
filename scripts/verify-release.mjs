@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
-const releaseVersion = '0.4.0-alpha.0';
+const releaseVersion = '0.4.0';
 const packages = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
 const requiredRootFiles = ['README.md', 'CHANGELOG.md', 'LICENSE', 'RELEASE_CHECKLIST.md', 'SECURITY.md'];
 const problems = [];
@@ -14,6 +14,7 @@ for (const file of requiredRootFiles) {
 
 const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 if (!rootPackage.version) problems.push('Root package version is missing.');
+if (rootPackage.version !== releaseVersion) problems.push(`Unexpected root package version: ${rootPackage.version}`);
 if (!rootPackage.scripts?.build) problems.push('Root package must define a build script.');
 if (!rootPackage.scripts?.test) problems.push('Root package must define a test script.');
 
