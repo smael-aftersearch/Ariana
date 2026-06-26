@@ -1,6 +1,6 @@
 {
-  "name": "@ariana-framework/forms",
-  "version": "0.4.1",
+  "name": "@ariana/forms",
+  "version": "0.4.0",
   "description": "Ariana production-track typed signal forms.",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,6 +11,6 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@ariana-framework/core": "0.4.1"
+    "@ariana/core": "0.4.0"
   }
 }
