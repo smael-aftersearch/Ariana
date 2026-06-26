@@ -1,5 +1,5 @@
 import { signal, computed, effect, listSignal } from '../../packages/core/dist/index.js';
-import { test, assert, equal, deepEqual } from './test-runner.mjs';
+import { test, assert, equal, deepEqual } from './test-api.mjs';
 
 test('signal reads initial value and updates value', () => {
   const count = signal(1);
