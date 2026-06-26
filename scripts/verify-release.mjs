@@ -6,7 +6,6 @@ const root = process.cwd();
 const releaseVersion = '0.4.0-alpha.0';
 const packages = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
 const requiredRootFiles = ['README.md', 'CHANGELOG.md', 'LICENSE', 'RELEASE_CHECKLIST.md', 'SECURITY.md'];
-const versionRelaxedPackages = new Set(['query', 'vite-plugin']);
 const problems = [];
 
 for (const file of requiredRootFiles) {
@@ -33,7 +32,7 @@ for (const name of packages) {
   const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
   if (!pkg.name?.startsWith('@ariana/')) problems.push(`Unexpected package name for ${name}: ${pkg.name}`);
   if (!pkg.version) problems.push(`Missing package version for ${pkg.name}`);
-  if (!versionRelaxedPackages.has(name) && pkg.version !== releaseVersion) problems.push(`Unexpected version for ${pkg.name}: ${pkg.version}`);
+  if (pkg.version !== releaseVersion) problems.push(`Unexpected version for ${pkg.name}: ${pkg.version}`);
   if (!pkg.main || !pkg.types) problems.push(`Package ${pkg.name} must define main and types.`);
   if (!pkg.scripts?.build) problems.push(`Package ${pkg.name} must define a build script.`);
 }
