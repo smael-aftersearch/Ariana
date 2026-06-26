@@ -1,0 +1,16 @@
+{
+  "name": "create-ariana",
+  "version": "0.1.0",
+  "description": "Project starter for Ariana applications.",
+  "type": "module",
+  "bin": {
+    "create-ariana": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty"
+  },
+  "sideEffects": false
+}
