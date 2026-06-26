@@ -124,3 +124,6 @@ async function runWithRetry<T>(loader: () => Promise<T>, retry: number): Promise
     }
   }
 }
+
+export { createMutation } from './mutation.js';
+export type { Mutation, MutationOptions, MutationStatus } from './mutation.js';
