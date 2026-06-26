@@ -29,11 +29,19 @@ const orderedTarballs = packageOrder.map(name => {
 
 for (const tarball of orderedTarballs) {
   const fullPath = join(outDir, tarball);
-  if (dryRun) {
-    console.log(`Dry-run publish check for ${tarball}...`);
-    execFileSync('npm', ['publish', fullPath, '--access', 'public', '--tag', npmTag, '--dry-run'], { cwd: root, stdio: 'inherit' });
-  } else {
-    console.log(`Publishing ${tarball}...`);
-    execFileSync('npm', ['publish', fullPath, '--access', 'public', '--tag', npmTag], { cwd: root, stdio: 'inherit' });
+  try {
+    if (dryRun) {
+      console.log(`Dry-run publish check for ${tarball}...`);
+      execFileSync('npm', ['publish', fullPath, '--access', 'public', '--tag', npmTag, '--dry-run'], { cwd: root, stdio: 'inherit' });
+    } else {
+      console.log(`Publishing ${tarball}...`);
+      execFileSync('npm', ['publish', fullPath, '--access', 'public', '--tag', npmTag], { cwd: root, stdio: 'inherit' });
+    }
+  } catch (error) {
+    console.error('\nNPM publish failed. Check these first:');
+    console.error('- If your npm account has 2FA enabled, the automation/granular token must have bypass 2FA enabled.');
+    console.error('- If publishing under an npm organization scope, the token must have access to that organization/scope.');
+    console.error('- Confirm the package scope is owned by the npm account or organization used by NPM_TOKEN.');
+    throw error;
   }
 }
