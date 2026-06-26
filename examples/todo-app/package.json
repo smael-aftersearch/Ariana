@@ -1,0 +1,18 @@
+{
+  "name": "@ariana/todo-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ariana-framework/core": "file:../../packages/core",
+    "@ariana-framework/forms": "file:../../packages/forms",
+    "@ariana-framework/query": "file:../../packages/query",
+    "@ariana-framework/router": "file:../../packages/router"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
