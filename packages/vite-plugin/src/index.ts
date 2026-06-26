@@ -15,6 +15,7 @@ export type ArianaVitePluginOptions = {
   compileTemplates?: boolean;
   strictTemplates?: boolean;
   typeCheckTemplates?: boolean;
+  templateTypeCheckMembers?: readonly string[];
 };
 
 type ResourceTransformResult = {
@@ -27,16 +28,17 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
   const compileTemplates = options.compileTemplates ?? true;
   const strictTemplates = options.strictTemplates ?? true;
   const typeCheckTemplates = options.typeCheckTemplates ?? false;
+  const templateTypeCheckMembers = options.templateTypeCheckMembers ?? [];
 
   return {
     name: 'ariana-framework-template-url',
     enforce: 'pre',
     transform(code: string, id: string) {
-      if (!include.test(id) || !code.includes('@Component')) {
+      if (!include.test(id) || !code.includes('Component')) {
         return null;
       }
 
-      const result = transformComponentResources(code, id, compileTemplates, strictTemplates, typeCheckTemplates);
+      const result = transformComponentResources(code, id, compileTemplates, strictTemplates, typeCheckTemplates, templateTypeCheckMembers);
       return result.code === code ? null : result.code;
     }
   };
@@ -44,13 +46,20 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
 
 export default ariana;
 
-function transformComponentResources(code: string, id: string, compileTemplates: boolean, strictTemplates: boolean, typeCheckTemplates: boolean): ResourceTransformResult {
+function transformComponentResources(
+  code: string,
+  id: string,
+  compileTemplates: boolean,
+  strictTemplates: boolean,
+  typeCheckTemplates: boolean,
+  templateTypeCheckMembers: readonly string[]
+): ResourceTransformResult {
   const directory = dirname(id);
   let importIndex = 0;
   const imports: string[] = [];
   let usedCompiler = false;
 
-  let transformed = code.replace(/@Component\s*\(\s*\{([\s\S]*?)\}\s*\)/g, (_fullMatch, body: string) => {
+  let transformed = code.replace(/(@?)Component\s*\(\s*\{([\s\S]*?)\}\s*\)/g, (_fullMatch, decoratorPrefix: string, body: string) => {
     const templateUrl = findStringProperty(body, 'templateUrl');
     const styleUrl = findStringProperty(body, 'styleUrl');
     let nextBody = body;
@@ -65,8 +74,11 @@ function transformComponentResources(code: string, id: string, compileTemplates:
       const diagnostics = parseTemplateToAst(template).diagnostics;
       const blockingDiagnostic = diagnostics.find(diagnostic => diagnostic.level === 'error');
 
-      if (typeCheckTemplates && strictTemplates && template.includes('__ari_typecheck_fail__')) {
-        throw new Error(`Ariana template typecheck error in ${templateUrl}: ARI_TYPE_UNKNOWN_MEMBER synthetic failure marker found.`);
+      if (typeCheckTemplates && strictTemplates) {
+        const typeError = findUnknownTemplateMember(template, templateTypeCheckMembers);
+        if (typeError) {
+          throw new Error(`Ariana template typecheck error in ${templateUrl}: ARI_TYPE_UNKNOWN_MEMBER ${typeError}`);
+        }
       }
 
       if (blockingDiagnostic && strictTemplates) {
@@ -87,7 +99,7 @@ function transformComponentResources(code: string, id: string, compileTemplates:
       }
     }
 
-    return `Component({${nextBody}})`;
+    return `${decoratorPrefix}Component({${nextBody}})`;
   });
 
   if (usedCompiler && !code.includes('effect as __ari_effect')) {
@@ -112,4 +124,15 @@ function replaceStringProperty(source: string, propertyName: string, replacement
 
 function readTextResource(directory: string, resourcePath: string): string {
   return readFileSync(resolve(directory, resourcePath), 'utf8');
+}
+
+function findUnknownTemplateMember(template: string, members: readonly string[]): string | undefined {
+  const allowed = new Set(members);
+  if (allowed.size === 0) return undefined;
+  const expressions = Array.from(template.matchAll(/{{\s*([^}]+?)\s*}}/g)).map(match => match[1]);
+  for (const expression of expressions) {
+    const root = /^\s*([A-Za-z_$][\w$]*)/.exec(expression)?.[1];
+    if (root && !allowed.has(root)) return root;
+  }
+  return undefined;
 }
