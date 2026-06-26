@@ -1,6 +1,6 @@
 {
-  "name": "@ariana/vite-plugin",
-  "version": "0.4.0",
+  "name": "@ariana-framework/vite-plugin",
+  "version": "0.4.1",
   "description": "Vite plugin for Ariana resource transforms and compiler diagnostics.",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,7 +10,7 @@
     "typecheck": "tsc -b --pretty"
   },
   "peerDependencies": {
-    "@ariana/compiler": ">=0.4.0",
+    "@ariana-framework/compiler": ">=0.4.1",
     "vite": ">=5"
   }
 }
