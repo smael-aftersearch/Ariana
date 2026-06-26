@@ -9,9 +9,9 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin examples/counter-app",
+    "build": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin packages/create-ariana examples/counter-app",
     "clean": "node scripts/clean.mjs",
-    "typecheck": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin examples/counter-app --pretty",
+    "typecheck": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin packages/create-ariana examples/counter-app --pretty",
     "test": "node tests/unit/test-runner.mjs",
     "smoke:install": "node scripts/install-smoke.mjs",
     "smoke:create-ariana": "node scripts/create-ariana-smoke.mjs",
