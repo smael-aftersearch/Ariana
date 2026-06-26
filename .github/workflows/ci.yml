@@ -20,3 +20,4 @@ jobs:
       - run: npm run verify:release
       - run: npm run inspect:tarballs
       - run: npm run smoke:install
+      - run: npm run smoke:create-ariana
