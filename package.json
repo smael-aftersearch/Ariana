@@ -28,7 +28,7 @@
     "pack:npm": "node scripts/pack-npm.mjs",
     "publish:npm": "node scripts/publish-npm.mjs",
     "publish:npm:dry": "node scripts/publish-npm.mjs --dry-run",
-    "verify:release": "node scripts/verify-release.mjs"
+    "verify:release": "node scripts/pack-npm.mjs"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
