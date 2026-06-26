@@ -1,8 +1,8 @@
 {
   "name": "ariana-framework-v4-release-ready",
   "private": true,
-  "version": "0.4.0-alpha.0",
-  "description": "Ariana Framework v4 release-ready preview with npm package artifacts and guarded publish workflow.",
+  "version": "0.4.0",
+  "description": "Ariana Framework v4 official release with npm package artifacts and guarded publish workflow.",
   "type": "module",
   "workspaces": [
     "packages/*",
