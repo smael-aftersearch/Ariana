@@ -80,6 +80,21 @@ export class CounterPage {
 
 ---
 
+## Documentation
+
+Start with `docs/INDEX.md`.
+
+Important documents:
+
+- `docs/ROADMAP_AFTER_0_4_1.md`
+- `docs/API_SURFACE.md`
+- `docs/TEMPLATE_SYNTAX.md`
+- `docs/COMPILER_ROADMAP.md`
+- `docs/PACKAGE_INTEGRITY.md`
+- `docs/INSTALL_SMOKE_TEST.md`
+
+---
+
 ## Repository structure
 
 ```txt
@@ -91,6 +106,8 @@ packages/query         query/cache package
 packages/rendering     rendering and island helpers
 packages/vite-plugin   Vite integration
 examples/counter-app   demo application
+examples/todo-app      typed package integration fixture
+examples/vite-fixture  Vite integration fixture
 benchmarks/            benchmark suites
 docs/                  release, architecture, roadmap, and production notes
 ```
@@ -104,6 +121,8 @@ npm install
 npm run build
 npm test
 npm run pack:npm
+npm run inspect:tarballs
+npm run smoke:install
 ```
 
 Counter example:
@@ -122,6 +141,8 @@ Ariana releases are guarded by:
 - unit tests
 - npm tarball generation
 - tarball count and name validation
+- tarball package inspection
+- install smoke testing
 - guarded npm publish workflow
 
 The source workspace can use internal package names while `pack:npm` stages official npm packages under `@ariana-framework/*`.
