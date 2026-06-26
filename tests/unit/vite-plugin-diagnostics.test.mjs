@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ariana } from '../../packages/vite-plugin/dist/index.js';
-import { test, assert } from './test-runner.mjs';
+import { test, assert } from './test-api.mjs';
 
 function withTempProject(callback) {
   const directory = mkdtempSync(join(tmpdir(), 'ariana-vite-plugin-'));
@@ -13,7 +13,7 @@ function withTempProject(callback) {
   }
 }
 
-test('vite plugin uses compiler diagnostics and compiles valid templates', () => {
+test('vite plugin uses diagnostics and compiles valid templates', () => {
   withTempProject(directory => {
     writeFileSync(join(directory, 'cmp.html'), '<p>Hello {{ name }}</p>');
     writeFileSync(join(directory, 'cmp.css'), 'p { display: block; }');
