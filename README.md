@@ -18,8 +18,9 @@ In Ariana, every component is independent by design. Because there is no module 
 ## Status
 
 ```txt
-Ariana 0.4.0
+Ariana 0.4.1
 Status: Official early release
+NPM scope: @ariana-framework
 Release line: core runtime, compiler diagnostics, router, forms, query, rendering, Vite plugin
 ```
 
@@ -30,13 +31,13 @@ Ariana is still a young framework and should be evaluated carefully before produ
 ## Packages
 
 ```txt
-@ariana/core          core runtime, signals, DI, component metadata
-@ariana/compiler      template AST parser and diagnostics
-@ariana/router        typed router with guards, data, providers, nested routes
-@ariana/forms         signal-based forms and validation
-@ariana/query         query/cache client
-@ariana/rendering     SSR shell, SSG helpers, island utilities
-@ariana/vite-plugin   resource transform and template diagnostics integration
+@ariana-framework/core          core runtime, signals, DI, component metadata
+@ariana-framework/compiler      template AST parser and diagnostics
+@ariana-framework/router        typed router with guards, data, providers, nested routes
+@ariana-framework/forms         signal-based forms and validation
+@ariana-framework/query         query/cache client
+@ariana-framework/rendering     SSR shell, SSG helpers, island utilities
+@ariana-framework/vite-plugin   resource transform and template diagnostics integration
 ```
 
 ---
@@ -44,13 +45,13 @@ Ariana is still a young framework and should be evaluated carefully before produ
 ## Install
 
 ```bash
-npm install @ariana/core
+npm install @ariana-framework/core
 ```
 
 Optional packages:
 
 ```bash
-npm install @ariana/router @ariana/forms @ariana/query @ariana/rendering @ariana/vite-plugin
+npm install @ariana-framework/router @ariana-framework/forms @ariana-framework/query @ariana-framework/rendering @ariana-framework/vite-plugin
 ```
 
 ---
@@ -58,7 +59,7 @@ npm install @ariana/router @ariana/forms @ariana/query @ariana/rendering @ariana
 ## Example component
 
 ```ts
-import { Component, Route, computed, signal } from '@ariana/core';
+import { Component, Route, computed, signal } from '@ariana-framework/core';
 
 @Route('/counter')
 @Component({
@@ -102,7 +103,7 @@ docs/                  release, architecture, roadmap, and production notes
 npm install
 npm run build
 npm test
-npm run verify:release
+npm run pack:npm
 ```
 
 Counter example:
@@ -119,10 +120,11 @@ Ariana releases are guarded by:
 
 - full package build
 - unit tests
-- release verification
 - npm tarball generation
 - tarball count and name validation
 - guarded npm publish workflow
+
+The source workspace can use internal package names while `pack:npm` stages official npm packages under `@ariana-framework/*`.
 
 ---
 
