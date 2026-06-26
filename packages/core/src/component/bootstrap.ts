@@ -1,4 +1,5 @@
 import { Injector, runInInjectionContext, type Provider } from '../di/index.js';
+import { createCleanupScope, type CleanupScope } from '../reactivity/index.js';
 import { renderCompiledComponent } from '../template/compiled.js';
 import { renderComponent } from '../template/render.js';
 import { getComponentMetadata } from './component.js';
@@ -8,11 +9,26 @@ export type BootstrapOptions = {
   providers?: Provider[];
 };
 
+export type BootstrapRef<T> = {
+  readonly instance: T;
+  readonly injector: Injector;
+  readonly cleanupScope: CleanupScope;
+  destroy(): void;
+};
+
 export function bootstrap<T>(
   componentType: ComponentType<T>,
   host: string | HTMLElement,
   options: BootstrapOptions = {}
 ): T {
+  return bootstrapApplication(componentType, host, options).instance;
+}
+
+export function bootstrapApplication<T>(
+  componentType: ComponentType<T>,
+  host: string | HTMLElement,
+  options: BootstrapOptions = {}
+): BootstrapRef<T> {
   const hostElement = typeof host === 'string'
     ? document.querySelector(host)
     : host;
@@ -22,6 +38,7 @@ export function bootstrap<T>(
   }
 
   const metadata = getComponentMetadata(componentType);
+  const cleanupScope = createCleanupScope();
   const rootInjector = new Injector(options.providers ?? []);
   const componentInjector = rootInjector.createChild(metadata.providers ?? []);
   const component = runInInjectionContext(componentInjector, () => new componentType());
@@ -32,11 +49,19 @@ export function bootstrap<T>(
     renderComponent(component, metadata, hostElement as HTMLElement, componentInjector);
   }
 
-  if (hasLifecycle(component, 'onInit')) {
-    component.onInit();
-  }
+  if (hasLifecycle(component, 'onInit')) component.onInit();
+  if (hasLifecycle(component, 'afterRender')) component.afterRender();
 
-  return component;
+  return {
+    instance: component,
+    injector: componentInjector,
+    cleanupScope,
+    destroy() {
+      if (hasLifecycle(component, 'onDestroy')) component.onDestroy();
+      cleanupScope.cleanup();
+      (hostElement as HTMLElement).replaceChildren();
+    }
+  };
 }
 
 function hasLifecycle<TName extends string>(
