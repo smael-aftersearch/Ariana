@@ -11,6 +11,6 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@ariana/core": "npm:@ariana-framework/core@0.4.1"
+    "@ariana/core": "0.4.0"
   }
 }
