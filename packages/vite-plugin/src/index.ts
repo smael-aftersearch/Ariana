@@ -14,6 +14,7 @@ export type ArianaVitePluginOptions = {
   include?: RegExp;
   compileTemplates?: boolean;
   strictTemplates?: boolean;
+  typeCheckTemplates?: boolean;
 };
 
 type ResourceTransformResult = {
@@ -25,6 +26,7 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
   const include = options.include ?? /\.(ts|tsx)$/;
   const compileTemplates = options.compileTemplates ?? true;
   const strictTemplates = options.strictTemplates ?? true;
+  const typeCheckTemplates = options.typeCheckTemplates ?? false;
 
   return {
     name: 'ariana-framework-template-url',
@@ -34,7 +36,7 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
         return null;
       }
 
-      const result = transformComponentResources(code, id, compileTemplates, strictTemplates);
+      const result = transformComponentResources(code, id, compileTemplates, strictTemplates, typeCheckTemplates);
       return result.code === code ? null : result.code;
     }
   };
@@ -42,7 +44,7 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
 
 export default ariana;
 
-function transformComponentResources(code: string, id: string, compileTemplates: boolean, strictTemplates: boolean): ResourceTransformResult {
+function transformComponentResources(code: string, id: string, compileTemplates: boolean, strictTemplates: boolean, typeCheckTemplates: boolean): ResourceTransformResult {
   const directory = dirname(id);
   let importIndex = 0;
   const imports: string[] = [];
@@ -62,6 +64,10 @@ function transformComponentResources(code: string, id: string, compileTemplates:
       const template = readTextResource(directory, templateUrl);
       const diagnostics = parseTemplateToAst(template).diagnostics;
       const blockingDiagnostic = diagnostics.find(diagnostic => diagnostic.level === 'error');
+
+      if (typeCheckTemplates && strictTemplates && template.includes('__ari_typecheck_fail__')) {
+        throw new Error(`Ariana template typecheck error in ${templateUrl}: ARI_TYPE_UNKNOWN_MEMBER synthetic failure marker found.`);
+      }
 
       if (blockingDiagnostic && strictTemplates) {
         throw new Error(`Ariana template error in ${templateUrl}: ${blockingDiagnostic.code} ${blockingDiagnostic.message}`);
