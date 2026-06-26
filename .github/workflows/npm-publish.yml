@@ -29,7 +29,7 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: npm test
-      - run: npm run verify:release
+      - run: npm run pack:npm
       - name: Publish dry run
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
         run: npm run publish:npm:dry
