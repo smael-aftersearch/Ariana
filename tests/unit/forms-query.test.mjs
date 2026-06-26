@@ -1,6 +1,6 @@
 import { formControl, formGroup, required, minLength, asyncUnique } from '../../packages/forms/dist/index.js';
 import { createQueryClient } from '../../packages/query/dist/index.js';
-import { test, assert, equal } from './test-runner.mjs';
+import { test, assert, equal } from './test-api.mjs';
 
 test('forms: formControl validates and tracks dirty/touched state', () => {
   const control = formControl('', [required(), minLength(3)]);
