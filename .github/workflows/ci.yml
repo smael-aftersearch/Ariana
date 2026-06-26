@@ -18,4 +18,5 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm run verify:release
+      - run: npm run inspect:tarballs
       - run: npm run smoke:install
