@@ -1,4 +1,4 @@
-name: Publish alpha packages to npm
+name: Publish official packages to npm
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
       - name: Publish dry run
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
         run: npm run publish:npm:dry
-      - name: Publish to npm
+      - name: Publish official packages
         if: ${{ github.event_name == 'push' || github.event.inputs.dry_run == 'false' }}
         run: npm run publish:npm
         env:
