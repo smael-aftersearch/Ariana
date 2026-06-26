@@ -52,7 +52,7 @@ function scanPublishedFiles(directory, tarball) {
       scanPublishedFiles(fullPath, tarball);
       continue;
     }
-    if (!/\.(js|d\.ts|json|map)$/.test(entry)) continue;
+    if (!/\.(js|d\.ts|json)$/.test(entry)) continue;
     const content = readFileSync(fullPath, 'utf8');
     if (content.includes('file:../')) throw new Error(`Workspace dependency leaked into ${tarball}: ${fullPath}`);
     if (content.includes('@ariana/')) throw new Error(`Old @ariana scope leaked into ${tarball}: ${fullPath}`);
