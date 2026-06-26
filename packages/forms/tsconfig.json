@@ -10,7 +10,12 @@
     "skipLibCheck": true,
     "rootDir": "src",
     "outDir": "dist",
-    "composite": true
+    "composite": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@ariana-framework/core": ["packages/core/src/index.ts"],
+      "@ariana/core": ["packages/core/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts"]
 }
