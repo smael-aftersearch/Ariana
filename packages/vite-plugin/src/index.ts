@@ -28,7 +28,7 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
   const compileTemplates = options.compileTemplates ?? true;
   const strictTemplates = options.strictTemplates ?? true;
   const typeCheckTemplates = options.typeCheckTemplates ?? false;
-  const templateTypeCheckMembers = options.templateTypeCheckMembers ?? [];
+  const explicitTypeCheckMembers = options.templateTypeCheckMembers ?? [];
 
   return {
     name: 'ariana-framework-template-url',
@@ -38,6 +38,8 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
         return null;
       }
 
+      const inferredMembers = inferTemplateTypeCheckMembers(code);
+      const templateTypeCheckMembers = mergeMembers(explicitTypeCheckMembers, inferredMembers);
       const result = transformComponentResources(code, id, compileTemplates, strictTemplates, typeCheckTemplates, templateTypeCheckMembers);
       return result.code === code ? null : result.code;
     }
@@ -135,4 +137,22 @@ function findUnknownTemplateMember(template: string, members: readonly string[])
     if (root && !allowed.has(root)) return root;
   }
   return undefined;
+}
+
+function inferTemplateTypeCheckMembers(source: string): string[] {
+  const members = new Set<string>();
+  const classBody = /class\s+[A-Za-z_$][\w$]*\s*\{([\s\S]*)\}/.exec(source)?.[1] ?? '';
+  const fieldPattern = /(?:readonly\s+)?(?:public\s+)?([A-Za-z_$][\w$]*)\s*=/g;
+  const methodPattern = /(?:public\s+)?([A-Za-z_$][\w$]*)\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = fieldPattern.exec(classBody))) members.add(match[1]);
+  while ((match = methodPattern.exec(classBody))) {
+    const name = match[1];
+    if (!['if', 'for', 'while', 'switch', 'catch'].includes(name)) members.add(name);
+  }
+  return [...members];
+}
+
+function mergeMembers(left: readonly string[], right: readonly string[]): string[] {
+  return [...new Set([...left, ...right])];
 }
