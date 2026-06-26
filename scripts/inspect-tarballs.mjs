@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -25,7 +25,8 @@ for (const packageName of packages) {
   mkdirSync(target, { recursive: true });
   execFileSync('tar', ['-xzf', join(packageDir, tarball), '-C', target], { cwd: root, stdio: 'inherit' });
 
-  const packageJsonPath = join(target, 'package', 'package.json');
+  const packageRoot = join(target, 'package');
+  const packageJsonPath = join(packageRoot, 'package.json');
   const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
   const expectedName = `${expectedScope}/${packageName}`;
 
@@ -36,7 +37,24 @@ for (const packageName of packages) {
   const serialized = JSON.stringify(pkg);
   if (serialized.includes('file:../')) throw new Error(`Workspace dependency leaked into ${tarball}.`);
   if (serialized.includes('@ariana/')) throw new Error(`Old @ariana scope leaked into package metadata for ${tarball}.`);
+
+  scanPublishedFiles(packageRoot, tarball);
 }
 
 rmSync(inspectDir, { recursive: true, force: true });
 console.log('Tarball inspection passed.');
+
+function scanPublishedFiles(directory, tarball) {
+  for (const entry of readdirSync(directory)) {
+    const fullPath = join(directory, entry);
+    const stat = statSync(fullPath);
+    if (stat.isDirectory()) {
+      scanPublishedFiles(fullPath, tarball);
+      continue;
+    }
+    if (!/\.(js|d\.ts|json|map)$/.test(entry)) continue;
+    const content = readFileSync(fullPath, 'utf8');
+    if (content.includes('file:../')) throw new Error(`Workspace dependency leaked into ${tarball}: ${fullPath}`);
+    if (content.includes('@ariana/')) throw new Error(`Old @ariana scope leaked into ${tarball}: ${fullPath}`);
+  }
+}
