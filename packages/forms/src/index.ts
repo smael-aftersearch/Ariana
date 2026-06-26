@@ -143,3 +143,6 @@ function mergeErrors(errors: Array<ValidationErrors | undefined>): ValidationErr
   for (const error of errors) if (error) result = { ...(result ?? {}), ...error };
   return result;
 }
+
+export { formArray } from './form-array.js';
+export type { FormArray } from './form-array.js';
