@@ -23,22 +23,18 @@ Release when a milestone is coherent:
 | prod-90..prod-104 | Done | Effect cleanup, FormArray prototype, mutation prototype, lazy route resolver, typecheck groundwork. |
 | prod-105..prod-123 | Done/partial | Bootstrap ref, FormArray async, Vite typecheck option, create-ariana skeleton, CLI smoke. |
 | prod-124..prod-133 | Done/partial | Typecheck export path, generated app smoke, query invalidation tests, lazy/router/typecheck/cleanup plans. |
+| prod-134..prod-154 | Done/partial | Generated app/Vite smoke hardening, query invalidation API docs, compiler typecheck docs, transform tests. |
 
 ## Current batch
 
 | ID | Task | Status |
 | --- | --- | --- |
-| prod-134 | Fix generated app smoke CI failures | In progress |
-| prod-135 | Fix Vite fixture component transform | In progress |
-| prod-136 | Finalize compiler typecheck subpath docs | Done |
-| prod-137 | Promote create-ariana build safely | Deferred until Node types/build config are stable |
-| prod-138 | Add QueryClient direct prefix invalidation API | Done |
-| prod-139 | Component cleanup scope event listener plan | Done |
-| prod-140 | Generated app smoke script | Done |
-| prod-141 | CI generated app smoke step | Done |
-| prod-142 | QueryClient invalidateMatching tests | Done |
-| prod-143 | Supplemental docs index | Done |
-| prod-144 | Production tracker maintenance | Done |
+| prod-155 | Fix CI failures reported by GitHub Actions | Pending log review |
+| prod-156 | Wire Vite typecheck to real compiler context | Pending |
+| prod-157 | Pass cleanup scope into generated event listeners | Pending |
+| prod-158 | Promote create-ariana build after Node typings decision | Pending |
+| prod-159 | Add generated app fixture coverage for router/forms/query | Pending |
+| prod-160 | Prepare 0.5.0 release checklist draft | Pending |
 
 ## Next milestone target: 0.5.0
 
