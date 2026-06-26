@@ -1,5 +1,5 @@
-import { computed, signal } from '@ariana/core';
-import type { Signal } from '@ariana/core';
+import { computed, signal } from '@ariana-framework/core';
+import type { Signal } from '@ariana-framework/core';
 
 export type ValidationErrors = Record<string, unknown>;
 export type Validator<T> = (value: T) => ValidationErrors | undefined;
