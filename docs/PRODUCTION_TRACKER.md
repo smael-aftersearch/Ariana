@@ -25,17 +25,17 @@ Release when a milestone is coherent:
 | prod-124..prod-133 | Done/partial | Typecheck export path, generated app smoke, query invalidation tests, lazy/router/typecheck/cleanup plans. |
 | prod-134..prod-154 | Done/partial | Generated app/Vite smoke hardening, query invalidation API docs, compiler typecheck docs, transform tests. |
 | prod-155..prod-166 | Done/partial | Vite transform hardening, typecheck member option, generated app router/forms/query coverage, 0.5 checklist. |
+| prod-167..prod-180 | Done/partial | create-ariana build promotion, inferred Vite typecheck members, cleanup scope render context, changelog draft. |
 
 ## Current batch
 
 | ID | Task | Status |
 | --- | --- | --- |
-| prod-167 | Fix CI failures reported by GitHub Actions | Pending log review |
-| prod-168 | Pass cleanup scope into generated event listeners | Pending |
-| prod-169 | Promote create-ariana build after Node typings decision | Pending |
-| prod-170 | Wire Vite typecheck to inferred class members | Pending |
-| prod-171 | Add generated app browser interaction coverage | Pending |
-| prod-172 | Prepare 0.5.0 changelog draft | Pending |
+| prod-181 | Fix CI failures reported by GitHub Actions | Pending log review |
+| prod-182 | Finish cleanup scope registration inside generated event listener code | Pending |
+| prod-183 | Add browser runner decision for interaction tests | Pending |
+| prod-184 | Promote generated app coverage command into CI when safe | Pending |
+| prod-185 | Prepare 0.5.0 release notes after green CI | Pending |
 
 ## Next milestone target: 0.5.0
 
