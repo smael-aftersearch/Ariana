@@ -1,5 +1,5 @@
 import { compileTemplateToRender } from '../../packages/vite-plugin/dist/compiler.js';
-import { test, assert } from './test-runner.mjs';
+import { test, assert } from './test-api.mjs';
 
 function code(template) {
   const result = compileTemplateToRender(template);
