@@ -4,6 +4,9 @@
 
 - Confirm npm scope ownership for `@ariana`.
 - Confirm `NPM_TOKEN` exists in GitHub Actions secrets.
+- Confirm the npm token has package read/write access.
+- If the npm account has 2FA enabled, confirm the token has bypass 2FA enabled.
+- If `@ariana` is an npm organization scope, confirm the token has access to that organization.
 - Run CI on `main`.
 - Run the official npm publish workflow in dry-run mode.
 - Confirm package names and versions are all `0.4.0`.
