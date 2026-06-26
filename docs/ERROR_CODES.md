@@ -14,6 +14,7 @@ Ariana diagnostics should use stable error codes.
 | ARI_INVALID_FOR | `@for` block syntax is invalid. |
 | ARI_UNKNOWN_BINDING | Binding category is unknown. |
 | ARI_INVALID_FOR_EXPRESSION | `@for` expression is invalid. |
+| ARI_TYPE_UNKNOWN_MEMBER | Template type checking found a member that is not declared in the component context. |
 
 ## Policy
 
