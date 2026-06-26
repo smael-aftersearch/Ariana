@@ -152,3 +152,4 @@ function joinPaths(basePath: string, routePath: string): string {
 
 export { resolveLazyRoute, resolveLazyRoutes } from './lazy.js';
 export type { LazyRouteDefinition } from './lazy.js';
+export { createLazyRouter } from './lazy-router.js';
