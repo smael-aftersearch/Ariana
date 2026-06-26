@@ -1,5 +1,5 @@
 import { createRouter, matchRoutes } from '../../packages/router/dist/index.js';
-import { test, assert, equal, deepEqual } from './test-runner.mjs';
+import { test, assert, equal, deepEqual } from './test-api.mjs';
 
 class HomePage {}
 class UserPage {}
