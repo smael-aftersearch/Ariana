@@ -13,9 +13,12 @@
     "composite": true,
     "baseUrl": "../..",
     "paths": {
-      "@ariana-framework/core": ["packages/core/src/index.ts"],
-      "@ariana/core": ["packages/core/src/index.ts"]
+      "@ariana-framework/core": ["packages/core/dist/index.d.ts"],
+      "@ariana/core": ["packages/core/dist/index.d.ts"]
     }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../core" }
+  ]
 }
