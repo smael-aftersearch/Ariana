@@ -1,7 +1,7 @@
 {
   "name": "@ariana/rendering",
-  "version": "0.4.0-alpha.0",
-  "description": "Ariana v4 rendering preview.",
+  "version": "0.4.0",
+  "description": "Ariana v4 rendering package.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
