@@ -1,5 +1,6 @@
 import { signal } from '@ariana/core';
 import type { Signal } from '@ariana/core';
+import type { QueryInvalidationTarget } from './invalidation.js';
 
 export type QueryStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -25,6 +26,7 @@ export type QueryClient = {
   set<T>(key: string, data: T, options?: { staleTime?: number }): QueryState<T>;
   isStale(key: string): boolean;
   invalidate(key: string): void;
+  invalidateMatching(target: QueryInvalidationTarget): void;
   clear(): void;
   fetch<T>(key: string, loader: (context: { signal?: AbortSignal }) => Promise<T>, options?: QueryFetchOptions): Promise<T>;
   size(): number;
@@ -66,18 +68,28 @@ export function createQueryClient(now: () => number = () => Date.now()): QueryCl
     return state.staleAt() <= now();
   }
 
+  function invalidate(key: string) {
+    const state = cache.get(key);
+    if (state) {
+      state.status.set('idle');
+      state.staleAt.set(0);
+    }
+  }
+
+  function invalidateMatching(target: QueryInvalidationTarget) {
+    const targets = typeof target === 'string' ? [target] : target;
+    for (const key of cache.keys()) {
+      if (targets.some(prefix => key === prefix || key.startsWith(`${prefix}:`))) invalidate(key);
+    }
+  }
+
   return {
     get<T>(key: string) { return cache.get(key) as QueryState<T> | undefined; },
     ensure,
     set,
     isStale,
-    invalidate(key: string) {
-      const state = cache.get(key);
-      if (state) {
-        state.status.set('idle');
-        state.staleAt.set(0);
-      }
-    },
+    invalidate,
+    invalidateMatching,
     clear() {
       cache.clear();
       inFlight.clear();
