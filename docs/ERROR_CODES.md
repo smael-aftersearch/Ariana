@@ -18,6 +18,9 @@ Ariana diagnostics should use stable error codes.
 | ARI_EMPTY_BINDING_EXPRESSION | A binding expression is empty. |
 | ARI_UNSUPPORTED_BINDING_EXPRESSION | A binding expression uses an unsupported inline expression shape. |
 | ARI_TYPE_UNKNOWN_MEMBER | Template type checking found a member that is not declared in the component context. |
+| ARI_TYPE_UNKNOWN_PROPERTY | Template type checking found a property that is not declared on a typed object symbol. |
+| ARI_TYPE_CALL_NON_METHOD | Template type checking found a call against a known non-method member. |
+| ARI_TYPE_METHOD_ARGUMENT_COUNT | Template type checking found a method call with an invalid argument count. |
 
 ## Diagnostic shape
 
