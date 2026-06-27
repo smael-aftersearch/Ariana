@@ -14,6 +14,10 @@ This addendum records the final 0.5 preparation work after the main production t
 | prod-198 | 0.5 release checklist update | Done |
 | prod-199 | 0.5 release readiness update | Done |
 | prod-200 | 0.5 release commands document | Done |
+| prod-201 | Missing create-ariana tsconfig fix | Done |
+| prod-202 | create-ariana 0.5 package set | Done |
+| prod-203 | create-ariana smoke 0.5 package set | Done |
+| prod-204 | create-ariana README sync | Done |
 
 ## Still requires runtime results
 
