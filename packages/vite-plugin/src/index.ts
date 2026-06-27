@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
 import { formatTemplateDiagnostic } from '@ariana/compiler/diagnostics';
@@ -223,8 +223,11 @@ function replaceStringProperty(source: string, propertyName: string, replacement
 
 function readTextResource(directory: string, resourcePath: string, propertyName: 'templateUrl' | 'styleUrl'): string {
   const absolutePath = resolve(directory, resourcePath);
-  if (!existsSync(absolutePath)) {
-    throw new Error(`Ariana resource error: ${propertyName} resource was not found: ${resourcePath}`);
+  try {
+    return readFileSync(absolutePath, 'utf8');
+  } catch (error) {
+    const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : '';
+    if (code === 'ENOENT') throw new Error(`Ariana resource error: ${propertyName} resource was not found: ${resourcePath}`);
+    throw error;
   }
-  return readFileSync(absolutePath, 'utf8');
 }
