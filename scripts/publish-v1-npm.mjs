@@ -1,6 +1,6 @@
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { run, runNode } from './lib/run-command.mjs';
 
 const root = process.cwd();
 const outDir = join(root, 'npm-packages');
@@ -12,7 +12,7 @@ if (!dryRun && !process.env.NPM_TOKEN) {
   process.exit(1);
 }
 
-execFileSync('node', ['scripts/pack-v1-candidate.mjs'], { cwd: root, stdio: 'inherit' });
+runNode(['scripts/pack-v1-candidate.mjs'], { cwd: root });
 
 const tarballs = readdirSync(outDir).filter(name => name.endsWith('.tgz'));
 for (const name of packageOrder) {
@@ -20,5 +20,5 @@ for (const name of packageOrder) {
   if (!tarball) throw new Error(`Missing 1.0.0 tarball for ${name}.`);
   const args = ['publish', join(outDir, tarball), '--access', 'public', '--tag', 'latest'];
   if (dryRun) args.push('--dry-run');
-  execFileSync('npm', args, { cwd: root, stdio: 'inherit' });
+  run('npm', args, { cwd: root });
 }
