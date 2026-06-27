@@ -13,6 +13,7 @@
     "clean": "node scripts/clean.mjs",
     "typecheck": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin packages/create-ariana examples/counter-app --pretty",
     "test": "node tests/unit/test-runner.mjs",
+    "check:stable-api-docs": "node scripts/check-stable-api-docs.mjs",
     "smoke:install": "node scripts/install-smoke.mjs",
     "smoke:create-ariana": "node scripts/create-ariana-smoke.mjs",
     "smoke:generated-app": "node scripts/generated-app-smoke.mjs",
