@@ -64,7 +64,7 @@ function arrayCase(name) {
   if (name === 'Angular') return { run() { const a = new AngularFormArray([]); for (let i = 0; i < arraySize; i++) a.push(new AngularFormControl(i), { emitEvent: false }); for (let i = 0; i < arrayMoves; i++) { const item = a.at(a.length - 1); a.removeAt(a.length - 1, { emitEvent: false }); a.insert(0, item, { emitEvent: false }); } return a.length; } };
   if (name === 'Vue') return { run() { const a = vueRef([]); for (let i = 0; i < arraySize; i++) a.value.push(i); for (let i = 0; i < arrayMoves; i++) a.value.unshift(a.value.pop()); return a.value.length; } };
   if (name === 'Svelte') return { run() { const s = svelteWritable([]); for (let i = 0; i < arraySize; i++) s.update(a => [...a, i]); for (let i = 0; i < arrayMoves; i++) s.update(a => [a[a.length - 1], ...a.slice(0, -1)]); return svelteGet(s).length; } };
-  if (name === 'Solid') return solidRoot(dispose => { const [a, setA] = solidSignal([]); return { run() { for (let i = 0; i < arraySize; i++) setA(items => [...items, i]); for (let i = 0; i < arrayMoves; i++) setA(items => [items[items.length - 1], ...items.slice(0, -1)]); return a().length; }, cleanup: dispose }; });
+  if (name === 'Solid') return { run() { return solidRoot(dispose => { const [a, setA] = solidSignal([]); for (let i = 0; i < arraySize; i++) setA(items => [...items, i]); for (let i = 0; i < arrayMoves; i++) setA(items => [items[items.length - 1], ...items.slice(0, -1)]); const length = a().length; dispose(); return length; }); } };
   return { run() { let a = []; for (let i = 0; i < arraySize; i++) a = [...a, i]; for (let i = 0; i < arrayMoves; i++) a = [a[a.length - 1], ...a.slice(0, -1)]; return a.length; } };
 }
 
