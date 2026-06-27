@@ -24,7 +24,7 @@ const arrayMoves = Number(process.env.ARIA_BENCH_ARRAY_MOVES ?? 50);
 const results = [];
 
 for (const framework of frameworks) measure('derived-counter', framework, createCounterCase(framework), counterIterations, iterations => (iterations - 1) * 2);
-for (const framework of frameworks) measure('list-1000-update', framework, createListCase(framework, listSize, 'update'), listUpdates, () => listSize + listUpdates);
+for (const framework of frameworks) measure('list-1000-update', framework, createListCase(framework, listSize, 'update'), listUpdates, () => sumRange(listSize) + listUpdates);
 for (const framework of frameworks) measure('list-10000-move', framework, createListCase(framework, largeListSize, 'move'), largeListMoves, () => largeListSize);
 for (const framework of frameworks) measure('array-push-move', framework, createArrayCase(framework), 1, () => arraySize);
 
@@ -80,7 +80,7 @@ function createListCase(framework, size, mode) {
   const transform = (items, iteration) => mode === 'move'
     ? [items[items.length - 1], ...items.slice(0, items.length - 1)]
     : items.map((item, index) => index === iteration % size ? item + 1 : item);
-  const finish = items => mode === 'move' ? items.length : items.length + items.reduce((sum, item) => sum + (item >= size ? 1 : 0), 0);
+  const finish = items => mode === 'move' ? items.length : items.reduce((sum, item) => sum + item, 0);
 
   if (framework === 'Ariana') return signalList(arianaSignal, initial, transform, finish);
   if (framework === 'Angular') return signalList(angularSignal, initial, transform, finish);
@@ -120,6 +120,7 @@ function measure(scenario, framework, testCase, iterations, expectedValue) {
   results.push({ scenario, framework, finalValue, unit: 'ms', min: sorted[0], median: pct(sorted, 0.5), p75: pct(sorted, 0.75), p95: pct(sorted, 0.95), max: sorted[sorted.length - 1], runs: values });
 }
 
+function sumRange(length) { return (length * (length - 1)) / 2; }
 function pct(sorted, n) { return sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * n) - 1)] ?? 0; }
 function unique(values) { return [...new Set(values)]; }
 
