@@ -1,0 +1,43 @@
+name: Framework Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - benchmarks/framework-comparison/**
+      - packages/**
+      - package.json
+      - .github/workflows/framework-benchmark.yml
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Run framework comparison benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install root dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build Ariana packages
+        run: npm run build
+
+      - name: Run framework benchmark
+        run: npm run bench:framework
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: framework-benchmark-results
+          path: benchmarks/framework-comparison/results/
