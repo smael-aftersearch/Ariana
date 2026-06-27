@@ -26,6 +26,8 @@ Required public API candidates:
 - `typeCheckTemplate`
 - `inferComponentContextMembers`
 - `mergeTypeCheckMembers`
+- `getSourceLocation`
+- `createTemplateDiagnostic`
 - template parsing diagnostics
 - template compile result
 - error codes
