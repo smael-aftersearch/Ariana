@@ -23,6 +23,11 @@ export type ComponentContextInferenceResult = {
   members: string[];
 };
 
+export type ComponentTypeSymbolInferenceResult = {
+  members: string[];
+  symbols: Record<string, TemplateTypeSymbol>;
+};
+
 type TypeCheckScope = {
   members: Set<string>;
   symbols: Map<string, TemplateTypeSymbol>;
@@ -55,20 +60,34 @@ export function typeCheckTemplate(template: string, context: TemplateTypeCheckCo
 }
 
 export function inferComponentContextMembers(source: string): ComponentContextInferenceResult {
+  const inferred = inferComponentTypeSymbols(source);
+  return { members: inferred.members };
+}
+
+export function inferComponentTypeSymbols(source: string): ComponentTypeSymbolInferenceResult {
   const classBodies = extractClassBodies(source);
   const members = new Set<string>();
+  const symbols: Record<string, TemplateTypeSymbol> = {};
 
   for (const classBody of classBodies) {
-    collectClassFields(classBody, members);
-    collectClassMethods(classBody, members);
-    collectAccessors(classBody, members);
+    collectClassFields(classBody, members, symbols);
+    collectClassMethods(classBody, members, symbols);
+    collectAccessors(classBody, members, symbols);
   }
 
-  return { members: [...members] };
+  return { members: [...members], symbols };
 }
 
 export function mergeTypeCheckMembers(...groups: readonly (readonly string[])[]): string[] {
   return [...new Set(groups.flat())];
+}
+
+export function createTypeCheckContextFromSource(source: string, explicitMembers: readonly string[] = []): TemplateTypeCheckContext {
+  const inferred = inferComponentTypeSymbols(source);
+  return {
+    members: mergeTypeCheckMembers(explicitMembers, inferred.members),
+    symbols: inferred.symbols
+  };
 }
 
 function checkNode(template: string, node: ArianaTemplateAstNode, scope: TypeCheckScope, diagnostics: ArianaTemplateDiagnostic[]) {
@@ -235,25 +254,64 @@ function extractClassBodies(source: string): string[] {
   return bodies;
 }
 
-function collectClassFields(classBody: string, members: Set<string>) {
-  const fieldPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|readonly\s+|override\s+|static\s+)*([A-Za-z_$][\w$]*)\s*(?::[^=;]+)?=/g;
+function collectClassFields(classBody: string, members: Set<string>, symbols: Record<string, TemplateTypeSymbol>) {
+  const fieldPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|readonly\s+|override\s+|static\s+)*([A-Za-z_$][\w$]*)\s*(?::\s*([^=;]+))?=/g;
   let match: RegExpExecArray | null;
-  while ((match = fieldPattern.exec(classBody))) members.add(match[1]);
-}
-
-function collectClassMethods(classBody: string, members: Set<string>) {
-  const methodPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|override\s+|async\s+|static\s+)*([A-Za-z_$][\w$]*)\s*\(/g;
-  let match: RegExpExecArray | null;
-  while ((match = methodPattern.exec(classBody))) {
+  while ((match = fieldPattern.exec(classBody))) {
     const name = match[1];
-    if (!['if', 'for', 'while', 'switch', 'catch', 'constructor'].includes(name)) members.add(name);
+    members.add(name);
+    symbols[name] = inferSymbolFromType(match[2]);
   }
 }
 
-function collectAccessors(classBody: string, members: Set<string>) {
+function collectClassMethods(classBody: string, members: Set<string>, symbols: Record<string, TemplateTypeSymbol>) {
+  const methodPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|override\s+|async\s+|static\s+)*([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/g;
+  let match: RegExpExecArray | null;
+  while ((match = methodPattern.exec(classBody))) {
+    const name = match[1];
+    if (['if', 'for', 'while', 'switch', 'catch', 'constructor'].includes(name)) continue;
+    const argumentRange = inferArgumentRange(match[2]);
+    members.add(name);
+    symbols[name] = { kind: 'method', minArgs: argumentRange.minArgs, maxArgs: argumentRange.maxArgs };
+  }
+}
+
+function collectAccessors(classBody: string, members: Set<string>, symbols: Record<string, TemplateTypeSymbol>) {
   const accessorPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|override\s+|static\s+)*(?:get|set)\s+([A-Za-z_$][\w$]*)\s*\(/g;
   let match: RegExpExecArray | null;
-  while ((match = accessorPattern.exec(classBody))) members.add(match[1]);
+  while ((match = accessorPattern.exec(classBody))) {
+    const name = match[1];
+    members.add(name);
+    if (!symbols[name]) symbols[name] = { kind: 'value' };
+  }
+}
+
+function inferSymbolFromType(typeAnnotation: string | undefined): TemplateTypeSymbol {
+  const normalized = typeAnnotation?.trim() ?? '';
+  if (/\[\]$/.test(normalized) || /^Array</.test(normalized) || /^ReadonlyArray</.test(normalized)) return { kind: 'array' };
+  if (/^\{/.test(normalized)) return { kind: 'object', properties: inferInlineObjectProperties(normalized) };
+  return { kind: 'value' };
+}
+
+function inferInlineObjectProperties(typeAnnotation: string): Record<string, TemplateTypeSymbol> {
+  const properties: Record<string, TemplateTypeSymbol> = {};
+  const body = typeAnnotation.replace(/^\{/, '').replace(/\}$/, '');
+  const propertyPattern = /([A-Za-z_$][\w$]*)\??\s*:/g;
+  let match: RegExpExecArray | null;
+  while ((match = propertyPattern.exec(body))) properties[match[1]] = { kind: 'value' };
+  return properties;
+}
+
+function inferArgumentRange(args: string): { minArgs: number; maxArgs: number } {
+  const parts = args.split(',').map(arg => arg.trim()).filter(Boolean);
+  let minArgs = 0;
+  let maxArgs = 0;
+  for (const arg of parts) {
+    if (arg.startsWith('...')) continue;
+    maxArgs++;
+    if (!arg.includes('?') && !arg.includes('=')) minArgs++;
+  }
+  return { minArgs, maxArgs };
 }
 
 function findMatchingBrace(source: string, openIndex: number): number {
