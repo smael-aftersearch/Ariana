@@ -30,7 +30,7 @@ export function computed<T>(callback: () => T): Signal<T> {
     const active = getActiveComputation();
 
     if (active) {
-      active.track({ subscribe: read.subscribe });
+      active.track(dependency);
     }
 
     if (!hasValue) {
@@ -39,6 +39,8 @@ export function computed<T>(callback: () => T): Signal<T> {
 
     return value;
   }) as Signal<T>;
+
+  const dependency = { subscribe: (listener: Subscriber): Cleanup => read.subscribe(listener) };
 
   read.set = (nextValue: T) => {
     if (hasValue && Object.is(value, nextValue)) {
