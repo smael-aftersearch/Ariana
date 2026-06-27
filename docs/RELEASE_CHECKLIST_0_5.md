@@ -14,6 +14,7 @@ Ariana 0.5.0 is the next meaningful milestone after the first public npm release
 - npm run smoke:generated-app
 - Vite fixture workflow passes
 - Benchmark smoke workflow passes
+- Framework benchmark workflow passes
 
 ## Package gates
 
@@ -22,6 +23,7 @@ Ariana 0.5.0 is the next meaningful milestone after the first public npm release
 - no stale internal runtime import leaks into published JavaScript or type files
 - compiler typecheck subpath is packaged
 - generated app imports core, router, forms, query, and vite-plugin
+- 0.5 candidate packaging helper can pack and inspect 0.5.0 tarballs
 
 ## Framework gates
 
@@ -36,10 +38,12 @@ Ariana 0.5.0 is the next meaningful milestone after the first public npm release
 ## Performance gates
 
 - benchmark smoke script passes
+- framework comparison benchmark runs
 - core signal/computed update smoke passes
 - router repeated matching smoke passes
 - forms FormArray operations smoke passes
 - query cache and invalidation smoke passes
+- comparison report is reviewed before public claims
 
 ## Documentation gates
 
@@ -49,6 +53,7 @@ Ariana 0.5.0 is the next meaningful milestone after the first public npm release
 - query invalidation API is documented
 - compiler typecheck API is documented
 - benchmark smoke test is documented
+- framework comparison report is documented
 
 ## Not allowed for 0.5.0
 
@@ -56,3 +61,4 @@ Ariana 0.5.0 is the next meaningful milestone after the first public npm release
 - SSR or SSG production claim
 - npm scope rename
 - large new public API without tests
+- public performance claim without captured benchmark output
