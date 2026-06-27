@@ -6,8 +6,8 @@ Ariana version one is the stable API milestone after 0.5.0.
 
 | Patch | Area | Goal | Status |
 | --- | --- | --- | --- |
-| patch-01 | API governance | API lock and compatibility checks | Started |
-| patch-02 | Runtime | Lifecycle and cleanup completion | Pending |
+| patch-01 | API governance | API lock and compatibility checks | Done |
+| patch-02 | Runtime | Lifecycle and cleanup completion | Started |
 | patch-03 | Compiler | Template diagnostics and typecheck completion | Pending |
 | patch-04 | Vite plugin | Resource transform and tests | Pending |
 | patch-05 | Router | Nested routes, guards, lazy loading, navigation state | Pending |
