@@ -9,6 +9,20 @@ export type TemplateTypeCheckResult = {
   diagnostics: ArianaTemplateDiagnostic[];
 };
 
+const TEMPLATE_GLOBALS = new Set([
+  'true',
+  'false',
+  'null',
+  'undefined',
+  'Math',
+  'Number',
+  'String',
+  'Boolean',
+  'Array',
+  'Date',
+  'JSON'
+]);
+
 export function typeCheckTemplate(template: string, context: TemplateTypeCheckContext): TemplateTypeCheckResult {
   const result = parseTemplateToAst(template);
   const diagnostics = [...result.diagnostics];
@@ -27,13 +41,17 @@ function checkNode(node: ArianaTemplateAstNode, members: Set<string>, diagnostic
   }
   if (node.kind === 'ForBlock') {
     checkExpression(node.iterableExpression, node.span.start, members, diagnostics);
-    const scoped = new Set([...members, node.itemName]);
+    const scoped = new Set([...members, node.itemName, '$index']);
     if (node.trackExpression) checkExpression(node.trackExpression, node.span.start, scoped, diagnostics);
     for (const child of node.children) checkNode(child, scoped, diagnostics);
   }
   if (node.kind === 'Element') {
     for (const attribute of node.attributes) {
-      if (attribute.binding !== 'static') checkExpression(attribute.value, attribute.span.start, members, diagnostics);
+      if (attribute.binding === 'static') continue;
+      const scoped = attribute.binding === 'event'
+        ? new Set([...members, '$event'])
+        : members;
+      checkExpression(attribute.value, attribute.span.start, scoped, diagnostics);
     }
     for (const child of node.children) checkNode(child, members, diagnostics);
   }
@@ -42,6 +60,7 @@ function checkNode(node: ArianaTemplateAstNode, members: Set<string>, diagnostic
 function checkExpression(expression: string, index: number, members: Set<string>, diagnostics: ArianaTemplateDiagnostic[]) {
   const identifiers = extractRootIdentifiers(expression);
   for (const identifier of identifiers) {
+    if (TEMPLATE_GLOBALS.has(identifier)) continue;
     if (!members.has(identifier)) {
       diagnostics.push({
         level: 'error',
@@ -55,8 +74,10 @@ function checkExpression(expression: string, index: number, members: Set<string>
 
 function extractRootIdentifiers(expression: string): string[] {
   const identifiers = new Set<string>();
-  const sanitized = expression.replace(/(['"`])(?:\\.|(?!\1).)*\1/g, '').replace(/\b(true|false|null|undefined)\b/g, '');
-  const pattern = /(^|[^.\w$])([A-Za-z_$][\w$]*)/g;
+  const sanitized = expression
+    .replace(/(['"`])(?:\\.|(?!\1).)*\1/g, '')
+    .replace(/\b(true|false|null|undefined)\b/g, '');
+  const pattern = /(^|[^.\w$])([A-Za-z_$][\w$]*|\$[A-Za-z_][\w$]*)/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(sanitized))) identifiers.add(match[2]);
   return [...identifiers];
