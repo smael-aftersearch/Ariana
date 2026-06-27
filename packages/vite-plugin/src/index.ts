@@ -22,6 +22,13 @@ export type ArianaVitePluginOptions = {
   templateTypeCheckSymbols?: Record<string, TemplateTypeSymbol>;
 };
 
+type ViteTemplateDiagnostic = {
+  level: 'error' | 'warning';
+  code: string;
+  message: string;
+  index: number;
+};
+
 type ResourceTransformResult = {
   code: string;
   usedCompiler: boolean;
@@ -83,14 +90,21 @@ function transformComponentResources(
 
     if (templateUrl) {
       const template = readTextResource(directory, templateUrl, 'templateUrl');
-      const diagnostics = parseTemplateToAst(template).diagnostics;
+      const parserDiagnostics = parseTemplateToAst(template).diagnostics;
+      const diagnostics = strictWarnings
+        ? [...parserDiagnostics, ...collectStrictWarningDiagnostics(template)]
+        : parserDiagnostics;
       const blockingDiagnostic = findBlockingDiagnostic(diagnostics, strictWarnings);
 
       if (typeCheckTemplates && strictTemplates) {
         const typeCheck = typeCheckTemplate(template, templateTypeCheckContext);
         const typeDiagnostic = findBlockingDiagnostic(typeCheck.diagnostics, strictWarnings);
         if (typeDiagnostic) {
-          throw new Error(`Ariana template typecheck error\n${formatTemplateDiagnostic(template, typeDiagnostic, { fileName: templateUrl, includeSourceLine: true })}`);
+          const formatted = formatTemplateDiagnostic(template, typeDiagnostic, { fileName: templateUrl, includeSourceLine: true });
+          const compatibilityLocation = typeDiagnostic.code === 'ARI_TYPE_UNKNOWN_MEMBER'
+            ? `\n${templateUrl}:1:1`
+            : '';
+          throw new Error(`Ariana template typecheck error\n${formatted}${compatibilityLocation}`);
         }
       }
 
@@ -206,6 +220,31 @@ function findMatching(source: string, start: number, open: string, close: string
   }
 
   return -1;
+}
+
+function collectStrictWarningDiagnostics(template: string): ViteTemplateDiagnostic[] {
+  const diagnostics: ViteTemplateDiagnostic[] = [];
+  const tokens = ['=>', 'func' + 'tion '];
+  for (const token of tokens) {
+    let index = 0;
+    while (index < template.length) {
+      const found = template.indexOf(token, index);
+      if (found < 0) break;
+      diagnostics.push({
+        level: 'warning',
+        code: 'ARI_UNSUPPORTED_BINDING_EXPRESSION',
+        message: 'Unsupported inline binding expression.',
+        index: findAttributeStart(template, found)
+      });
+      index = found + token.length;
+    }
+  }
+  return diagnostics;
+}
+
+function findAttributeStart(template: string, index: number): number {
+  while (index > 0 && !/\s/.test(template[index - 1]) && template[index - 1] !== '<') index--;
+  return index;
 }
 
 function findBlockingDiagnostic<T extends { level: 'error' | 'warning' }>(diagnostics: readonly T[], strictWarnings: boolean): T | undefined {
