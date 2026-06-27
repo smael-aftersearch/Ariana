@@ -16,6 +16,8 @@ Patch 02 hardens runtime lifecycle behavior for the version one path.
 - Child component `onDestroy` is called when parent cleanup runs.
 - Conditional block scopes are registered with parent cleanup.
 - Repeated block scopes are cleaned when parent cleanup runs.
+- Runtime lifecycle contract document added.
+- Runtime lifecycle documentation check added to CI.
 - Runtime lifecycle stability document added.
 - Cleanup scope tree tests added.
 - Bootstrap lifecycle source test added.
@@ -26,8 +28,7 @@ Patch 02 hardens runtime lifecycle behavior for the version one path.
 - browser interaction test for event listener cleanup
 - generated app test for child component cleanup
 - compiled render cleanup runtime test with a DOM runner
-- nested child component destroy ordering test
-- public lifecycle documentation
+- nested child component destroy ordering test with browser runner
 
 ## Next patch
 
