@@ -8,7 +8,7 @@ const outDir = join(root, 'npm-packages');
 const appDir = mkdtempSync(join(tmpdir(), 'ariana-generated-app-'));
 
 try {
-  execFileSync('npm', ['run', 'pack:npm'], { cwd: root, stdio: 'inherit' });
+  execFileSync('npm', ['run', 'verify:release'], { cwd: root, stdio: 'inherit' });
   const tarballs = readdirSync(outDir).filter(name => name.endsWith('.tgz')).map(name => resolve(outDir, name));
 
   mkdirSync(join(appDir, 'src'), { recursive: true });
