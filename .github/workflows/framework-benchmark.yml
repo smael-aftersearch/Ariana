@@ -43,7 +43,6 @@ jobs:
         run: cp benchmarks/framework-comparison/results/latest.md docs/PERFORMANCE_RESULTS_V1.md
 
       - name: Commit benchmark results
-        if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
