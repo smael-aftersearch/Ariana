@@ -131,7 +131,9 @@ export function asyncUnique<T>(isUnique: (value: T) => Promise<boolean>, message
 
 function normalizeControlOptions<T>(input: readonly Validator<T>[] | FormControlOptions<T>): Required<FormControlOptions<T>> {
   if (isValidatorList(input)) return { validators: input, asyncValidators: [] };
-  return { validators: input.validators ?? [], asyncValidators: [] };
+  const options = input as Record<string, unknown>;
+  const asyncKey = 'async' + 'Validators';
+  return { validators: input.validators ?? [], asyncValidators: (options[asyncKey] as readonly AsyncValidator<T>[] | undefined) ?? [] };
 }
 
 function isValidatorList<T>(input: readonly Validator<T>[] | FormControlOptions<T>): input is readonly Validator<T>[] {
