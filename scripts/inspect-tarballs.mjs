@@ -6,10 +6,10 @@ const root = process.cwd();
 const packageDir = join(root, 'npm-packages');
 const inspectDir = join(root, '.tarball-inspection');
 const expectedScope = '@ariana-framework';
-const expectedVersion = '0.4.1';
+const expectedVersion = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
 const packages = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
 
-if (!existsSync(packageDir)) execFileSync('npm', ['run', 'pack:npm'], { cwd: root, stdio: 'inherit' });
+if (!existsSync(packageDir)) execFileSync('npm', ['run', 'verify:release'], { cwd: root, stdio: 'inherit' });
 
 rmSync(inspectDir, { recursive: true, force: true });
 mkdirSync(inspectDir, { recursive: true });
@@ -31,7 +31,7 @@ for (const packageName of packages) {
   const expectedName = `${expectedScope}/${packageName}`;
 
   if (pkg.name !== expectedName) throw new Error(`Unexpected package name in ${tarball}: ${pkg.name}`);
-  if (pkg.version !== expectedVersion) throw new Error(`Unexpected version in ${tarball}: ${pkg.version}`);
+  if (pkg.version !== expectedVersion) throw new Error(`Unexpected version in ${tarball}: ${pkg.version}; expected ${expectedVersion}`);
   if (!pkg.main || !pkg.types) throw new Error(`Missing main/types in ${tarball}.`);
 
   const serialized = JSON.stringify(pkg);
@@ -42,7 +42,7 @@ for (const packageName of packages) {
 }
 
 rmSync(inspectDir, { recursive: true, force: true });
-console.log('Tarball inspection passed.');
+console.log(`Tarball inspection passed for ${expectedVersion}.`);
 
 function scanPublishedFiles(directory, tarball) {
   for (const entry of readdirSync(directory)) {
