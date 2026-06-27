@@ -4,7 +4,7 @@ import React from 'react';
 import { computed as angularComputed, signal as angularSignal } from '@angular/core';
 import { FormArray as AngularFormArray, FormControl as AngularFormControl } from '@angular/forms';
 import { computed as vueComputed, ref as vueRef } from '@vue/reactivity';
-import { createMemo as solidMemo, createRoot as solidRoot, createSignal as solidSignal } from 'solid-js';
+import { createMemo as solidMemo, createRoot as solidRoot, createSignal as solidSignal } from 'solid-js/dist/solid.js';
 import { derived as svelteDerived, get as svelteGet, writable as svelteWritable } from 'svelte/store';
 import { computed as arianaComputed, signal as arianaSignal } from '../../../packages/core/dist/index.js';
 import { formArray as arianaFormArray, formControl as arianaFormControl } from '../../../packages/forms/dist/index.js';
