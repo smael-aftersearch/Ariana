@@ -44,6 +44,13 @@ Patch 03 hardens compiler diagnostics and template typecheck for the version one
 - Stable API registry now includes compiler formatter APIs.
 - Diagnostic formatter tests added.
 - Template typecheck docs now document type-aware groundwork and formatter APIs.
+- Compiler now exposes `inferComponentTypeSymbols`.
+- Compiler now exposes `createTypeCheckContextFromSource`.
+- Source-based typed field and method argument count inference added.
+- Template diagnostics CLI script added.
+- Template diagnostics fixture added.
+- Template diagnostics fixture check added to CI.
+- Template diagnostics CLI documentation added.
 - Version one plan moved patch 03 to started.
 
 ## Diagnostic codes covered
@@ -66,12 +73,11 @@ Patch 03 hardens compiler diagnostics and template typecheck for the version one
 
 ## Remaining compiler work
 
-- add TypeScript-backed symbol extraction
+- add real TypeScript compiler API symbol extraction
 - add method argument type validation
 - add migration notes if any diagnostic code changes before version one
 - add browser/editor fixture coverage for template diagnostics
-- add CLI command that prints formatted diagnostics
 
 ## Next focus
 
-Continue Patch 03 with TypeScript-backed symbol extraction groundwork, CLI diagnostic command, and editor fixture coverage.
+Close Patch 03 by adding migration notes, editor output snapshots, and deciding whether real TypeScript compiler API extraction belongs before or after Patch 04.
