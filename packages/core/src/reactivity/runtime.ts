@@ -6,6 +6,7 @@ export type Dependency = {
 
 export class ReactiveComputation {
   private cleanups: Cleanup[] = [];
+  private dependencies = new Set<Dependency>();
 
   constructor(private readonly callback: () => void) {}
 
@@ -21,6 +22,11 @@ export class ReactiveComputation {
   };
 
   track(dependency: Dependency) {
+    if (this.dependencies.has(dependency)) {
+      return;
+    }
+
+    this.dependencies.add(dependency);
     this.cleanups.push(dependency.subscribe(this.run));
   }
 
@@ -28,6 +34,8 @@ export class ReactiveComputation {
     for (const cleanup of this.cleanups.splice(0)) {
       cleanup();
     }
+
+    this.dependencies.clear();
   }
 }
 
