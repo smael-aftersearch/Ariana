@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ariana Framework 1.0</title>
-  <meta name="description" content="Ariana is a TypeScript-first, class-based frontend framework with signals, compiler-assisted templates, forms, router, query state, rendering helpers, and Vite integration." />
+  <meta name="description" content="Ariana is a TypeScript-first, class-based frontend framework with signals, compiler-assisted templates, forms, router, query state, rendering helpers, Vite integration, and documented performance gates." />
   <style>
     :root {
       color-scheme: dark;
@@ -35,75 +35,25 @@
 
     a { color: inherit; text-decoration: none; }
     code, pre { font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
-
     .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
 
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      backdrop-filter: blur(18px);
-      background: rgba(7, 9, 23, 0.72);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .nav-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 16px 0;
-    }
-
+    .nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(18px); background: rgba(7, 9, 23, 0.72); border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; }
     .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -0.03em; }
-    .logo {
-      width: 38px;
-      height: 38px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--brand), var(--brand-2));
-      box-shadow: 0 18px 40px rgba(72, 214, 255, 0.28);
-    }
-
+    .logo { width: 38px; height: 38px; border-radius: 14px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: 0 18px 40px rgba(72, 214, 255, 0.28); }
     .links { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 14px; }
     .links a { padding: 8px 10px; border-radius: 999px; }
     .links a:hover { background: var(--panel); color: var(--text); }
 
     .hero { padding: 86px 0 54px; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 34px; align-items: center; }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.06);
-    }
-
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: rgba(255, 255, 255, 0.06); }
     h1 { margin: 18px 0 16px; font-size: clamp(46px, 7vw, 88px); line-height: 0.94; letter-spacing: -0.075em; }
     .lead { margin: 0; color: var(--muted); font-size: clamp(18px, 2.4vw, 23px); line-height: 1.55; }
-
     .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 46px;
-      padding: 0 18px;
-      border-radius: 14px;
-      font-weight: 760;
-      border: 1px solid var(--line);
-      background: var(--panel);
-    }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 0 18px; border-radius: 14px; font-weight: 760; border: 1px solid var(--line); background: var(--panel); }
     .button.primary { color: #070917; background: linear-gradient(135deg, #ffffff, #bfefff); border: 0; }
 
-    .terminal {
-      border: 1px solid var(--line);
-      border-radius: 28px;
-      background: rgba(6, 8, 18, 0.78);
-      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
-      overflow: hidden;
-    }
+    .terminal { border: 1px solid var(--line); border-radius: 28px; background: rgba(6, 8, 18, 0.78); box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35); overflow: hidden; }
     .terminal-bar { display: flex; gap: 8px; padding: 16px; border-bottom: 1px solid var(--line); }
     .dot { width: 12px; height: 12px; border-radius: 999px; background: var(--brand); opacity: 0.85; }
     pre { margin: 0; padding: 22px; overflow: auto; color: #dbe7ff; line-height: 1.7; font-size: 14px; }
@@ -113,15 +63,8 @@
     .section-head { display: flex; justify-content: space-between; gap: 24px; align-items: end; margin-bottom: 22px; }
     h2 { margin: 0; font-size: clamp(30px, 4vw, 52px); letter-spacing: -0.055em; }
     .section-head p { max-width: 560px; margin: 0; color: var(--muted); line-height: 1.6; }
-
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 22px;
-      background: var(--panel);
-      min-height: 190px;
-    }
+    .card { border: 1px solid var(--line); border-radius: 24px; padding: 22px; background: var(--panel); min-height: 190px; }
     .card:hover { background: var(--panel-strong); transform: translateY(-2px); transition: 160ms ease; }
     .card h3 { margin: 0 0 10px; font-size: 20px; }
     .card p { margin: 0; color: var(--muted); line-height: 1.58; }
@@ -132,24 +75,30 @@
     .list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
     .list li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; color: var(--muted); line-height: 1.55; }
     .check { color: var(--good); font-weight: 900; }
-
     .package-table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 20px; }
     .package-table th, .package-table td { padding: 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
     .package-table th { color: white; background: rgba(255, 255, 255, 0.08); }
     .package-table td { color: var(--muted); }
     .package-table code { color: #e3e7ff; }
 
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+    .metric { border: 1px solid var(--line); border-radius: 22px; padding: 18px; background: rgba(255, 255, 255, 0.06); }
+    .metric strong { display: block; font-size: 28px; letter-spacing: -0.04em; }
+    .metric span { color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .note { color: var(--muted); line-height: 1.65; margin: 14px 0 0; }
+    .warn { color: var(--warn); }
+
     .footer { padding: 42px 0 70px; color: var(--muted); border-top: 1px solid var(--line); }
 
     @media (max-width: 900px) {
       .hero, .split { grid-template-columns: 1fr; }
-      .grid { grid-template-columns: 1fr 1fr; }
+      .grid, .metric-grid { grid-template-columns: 1fr 1fr; }
       .section-head { display: grid; }
     }
 
     @media (max-width: 640px) {
       .links { display: none; }
-      .grid { grid-template-columns: 1fr; }
+      .grid, .metric-grid { grid-template-columns: 1fr; }
       .hero { padding-top: 52px; }
     }
   </style>
@@ -162,6 +111,7 @@
         <a href="#features">Features</a>
         <a href="#templates">Templates</a>
         <a href="#forms">Forms</a>
+        <a href="#performance">Performance</a>
         <a href="#packages">Packages</a>
         <a href="#start">Start</a>
       </div>
@@ -176,6 +126,7 @@
         <p class="lead">Ariana gives you independent components, explicit rendering, external HTML/CSS, fine-grained reactivity, forms, routing, query state, rendering helpers, and a Vite plugin without Zone.js, NgModules, or a Virtual DOM.</p>
         <div class="actions">
           <a class="button primary" href="https://github.com/smael-aftersearch/Ariana/blob/main/docs/ARIANA_V1_GUIDE.md">Read the full guide</a>
+          <a class="button" href="https://github.com/smael-aftersearch/Ariana/blob/main/docs/PERFORMANCE_V1.md">Performance guide</a>
           <a class="button" href="https://github.com/smael-aftersearch/Ariana">Open on GitHub</a>
         </div>
       </div>
@@ -272,6 +223,34 @@ console.log(profile.valid());</code></pre>
       </div>
     </section>
 
+    <section id="performance">
+      <div class="section-head">
+        <h2>Performance position</h2>
+        <p>Ariana 1.0 includes internal smoke benchmarks today. Cross-framework browser comparisons with Angular, React, Vue, Svelte, and Solid are documented as the next benchmark suite.</p>
+      </div>
+      <div class="metric-grid">
+        <div class="metric"><strong>4.07ms</strong><span>core signal/computed updates sample</span></div>
+        <div class="metric"><strong>27.73ms</strong><span>router repeated matching sample</span></div>
+        <div class="metric"><strong>12.07ms</strong><span>query cache operations sample</span></div>
+        <div class="metric"><strong>497.10ms</strong><span>forms array operations sample and current watch area</span></div>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <h3>Strong in v1</h3>
+          <ul class="list">
+            <li><span class="check">✓</span><span>Fine-grained signal and computed state updates.</span></li>
+            <li><span class="check">✓</span><span>Explicit lifecycle cleanup for effects, listeners, and child rendering.</span></li>
+            <li><span class="check">✓</span><span>Lightweight query cache and route matching in internal smoke checks.</span></li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Not claimed yet</h3>
+          <p class="note"><span class="warn">Important:</span> Ariana should not claim to be faster than Angular, React, Vue, Svelte, or Solid until repeatable browser benchmark results exist. The official benchmark plan covers counter updates, large table rendering, form-heavy screens, router stress, query cache stress, startup cost, and bundle cost.</p>
+          <div class="actions"><a class="button" href="https://github.com/smael-aftersearch/Ariana/blob/main/docs/PERFORMANCE_V1.md">Read performance guide</a></div>
+        </div>
+      </div>
+    </section>
+
     <section id="packages">
       <div class="section-head">
         <h2>Package map</h2>
@@ -296,10 +275,11 @@ console.log(profile.valid());</code></pre>
     <section id="start">
       <div class="section-head">
         <h2>Start with the guide</h2>
-        <p>The full guide covers installation, templates, forms, router, query state, rendering, Vite plugin options, diagnostics, release gates, and troubleshooting.</p>
+        <p>The full guide covers installation, templates, forms, router, query state, rendering, Vite plugin options, diagnostics, performance, release gates, and troubleshooting.</p>
       </div>
       <div class="actions">
         <a class="button primary" href="https://github.com/smael-aftersearch/Ariana/blob/main/docs/ARIANA_V1_GUIDE.md">Open the full V1 guide</a>
+        <a class="button" href="https://github.com/smael-aftersearch/Ariana/blob/main/docs/PERFORMANCE_V1.md">Performance guide</a>
         <a class="button" href="https://github.com/smael-aftersearch/Ariana/blob/main/README.md">Read README</a>
         <a class="button" href="https://github.com/smael-aftersearch/Ariana/tree/main/examples/counter-app">Counter example</a>
       </div>
@@ -307,7 +287,7 @@ console.log(profile.valid());</code></pre>
   </main>
 
   <footer class="footer">
-    <div class="shell">Ariana Framework 1.0 · TypeScript-first class-based UI with signal reactivity and compiler-assisted templates.</div>
+    <div class="shell">Ariana Framework 1.0 · TypeScript-first class-based UI with signal reactivity, compiler-assisted templates, and documented performance gates.</div>
   </footer>
 </body>
 </html>
