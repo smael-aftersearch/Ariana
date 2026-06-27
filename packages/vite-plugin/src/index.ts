@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
 import { formatTemplateDiagnostic } from '@ariana/compiler/diagnostics';
@@ -25,6 +25,7 @@ export type ArianaVitePluginOptions = {
 type ResourceTransformResult = {
   code: string;
   usedCompiler: boolean;
+  transformedComponents: number;
 };
 
 export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
@@ -67,19 +68,21 @@ function transformComponentResources(
   let importIndex = 0;
   const imports: string[] = [];
   let usedCompiler = false;
+  let transformedComponents = 0;
 
-  let transformed = code.replace(/(@?)Component\s*\(\s*\{([\s\S]*?)\}\s*\)/g, (_fullMatch, decoratorPrefix: string, body: string) => {
+  const transformed = replaceComponentMetadata(code, (body) => {
     const templateUrl = findStringProperty(body, 'templateUrl');
     const styleUrl = findStringProperty(body, 'styleUrl');
     let nextBody = body;
 
     if (styleUrl) {
-      const style = readTextResource(directory, styleUrl);
+      const style = readTextResource(directory, styleUrl, 'styleUrl');
       nextBody = replaceStringProperty(nextBody, 'styleUrl', `style: ${JSON.stringify(style)}`);
+      transformedComponents++;
     }
 
     if (templateUrl) {
-      const template = readTextResource(directory, templateUrl);
+      const template = readTextResource(directory, templateUrl, 'templateUrl');
       const diagnostics = parseTemplateToAst(template).diagnostics;
       const blockingDiagnostic = findBlockingDiagnostic(diagnostics, strictWarnings);
 
@@ -107,20 +110,102 @@ function transformComponentResources(
         imports.push(`import ${name} from ${JSON.stringify(`${templateUrl}?raw`)};`);
         nextBody = replaceStringProperty(nextBody, 'templateUrl', `template: ${name}`);
       }
+      transformedComponents++;
     }
 
-    return `${decoratorPrefix}Component({${nextBody}})`;
+    return nextBody;
   });
+
+  let codeWithImports = transformed;
 
   if (usedCompiler && !code.includes('effect as __ari_effect')) {
     imports.unshift(`import { effect as __ari_effect, signal as __ari_signal } from '@ariana/core';`);
   }
 
   if (imports.length > 0) {
-    transformed = `${imports.join('\n')}\n${transformed}`;
+    codeWithImports = `${imports.join('\n')}\n${codeWithImports}`;
   }
 
-  return { code: transformed, usedCompiler };
+  return { code: codeWithImports, usedCompiler, transformedComponents };
+}
+
+function replaceComponentMetadata(source: string, transformBody: (body: string) => string): string {
+  let cursor = 0;
+  let output = '';
+
+  while (cursor < source.length) {
+    const componentIndex = findNextComponentCall(source, cursor);
+    if (componentIndex < 0) {
+      output += source.slice(cursor);
+      break;
+    }
+
+    const decoratorPrefix = source[componentIndex - 1] === '@' ? '@' : '';
+    const replacementStart = decoratorPrefix ? componentIndex - 1 : componentIndex;
+    const openParen = skipWhitespace(source, componentIndex + 'Component'.length);
+    const openBrace = skipWhitespace(source, openParen + 1);
+    const closeBrace = findMatching(source, openBrace, '{', '}');
+    const closeParen = skipWhitespace(source, closeBrace + 1);
+
+    if (openParen < 0 || source[openParen] !== '(' || openBrace < 0 || source[openBrace] !== '{' || closeBrace < 0 || closeParen < 0 || source[closeParen] !== ')') {
+      output += source.slice(cursor, componentIndex + 'Component'.length);
+      cursor = componentIndex + 'Component'.length;
+      continue;
+    }
+
+    const body = source.slice(openBrace + 1, closeBrace);
+    output += source.slice(cursor, replacementStart);
+    output += `${decoratorPrefix}Component({${transformBody(body)}})`;
+    cursor = closeParen + 1;
+  }
+
+  return output;
+}
+
+function findNextComponentCall(source: string, start: number): number {
+  let index = source.indexOf('Component', start);
+  while (index >= 0) {
+    const before = source[index - 1];
+    const after = source[index + 'Component'.length];
+    if (!isIdentifierChar(before) && !isIdentifierChar(after)) return index;
+    index = source.indexOf('Component', index + 'Component'.length);
+  }
+  return -1;
+}
+
+function isIdentifierChar(char: string | undefined): boolean {
+  return Boolean(char && /[A-Za-z0-9_$]/.test(char));
+}
+
+function skipWhitespace(source: string, index: number): number {
+  while (index < source.length && /\s/.test(source[index])) index++;
+  return index;
+}
+
+function findMatching(source: string, start: number, open: string, close: string): number {
+  let depth = 0;
+  let quote: string | undefined;
+
+  for (let index = start; index < source.length; index++) {
+    const char = source[index];
+    const previous = source[index - 1];
+
+    if (quote) {
+      if (char === quote && previous !== '\\') quote = undefined;
+      continue;
+    }
+
+    if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+      continue;
+    }
+
+    if (char === open) depth++;
+    if (char === close) depth--;
+    if (depth === 0) return index;
+  }
+
+  return -1;
 }
 
 function findBlockingDiagnostic<T extends { level: 'error' | 'warning' }>(diagnostics: readonly T[], strictWarnings: boolean): T | undefined {
@@ -136,6 +221,10 @@ function replaceStringProperty(source: string, propertyName: string, replacement
   return source.replace(new RegExp(`${propertyName}\\s*:\\s*(['\"])(.*?)\\1`), replacement);
 }
 
-function readTextResource(directory: string, resourcePath: string): string {
-  return readFileSync(resolve(directory, resourcePath), 'utf8');
+function readTextResource(directory: string, resourcePath: string, propertyName: 'templateUrl' | 'styleUrl'): string {
+  const absolutePath = resolve(directory, resourcePath);
+  if (!existsSync(absolutePath)) {
+    throw new Error(`Ariana resource error: ${propertyName} resource was not found: ${resourcePath}`);
+  }
+  return readFileSync(absolutePath, 'utf8');
 }
