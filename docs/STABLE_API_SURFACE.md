@@ -28,6 +28,9 @@ Required public API candidates:
 - `mergeTypeCheckMembers`
 - `getSourceLocation`
 - `createTemplateDiagnostic`
+- `formatTemplateDiagnostic`
+- `formatTemplateDiagnostics`
+- `getSourceLine`
 - template parsing diagnostics
 - template compile result
 - error codes
