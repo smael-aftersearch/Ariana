@@ -13,15 +13,15 @@ npm run inspect:tarballs
 npm run smoke:install
 npm run smoke:create-ariana
 npm run smoke:generated-app
-node scripts/bench-smoke.mjs
-node scripts/pack-0-5-candidate.mjs
+npm run smoke:generated-app:coverage
+npm run bench:smoke
+npm run pack:0.5:candidate
 ```
 
 ## Framework comparison
 
 ```bash
-npm --prefix benchmarks/framework-comparison install --no-audit --no-fund
-npm --prefix benchmarks/framework-comparison run bench
+npm run bench:framework
 ```
 
 ## Publish rule
