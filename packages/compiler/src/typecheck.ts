@@ -255,7 +255,7 @@ function extractClassBodies(source: string): string[] {
 }
 
 function collectClassFields(classBody: string, members: Set<string>, symbols: Record<string, TemplateTypeSymbol>) {
-  const fieldPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|readonly\s+|override\s+|static\s+)*([A-Za-z_$][\w$]*)\s*(?::\s*([^=;]+))?=/g;
+  const fieldPattern = /(?:^|[;\n\r}\{])\s*(?:public\s+|protected\s+|readonly\s+|override\s+|static\s+)*([A-Za-z_$][\w$]*)\s*(?::\s*([^=;]+))?=/g;
   let match: RegExpExecArray | null;
   while ((match = fieldPattern.exec(classBody))) {
     const name = match[1];
@@ -265,7 +265,7 @@ function collectClassFields(classBody: string, members: Set<string>, symbols: Re
 }
 
 function collectClassMethods(classBody: string, members: Set<string>, symbols: Record<string, TemplateTypeSymbol>) {
-  const methodPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|override\s+|async\s+|static\s+)*([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/g;
+  const methodPattern = /(?:^|[;\n\r}\{])\s*(?:public\s+|protected\s+|override\s+|async\s+|static\s+)*([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/g;
   let match: RegExpExecArray | null;
   while ((match = methodPattern.exec(classBody))) {
     const name = match[1];
@@ -277,7 +277,7 @@ function collectClassMethods(classBody: string, members: Set<string>, symbols: R
 }
 
 function collectAccessors(classBody: string, members: Set<string>, symbols: Record<string, TemplateTypeSymbol>) {
-  const accessorPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|override\s+|static\s+)*(?:get|set)\s+([A-Za-z_$][\w$]*)\s*\(/g;
+  const accessorPattern = /(?:^|[;\n\r}\{])\s*(?:public\s+|protected\s+|override\s+|static\s+)*(?:get|set)\s+([A-Za-z_$][\w$]*)\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = accessorPattern.exec(classBody))) {
     const name = match[1];
