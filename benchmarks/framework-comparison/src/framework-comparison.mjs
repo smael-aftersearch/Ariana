@@ -23,7 +23,7 @@ const arraySize = Number(process.env.ARIA_BENCH_ARRAY_SIZE ?? 2000);
 const arrayMoves = Number(process.env.ARIA_BENCH_ARRAY_MOVES ?? 50);
 const results = [];
 
-for (const framework of frameworks) measure('derived-counter', framework, createCounterCase(framework), counterIterations, iterations => (iterations - 1) * 2, { warmupIterations: warmup });
+for (const framework of frameworks) measure('derived-counter', framework, createCounterCase(framework), counterIterations, iterations => (iterations - 1) * 2);
 for (const framework of frameworks) measure('list-1000-update', framework, createListCase(framework, listSize, 'update'), listUpdates, totalIterations => sumRange(listSize) + totalIterations, { warmupIterations: warmup });
 for (const framework of frameworks) measure('list-10000-move', framework, createListCase(framework, largeListSize, 'move'), largeListMoves, () => largeListSize);
 for (const framework of frameworks) measure('array-push-move', framework, createArrayCase(framework), 1, () => arraySize);
