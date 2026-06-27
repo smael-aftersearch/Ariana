@@ -36,6 +36,25 @@ The typechecker allows common expression globals such as:
 - `Date`
 - `JSON`
 
+## Component context inference
+
+The compiler owns component context inference for the version-one path.
+
+The public helper is:
+
+```ts
+inferComponentContextMembers(source)
+```
+
+It currently infers:
+
+- class fields
+- typed class fields
+- methods
+- getters and setters
+
+The Vite plugin must use this compiler-owned helper instead of keeping a duplicate inference implementation.
+
 ## Current diagnostic
 
 Unknown component members are reported as:
@@ -50,7 +69,6 @@ This is not full TypeScript semantic analysis yet.
 
 The version-one path still needs:
 
-- inferred context from component class source
 - type-aware property access validation
 - method argument type validation
 - template source mapping for precise editor diagnostics
