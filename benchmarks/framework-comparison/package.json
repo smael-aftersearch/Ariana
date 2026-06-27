@@ -7,6 +7,7 @@
     "bench": "node src/framework-comparison.mjs"
   },
   "dependencies": {
+    "@angular/compiler": "latest",
     "@angular/core": "latest",
     "@angular/forms": "latest",
     "@angular/common": "latest",
