@@ -1,0 +1,15 @@
+{
+  "name": "@ariana/framework-comparison-benchmark",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "bench": "node src/framework-comparison.mjs"
+  },
+  "dependencies": {
+    "@vue/reactivity": "latest",
+    "svelte": "latest",
+    "solid-js": "latest",
+    "react": "latest"
+  }
+}
