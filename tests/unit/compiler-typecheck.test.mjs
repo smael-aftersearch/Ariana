@@ -1,4 +1,4 @@
-import { inferComponentContextMembers, mergeTypeCheckMembers, typeCheckTemplate } from '../../packages/compiler/dist/typecheck.js';
+import { createTypeCheckContextFromSource, inferComponentContextMembers, inferComponentTypeSymbols, mergeTypeCheckMembers, typeCheckTemplate } from '../../packages/compiler/dist/typecheck.js';
 import { test, equal, assert } from './test-api.mjs';
 
 test('compiler typecheck accepts known component members', () => {
@@ -69,6 +69,29 @@ test('compiler infers component fields methods and accessors from class source',
   for (const member of ['title', 'saving', 'label', 'save']) {
     assert(result.members.includes(member), `missing inferred member ${member}`);
   }
+});
+
+test('compiler infers typed symbols from component source', () => {
+  const result = inferComponentTypeSymbols(`
+    class Page {
+      user: { name: string } = { name: 'Ariana' };
+      items: string[] = [];
+      save(id: string, force?: boolean) {}
+    }
+  `);
+  equal(result.symbols.user.kind, 'object');
+  assert(result.symbols.user.properties.name, 'inline object property should be inferred');
+  equal(result.symbols.items.kind, 'array');
+  equal(result.symbols.save.kind, 'method');
+  equal(result.symbols.save.minArgs, 1);
+  equal(result.symbols.save.maxArgs, 2);
+});
+
+test('compiler creates typecheck context from source', () => {
+  const context = createTypeCheckContextFromSource(`class Page { title = 'Ariana'; save(id: string) {} }`, ['external']);
+  assert(context.members.includes('title'), 'source member should be included');
+  assert(context.members.includes('external'), 'explicit member should be included');
+  equal(context.symbols.save.kind, 'method');
 });
 
 test('compiler merges explicit and inferred typecheck members', () => {
