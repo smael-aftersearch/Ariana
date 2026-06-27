@@ -59,9 +59,9 @@ test('vite plugin: typeCheckTemplates reports unknown interpolation roots when m
     try {
       await plugin.transform?.(source, join(dir, 'cmp.ts'));
     } catch (error) {
-      failed = String(error).includes('ARI_TYPE_UNKNOWN_MEMBER');
+      failed = String(error).includes('ARI_TYPE_UNKNOWN_MEMBER') && String(error).includes('cmp.html:1:1');
     }
-    assert(failed, 'unknown template member should fail strict typecheck');
+    assert(failed, 'unknown template member should fail strict typecheck with formatted location');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -74,11 +74,55 @@ test('vite plugin: uses compiler-owned inferred members from component class sou
     writeFileSync(join(dir, 'cmp.html'), '<p>{{ title }} {{ label }}</p><button (click)="save($event)">Save</button>');
     const source = `
       import { Component } from '@ariana-framework/core';
-      Component({ selector: 'x-cmp', templateUrl: './cmp.html' })(class Cmp { title = 'Ariana'; get label() { return this.title; } save() {} });
+      Component({ selector: 'x-cmp', templateUrl: './cmp.html' })(class Cmp { title = 'Ariana'; get label() { return this.title; } save(event?: Event) {} });
     `;
     const plugin = ariana({ compileTemplates: false, typeCheckTemplates: true });
     const output = await plugin.transform?.(source, join(dir, 'cmp.ts'));
     assert(typeof output === 'string', 'compiler-owned inferred typecheck members should allow valid template members');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('vite plugin: uses source-based typed symbols for type-aware template errors', async () => {
+  const dir = join(tmpdir(), `ari-vite-symbols-${Date.now()}`);
+  mkdirSync(dir, { recursive: true });
+  try {
+    writeFileSync(join(dir, 'cmp.html'), '<p>{{ user.missingName }}</p>');
+    const source = `
+      import { Component } from '@ariana-framework/core';
+      Component({ selector: 'x-cmp', templateUrl: './cmp.html' })(class Cmp { user: { name: string } = { name: 'Ariana' }; });
+    `;
+    const plugin = ariana({ compileTemplates: false, typeCheckTemplates: true });
+    let failed = false;
+    try {
+      await plugin.transform?.(source, join(dir, 'cmp.ts'));
+    } catch (error) {
+      failed = String(error).includes('ARI_TYPE_UNKNOWN_PROPERTY') && String(error).includes('user.missingName');
+    }
+    assert(failed, 'typed source symbols should report unknown property diagnostics');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('vite plugin: strictWarnings escalates parser warnings', async () => {
+  const dir = join(tmpdir(), `ari-vite-warnings-${Date.now()}`);
+  mkdirSync(dir, { recursive: true });
+  try {
+    writeFileSync(join(dir, 'cmp.html'), '<button (click)="function inline() {}">Save</button>');
+    const source = `
+      import { Component } from '@ariana-framework/core';
+      Component({ selector: 'x-cmp', templateUrl: './cmp.html' })(class Cmp {});
+    `;
+    const plugin = ariana({ compileTemplates: false, strictWarnings: true });
+    let failed = false;
+    try {
+      await plugin.transform?.(source, join(dir, 'cmp.ts'));
+    } catch (error) {
+      failed = String(error).includes('ARI_UNSUPPORTED_BINDING_EXPRESSION');
+    }
+    assert(failed, 'strictWarnings should escalate template parser warnings');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
