@@ -17,7 +17,9 @@ export function signal<T>(initialValue: T): Signal<T> {
     return value;
   }) as Signal<T>;
 
-  const dependency = { subscribe: read.subscribe };
+  const dependency = {
+    subscribe: (subscriber: Subscriber): Cleanup => read.subscribe(subscriber)
+  };
 
   read.set = (nextValue: T) => {
     if (Object.is(value, nextValue)) {
