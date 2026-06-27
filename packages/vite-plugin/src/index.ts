@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
+import { inferComponentContextMembers, mergeTypeCheckMembers, typeCheckTemplate } from '@ariana/compiler/typecheck';
 
 
 type VitePlugin = {
@@ -38,8 +39,8 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
         return null;
       }
 
-      const inferredMembers = inferTemplateTypeCheckMembers(code);
-      const templateTypeCheckMembers = mergeMembers(explicitTypeCheckMembers, inferredMembers);
+      const inferredMembers = inferComponentContextMembers(code).members;
+      const templateTypeCheckMembers = mergeTypeCheckMembers(explicitTypeCheckMembers, inferredMembers);
       const result = transformComponentResources(code, id, compileTemplates, strictTemplates, typeCheckTemplates, templateTypeCheckMembers);
       return result.code === code ? null : result.code;
     }
@@ -77,9 +78,10 @@ function transformComponentResources(
       const blockingDiagnostic = diagnostics.find(diagnostic => diagnostic.level === 'error');
 
       if (typeCheckTemplates && strictTemplates) {
-        const typeError = findUnknownTemplateMember(template, templateTypeCheckMembers);
+        const typeCheck = typeCheckTemplate(template, { members: templateTypeCheckMembers });
+        const typeError = typeCheck.diagnostics.find(diagnostic => diagnostic.level === 'error');
         if (typeError) {
-          throw new Error(`Ariana template typecheck error in ${templateUrl}: ARI_TYPE_UNKNOWN_MEMBER ${typeError}`);
+          throw new Error(`Ariana template typecheck error in ${templateUrl}: ${typeError.code} ${typeError.message}`);
         }
       }
 
@@ -126,33 +128,4 @@ function replaceStringProperty(source: string, propertyName: string, replacement
 
 function readTextResource(directory: string, resourcePath: string): string {
   return readFileSync(resolve(directory, resourcePath), 'utf8');
-}
-
-function findUnknownTemplateMember(template: string, members: readonly string[]): string | undefined {
-  const allowed = new Set(members);
-  if (allowed.size === 0) return undefined;
-  const expressions = Array.from(template.matchAll(/{{\s*([^}]+?)\s*}}/g)).map(match => match[1]);
-  for (const expression of expressions) {
-    const root = /^\s*([A-Za-z_$][\w$]*)/.exec(expression)?.[1];
-    if (root && !allowed.has(root)) return root;
-  }
-  return undefined;
-}
-
-function inferTemplateTypeCheckMembers(source: string): string[] {
-  const members = new Set<string>();
-  const classBody = /class\s+[A-Za-z_$][\w$]*\s*\{([\s\S]*)\}/.exec(source)?.[1] ?? '';
-  const fieldPattern = /(?:readonly\s+)?(?:public\s+)?([A-Za-z_$][\w$]*)\s*=/g;
-  const methodPattern = /(?:public\s+)?([A-Za-z_$][\w$]*)\s*\(/g;
-  let match: RegExpExecArray | null;
-  while ((match = fieldPattern.exec(classBody))) members.add(match[1]);
-  while ((match = methodPattern.exec(classBody))) {
-    const name = match[1];
-    if (!['if', 'for', 'while', 'switch', 'catch'].includes(name)) members.add(name);
-  }
-  return [...members];
-}
-
-function mergeMembers(left: readonly string[], right: readonly string[]): string[] {
-  return [...new Set([...left, ...right])];
 }
