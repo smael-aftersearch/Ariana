@@ -1,8 +1,8 @@
-import { execFileSync } from 'node:child_process';
+import { run } from './lib/run-command.mjs';
 
 const targetVersion = '1.0.0';
 const env = { ...process.env, RELEASE_VERSION: targetVersion };
 
-execFileSync('npm', ['run', 'pack:npm'], { stdio: 'inherit', env });
-execFileSync('npm', ['run', 'inspect:tarballs'], { stdio: 'inherit', env });
+run('npm', ['run', 'pack:npm'], { env });
+run('npm', ['run', 'inspect:tarballs'], { env });
 console.log(`Ariana ${targetVersion} candidate tarballs are ready.`);
