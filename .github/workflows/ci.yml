@@ -22,3 +22,5 @@ jobs:
       - run: npm run smoke:install
       - run: npm run smoke:create-ariana
       - run: npm run smoke:generated-app
+      - run: npm run smoke:generated-app:coverage
+      - run: npm run bench:smoke
