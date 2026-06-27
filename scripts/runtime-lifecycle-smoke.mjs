@@ -11,8 +11,9 @@ const required = [
   [renderSource, 'removeEventListener', 'event listener cleanup should be registered'],
   [bootstrapSource, 'destroyed', 'bootstrap ref should expose destroyed state'],
   [bootstrapSource, 'cleanupScope.cleanup()', 'bootstrap destroy should cleanup scope'],
-  [scopeSource, 'createChild', 'cleanup scope should support child scopes'],
-  [scopeSource, 'isCleaned', 'cleanup scope should expose cleaned state']
+  [scopeSource, 'child()', 'cleanup scope should support child scopes'],
+  [scopeSource, 'childScope.cleanup()', 'child scope should be cleaned by parent scope'],
+  [scopeSource, 'cleaned', 'cleanup scope should expose cleaned state']
 ];
 
 for (const [source, fragment, message] of required) {
