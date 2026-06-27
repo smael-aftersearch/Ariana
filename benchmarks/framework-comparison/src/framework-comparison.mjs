@@ -23,8 +23,8 @@ const arraySize = Number(process.env.ARIA_BENCH_ARRAY_SIZE ?? 2000);
 const arrayMoves = Number(process.env.ARIA_BENCH_ARRAY_MOVES ?? 50);
 const results = [];
 
-for (const framework of frameworks) measure('derived-counter', framework, createCounterCase(framework), counterIterations, iterations => (iterations - 1) * 2);
-for (const framework of frameworks) measure('list-1000-update', framework, createListCase(framework, listSize, 'update'), listUpdates, () => sumRange(listSize) + listUpdates);
+for (const framework of frameworks) measure('derived-counter', framework, createCounterCase(framework), counterIterations, iterations => (iterations - 1) * 2, { warmupIterations: warmup });
+for (const framework of frameworks) measure('list-1000-update', framework, createListCase(framework, listSize, 'update'), listUpdates, totalIterations => sumRange(listSize) + totalIterations, { warmupIterations: warmup });
 for (const framework of frameworks) measure('list-10000-move', framework, createListCase(framework, largeListSize, 'move'), largeListMoves, () => largeListSize);
 for (const framework of frameworks) measure('array-push-move', framework, createArrayCase(framework), 1, () => arraySize);
 
@@ -104,15 +104,16 @@ function createArrayCase(framework) {
   return { run() { let array = []; for (let i = 0; i < arraySize; i++) array = [...array, i]; for (let i = 0; i < arrayMoves; i++) array = [array[array.length - 1], ...array.slice(0, array.length - 1)]; return array.length; } };
 }
 
-function measure(scenario, framework, testCase, iterations, expectedValue) {
+function measure(scenario, framework, testCase, iterations, expectedValue, options = {}) {
   const values = [];
   let finalValue = 0;
+  const warmupIterations = options.warmupIterations ?? 0;
+  if (warmupIterations > 0) testCase.run(warmupIterations);
   for (let round = 0; round < rounds; round++) {
-    if (scenario === 'derived-counter') testCase.run(warmup);
     const start = performance.now();
     finalValue = testCase.run(iterations);
     values.push(performance.now() - start);
-    const expected = expectedValue(iterations);
+    const expected = expectedValue(warmupIterations + ((round + 1) * iterations));
     if (finalValue !== expected) throw new Error(`${scenario}/${framework}: ${finalValue} !== ${expected}`);
   }
   testCase.cleanup?.();
