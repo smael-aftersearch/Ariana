@@ -8,10 +8,11 @@ const commands = [
   ['npm', ['run', 'check:compiler-diagnostics']],
   ['npm', ['run', 'check:template-typecheck-docs']],
   ['npm', ['run', 'check:template-diagnostics-fixture']],
-  ['node', ['scripts/check-vite-plugin-v1-docs.mjs']],
-  ['node', ['scripts/vite-plugin-options-smoke.mjs']],
-  ['node', ['scripts/bench-smoke.mjs']],
-  ['node', ['scripts/pack-v1-candidate.mjs']]
+  ['npm', ['run', 'check:vite-plugin-v1-docs']],
+  ['npm', ['run', 'smoke:runtime-lifecycle']],
+  ['npm', ['run', 'smoke:vite-plugin-options']],
+  ['npm', ['run', 'bench:smoke']],
+  ['npm', ['run', 'pack:v1:candidate']]
 ];
 
 for (const [command, args] of commands) {
