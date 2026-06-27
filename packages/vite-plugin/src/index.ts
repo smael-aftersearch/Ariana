@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
+import { formatTemplateDiagnostic } from '@ariana/compiler/diagnostics';
 import { inferComponentContextMembers, mergeTypeCheckMembers, typeCheckTemplate } from '@ariana/compiler/typecheck';
 
 
@@ -81,12 +82,12 @@ function transformComponentResources(
         const typeCheck = typeCheckTemplate(template, { members: templateTypeCheckMembers });
         const typeError = typeCheck.diagnostics.find(diagnostic => diagnostic.level === 'error');
         if (typeError) {
-          throw new Error(`Ariana template typecheck error in ${templateUrl}: ${typeError.code} ${typeError.message}`);
+          throw new Error(`Ariana template typecheck error\n${formatTemplateDiagnostic(template, typeError, { fileName: templateUrl, includeSourceLine: true })}`);
         }
       }
 
       if (blockingDiagnostic && strictTemplates) {
-        throw new Error(`Ariana template error in ${templateUrl}: ${blockingDiagnostic.code} ${blockingDiagnostic.message}`);
+        throw new Error(`Ariana template error\n${formatTemplateDiagnostic(template, blockingDiagnostic, { fileName: templateUrl, includeSourceLine: true })}`);
       }
 
       const compiled = compileTemplates && !blockingDiagnostic
