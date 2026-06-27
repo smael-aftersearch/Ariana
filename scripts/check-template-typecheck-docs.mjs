@@ -28,7 +28,7 @@ for (const fragment of requiredDocs) {
   if (!docs.includes(fragment)) throw new Error(`Template typecheck docs are missing: ${fragment}`);
 }
 
-for (const fragment of ['$index', '$event', 'TEMPLATE_GLOBALS', 'inferComponentContextMembers', 'mergeTypeCheckMembers', 'ARI_TYPE_UNKNOWN_MEMBER', 'ARI_TYPE_UNKNOWN_PROPERTY', 'ARI_TYPE_CALL_NON_METHOD', 'ARI_TYPE_METHOD_ARGUMENT_COUNT']) {
+for (const fragment of ['$index', '$event', 'TEMPLATE_GLOBALS', 'inferComponentContextMembers', 'createTypeCheckContextFromSource', 'mergeTypeCheckMembers', 'ARI_TYPE_UNKNOWN_MEMBER', 'ARI_TYPE_UNKNOWN_PROPERTY', 'ARI_TYPE_CALL_NON_METHOD', 'ARI_TYPE_METHOD_ARGUMENT_COUNT']) {
   if (!source.includes(fragment)) throw new Error(`Template typecheck source is missing: ${fragment}`);
 }
 
@@ -36,7 +36,7 @@ for (const fragment of ['formatTemplateDiagnostic', 'formatTemplateDiagnostics']
   if (!diagnosticsSource.includes(fragment)) throw new Error(`Compiler diagnostics formatter source is missing: ${fragment}`);
 }
 
-for (const fragment of ['inferComponentContextMembers', 'mergeTypeCheckMembers', 'typeCheckTemplate', 'formatTemplateDiagnostic']) {
+for (const fragment of ['createTypeCheckContextFromSource', 'typeCheckTemplate', 'templateTypeCheckMembers', 'templateTypeCheckSymbols', 'formatTemplateDiagnostic']) {
   if (!viteSource.includes(fragment)) throw new Error(`Vite plugin is not using compiler-owned typecheck helper: ${fragment}`);
 }
 
