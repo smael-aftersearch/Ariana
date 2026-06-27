@@ -5,9 +5,14 @@ import { execFileSync } from 'node:child_process';
 const root = process.cwd();
 const outDir = join(root, 'npm-packages');
 const stagingDir = join(root, '.npm-pack-staging');
-const releaseVersion = '0.4.1';
+const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+const releaseVersion = process.env.RELEASE_VERSION ?? rootPackage.version;
 const releaseScope = '@ariana-framework';
 const packages = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
+
+if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(releaseVersion)) {
+  throw new Error(`Invalid release version: ${releaseVersion}`);
+}
 
 rmSync(outDir, { recursive: true, force: true });
 rmSync(stagingDir, { recursive: true, force: true });
@@ -40,7 +45,7 @@ for (const name of packages) {
   delete pkg.scripts;
   writeFileSync(join(stagePackageDir, 'package.json'), `${JSON.stringify(pkg, null, 2)}\n`);
 
-  console.log(`Packing ${pkg.name}...`);
+  console.log(`Packing ${pkg.name}@${releaseVersion}...`);
   execFileSync('npm', ['pack', stagePackageDir, '--pack-destination', outDir], { cwd: root, stdio: 'inherit' });
 
   const generatedName = `ariana-framework-${name}-${releaseVersion}.tgz`;
@@ -50,7 +55,7 @@ for (const name of packages) {
 }
 
 rmSync(stagingDir, { recursive: true, force: true });
-console.log(`\nNPM tarballs written to ${outDir}`);
+console.log(`\nNPM tarballs for ${releaseVersion} written to ${outDir}`);
 
 function sanitizeDependencies(dependencies) {
   if (!dependencies) return;
