@@ -20,6 +20,7 @@ jobs:
       - run: npm run check:stable-api-docs
       - run: node scripts/check-runtime-lifecycle-docs.mjs
       - run: npm run check:compiler-diagnostics
+      - run: node scripts/check-template-typecheck-docs.mjs
       - run: npm run verify:release
       - run: npm run inspect:tarballs
       - run: npm run smoke:install
