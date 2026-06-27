@@ -1,0 +1,49 @@
+name: Publish Ariana 1.0
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type publish-1.0.0 to confirm npm publish
+        required: true
+        type: string
+
+concurrency:
+  group: publish-ariana-1-0
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish Ariana 1.0 to npm
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "publish-1.0.0" ]; then
+            echo "Confirmation text must be publish-1.0.0"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run release gates
+        run: npm run release:gates:v1
+
+      - name: Publish to npm
+        run: npm run publish:v1
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
