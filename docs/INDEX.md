@@ -3,6 +3,7 @@
 ## Start here
 
 - `docs/ARIANA_V1_GUIDE.md` — complete Ariana 1.0 user guide covering install, templates, forms, router, query, rendering, Vite plugin, diagnostics, type checking, release gates, and troubleshooting.
+- `docs/PERFORMANCE_V1.md` — Ariana 1.0 performance position, current smoke benchmark results, cross-framework comparison plan, Angular/React/Vue/Svelte/Solid benchmark matrix, strengths, weaknesses, and measurement rules.
 - `README.md` — public project overview and quick start.
 - `site/index.html` — static GitHub Pages landing page.
 
@@ -21,6 +22,11 @@
 - `docs/TEMPLATE_SYNTAX.md`
 - `docs/TEMPLATE_TYPECHECK_V1.md`
 - `docs/ERROR_CODES.md`
+
+## Performance
+
+- `docs/PERFORMANCE_V1.md`
+- `scripts/bench-smoke.mjs`
 
 ## Compiler
 
