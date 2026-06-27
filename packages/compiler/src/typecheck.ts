@@ -9,6 +9,10 @@ export type TemplateTypeCheckResult = {
   diagnostics: ArianaTemplateDiagnostic[];
 };
 
+export type ComponentContextInferenceResult = {
+  members: string[];
+};
+
 const TEMPLATE_GLOBALS = new Set([
   'true',
   'false',
@@ -31,6 +35,23 @@ export function typeCheckTemplate(template: string, context: TemplateTypeCheckCo
   for (const node of result.ast.children) checkNode(node, members, diagnostics);
 
   return { diagnostics };
+}
+
+export function inferComponentContextMembers(source: string): ComponentContextInferenceResult {
+  const classBodies = extractClassBodies(source);
+  const members = new Set<string>();
+
+  for (const classBody of classBodies) {
+    collectClassFields(classBody, members);
+    collectClassMethods(classBody, members);
+    collectAccessors(classBody, members);
+  }
+
+  return { members: [...members] };
+}
+
+export function mergeTypeCheckMembers(...groups: readonly (readonly string[])[]): string[] {
+  return [...new Set(groups.flat())];
 }
 
 function checkNode(node: ArianaTemplateAstNode, members: Set<string>, diagnostics: ArianaTemplateDiagnostic[]) {
@@ -81,4 +102,53 @@ function extractRootIdentifiers(expression: string): string[] {
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(sanitized))) identifiers.add(match[2]);
   return [...identifiers];
+}
+
+function extractClassBodies(source: string): string[] {
+  const bodies: string[] = [];
+  const classPattern = /class\s+[A-Za-z_$][\w$]*[^\{]*\{/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = classPattern.exec(source))) {
+    const bodyStart = match.index + match[0].length;
+    const bodyEnd = findMatchingBrace(source, bodyStart - 1);
+    if (bodyEnd > bodyStart) bodies.push(source.slice(bodyStart, bodyEnd));
+    classPattern.lastIndex = bodyEnd > bodyStart ? bodyEnd + 1 : bodyStart;
+  }
+
+  return bodies;
+}
+
+function collectClassFields(classBody: string, members: Set<string>) {
+  const fieldPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|readonly\s+|override\s+|static\s+)*([A-Za-z_$][\w$]*)\s*(?::[^=;]+)?=/g;
+  let match: RegExpExecArray | null;
+  while ((match = fieldPattern.exec(classBody))) members.add(match[1]);
+}
+
+function collectClassMethods(classBody: string, members: Set<string>) {
+  const methodPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|override\s+|async\s+|static\s+)*([A-Za-z_$][\w$]*)\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = methodPattern.exec(classBody))) {
+    const name = match[1];
+    if (!['if', 'for', 'while', 'switch', 'catch', 'constructor'].includes(name)) members.add(name);
+  }
+}
+
+function collectAccessors(classBody: string, members: Set<string>) {
+  const accessorPattern = /(?:^|[;\n\r])\s*(?:public\s+|protected\s+|override\s+|static\s+)*(?:get|set)\s+([A-Za-z_$][\w$]*)\s*\(/g;
+  let match: RegExpExecArray | null;
+  while ((match = accessorPattern.exec(classBody))) members.add(match[1]);
+}
+
+function findMatchingBrace(source: string, openIndex: number): number {
+  let depth = 0;
+  for (let index = openIndex; index < source.length; index++) {
+    const char = source[index];
+    if (char === '{') depth++;
+    if (char === '}') {
+      depth--;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
 }
