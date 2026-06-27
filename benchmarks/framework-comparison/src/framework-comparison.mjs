@@ -1,3 +1,4 @@
+import '@angular/compiler';
 import { performance } from 'node:perf_hooks';
 import React from 'react';
 import { computed as angularComputed, signal as angularSignal } from '@angular/core';
