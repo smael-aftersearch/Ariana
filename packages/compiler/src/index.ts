@@ -173,7 +173,7 @@ class TemplateAstParser {
 
   private parseElement(): ArianaElementNode | undefined {
     const start = this.index;
-    const openEnd = this.source.indexOf('>', start + 1);
+    const openEnd = findTagEnd(this.source, start + 1);
     if (openEnd < 0) {
       this.pushDiagnostic('error', 'ARI_UNCLOSED_ELEMENT', 'Element is missing closing angle bracket.', start);
       this.index = this.source.length;
@@ -199,7 +199,7 @@ class TemplateAstParser {
 
     if (!selfClosing) {
       if (this.source.startsWith(`</${tagName}`, this.index)) {
-        const closeEnd = this.source.indexOf('>', this.index);
+        const closeEnd = findTagEnd(this.source, this.index + 2 + tagName.length);
         this.index = closeEnd < 0 ? this.source.length : closeEnd + 1;
       } else {
         this.pushDiagnostic('error', 'ARI_MISSING_CLOSE_TAG', `Element <${tagName}> is missing a matching close tag.`, start);
@@ -304,8 +304,8 @@ function validateBindingExpression(fullSource: string, value: string, index: num
     diagnostics.push(createTemplateDiagnostic(fullSource, 'error', 'ARI_EMPTY_BINDING_EXPRESSION', 'Binding expression cannot be empty.', index));
     return;
   }
-  if (value.includes('=>')) {
-    diagnostics.push(createTemplateDiagnostic(fullSource, 'warning', 'ARI_UNSUPPORTED_BINDING_EXPRESSION', 'Inline arrow functions are not supported in template bindings.', index));
+  if (value.includes('=>') || /\bfunction\b/.test(value)) {
+    diagnostics.push(createTemplateDiagnostic(fullSource, 'warning', 'ARI_UNSUPPORTED_BINDING_EXPRESSION', 'Inline function expressions are not supported in template bindings.', index));
   }
 }
 
@@ -321,6 +321,24 @@ function parseForExpression(fullSource: string, expression: string, index: numbe
 function shiftDiagnostic(source: string, diagnostic: ArianaTemplateDiagnostic, offset: number): ArianaTemplateDiagnostic {
   const index = offset + diagnostic.index;
   return { ...diagnostic, index, location: getSourceLocation(source, index) };
+}
+
+function findTagEnd(source: string, start: number): number {
+  let quote: string | undefined;
+  for (let index = start; index < source.length; index++) {
+    const char = source[index];
+    const previous = source[index - 1];
+    if (quote) {
+      if (char === quote && previous !== '\\') quote = undefined;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+      continue;
+    }
+    if (char === '>') return index;
+  }
+  return -1;
 }
 
 function findMatching(source: string, start: number, open: string, close: string): number {
