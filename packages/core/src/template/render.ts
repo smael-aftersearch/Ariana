@@ -16,7 +16,7 @@ export function renderComponent(
   metadata: ComponentOptions,
   host: HTMLElement,
   injector: Injector
-) {
+): () => void {
   const template = metadata.template;
 
   if (!template) {
@@ -42,6 +42,8 @@ export function renderComponent(
     host.innerHTML = '';
     host.appendChild(componentHost);
   }
+
+  return () => cleanupScope(scope);
 }
 
 function bindTree(
@@ -53,7 +55,7 @@ function bindTree(
   scope: RenderScope
 ) {
   bindControlFlow(root, context, injector, metadata, locals, scope);
-  bindChildComponents(root, context, injector, metadata, locals);
+  bindChildComponents(root, context, injector, metadata, locals, scope);
   bindTextInterpolations(root, context, locals, scope);
   bindAttributes(root, context, locals, scope);
 }
@@ -111,6 +113,7 @@ function mountIf(
   });
 
   parentScope.cleanups.push(cleanup);
+  parentScope.cleanups.push(() => cleanupNodes(mountedNodes, childScope));
 }
 
 function mountFor(
@@ -153,6 +156,10 @@ function mountFor(
   });
 
   parentScope.cleanups.push(cleanup);
+  parentScope.cleanups.push(() => {
+    cleanupNodes(mountedNodes);
+    for (const childScope of childScopes.splice(0)) cleanupScope(childScope);
+  });
 }
 
 function bindTextInterpolations(root: ParentNode, context: unknown, locals: Locals, scope: RenderScope) {
@@ -216,7 +223,8 @@ function bindChildComponents(
   context: unknown,
   injector: Injector,
   metadata: ComponentOptions,
-  locals: Locals
+  locals: Locals,
+  scope: RenderScope
 ) {
   for (const childType of metadata.components ?? []) {
     const childMetadata = getComponentMetadata(childType as ComponentType);
@@ -226,7 +234,13 @@ function bindChildComponents(
       const childInjector = injector.createChild(childMetadata.providers ?? []);
       const child = runInInjectionContext(childInjector, () => new childType());
       bindStaticInputs(host, child, context, locals);
-      renderComponent(child, childMetadata, host, childInjector);
+      const childCleanup = renderComponent(child, childMetadata, host, childInjector);
+      scope.cleanups.push(() => {
+        if (typeof (child as { onDestroy?: unknown }).onDestroy === 'function') {
+          (child as { onDestroy: () => void }).onDestroy();
+        }
+        childCleanup();
+      });
 
       if (typeof (child as { onInit?: unknown }).onInit === 'function') {
         (child as { onInit: () => void }).onInit();
