@@ -16,12 +16,14 @@
     "paths": {
       "@ariana/core": ["packages/core/src/index.ts"],
       "@ariana/compiler": ["packages/compiler/src/index.ts"],
+      "@ariana/compiler/typecheck": ["packages/compiler/src/typecheck.ts"],
       "@ariana/router": ["packages/router/src/index.ts"],
       "@ariana/forms": ["packages/forms/src/index.ts"],
       "@ariana/query": ["packages/query/src/index.ts"],
       "@ariana/rendering": ["packages/rendering/src/index.ts"],
       "@ariana/vite-plugin": ["packages/vite-plugin/src/index.ts"],
-      "@ariana-framework/core": ["packages/core/src/index.ts"]
+      "@ariana-framework/core": ["packages/core/src/index.ts"],
+      "@ariana-framework/compiler/typecheck": ["packages/compiler/src/typecheck.ts"]
     }
   }
 }
