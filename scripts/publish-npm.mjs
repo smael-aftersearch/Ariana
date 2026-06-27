@@ -15,7 +15,7 @@ if (!dryRun && !process.env.NPM_TOKEN) {
 }
 
 if (!existsSync(outDir)) {
-  execFileSync('npm', ['run', 'pack:npm'], { cwd: root, stdio: 'inherit' });
+  execFileSync('npm', ['run', 'verify:release'], { cwd: root, stdio: 'inherit' });
 }
 
 const tarballs = readdirSync(outDir).filter(name => name.endsWith('.tgz'));
@@ -23,7 +23,7 @@ if (tarballs.length !== packageOrder.length) throw new Error(`Expected ${package
 
 const orderedTarballs = packageOrder.map(name => {
   const match = tarballs.find(tarball => tarball.startsWith(`ariana-${name}-`));
-  if (!match) throw new Error(`Missing tarball for @ariana/${name}.`);
+  if (!match) throw new Error(`Missing tarball for @ariana-framework/${name}.`);
   return match;
 });
 
