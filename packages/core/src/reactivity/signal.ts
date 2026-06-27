@@ -11,11 +11,13 @@ export function signal<T>(initialValue: T): Signal<T> {
     const active = getActiveComputation();
 
     if (active) {
-      active.track({ subscribe: read.subscribe });
+      active.track(dependency);
     }
 
     return value;
   }) as Signal<T>;
+
+  const dependency = { subscribe: read.subscribe };
 
   read.set = (nextValue: T) => {
     if (Object.is(value, nextValue)) {
