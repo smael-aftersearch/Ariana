@@ -1,13 +1,79 @@
-import { effect } from './effect.js';
-import { signal } from './signal.js';
-import type { Signal } from './types.js';
+import { getActiveComputation, ReactiveComputation } from './runtime.js';
+import type { Cleanup, Signal, Subscriber } from './types.js';
 
 export function computed<T>(callback: () => T): Signal<T> {
-  const value = signal<T>(undefined as T);
+  let value: T;
+  let hasValue = false;
+  const listeners = new Set<Subscriber>();
 
-  effect(() => {
-    value.set(callback());
+  const computation = new ReactiveComputation(() => {
+    const nextValue = callback();
+
+    if (hasValue && Object.is(value, nextValue)) {
+      return;
+    }
+
+    value = nextValue;
+    hasValue = true;
+
+    if (listeners.size === 0) {
+      return;
+    }
+
+    const snapshot = Array.from(listeners);
+    for (let index = 0; index < snapshot.length; index++) {
+      snapshot[index]();
+    }
   });
 
-  return value;
+  const read = (() => {
+    const active = getActiveComputation();
+
+    if (active) {
+      active.track({ subscribe: read.subscribe });
+    }
+
+    if (!hasValue) {
+      computation.run();
+    }
+
+    return value;
+  }) as Signal<T>;
+
+  read.set = (nextValue: T) => {
+    if (hasValue && Object.is(value, nextValue)) {
+      return;
+    }
+
+    value = nextValue;
+    hasValue = true;
+
+    if (listeners.size === 0) {
+      return;
+    }
+
+    const snapshot = Array.from(listeners);
+    for (let index = 0; index < snapshot.length; index++) {
+      snapshot[index]();
+    }
+  };
+
+  read.update = updater => read.set(updater(read.peek()));
+  read.peek = () => {
+    if (!hasValue) {
+      computation.run();
+    }
+
+    return value;
+  };
+  read.subscribe = (listener: Subscriber): Cleanup => {
+    listeners.add(listener);
+
+    return () => {
+      listeners.delete(listener);
+    };
+  };
+
+  computation.run();
+  return read;
 }
