@@ -8,7 +8,7 @@ import { FormArray as AngularFormArray, FormControl as AngularFormControl } from
 import { computed as vueComputed, ref as vueRef } from '@vue/reactivity';
 import { createMemo as solidMemo, createRoot as solidRoot, createSignal as solidSignal } from 'solid-js/dist/solid.js';
 import { derived as svelteDerived, get as svelteGet, writable as svelteWritable } from 'svelte/store';
-import { computed as arianaComputed, signal as arianaSignal } from '../../../packages/core/dist/index.js';
+import { computed as arianaComputed, listSignal as arianaListSignal, signal as arianaSignal } from '../../../packages/core/dist/index.js';
 import { formArray as arianaFormArray, formControl as arianaFormControl } from '../../../packages/forms/dist/index.js';
 
 const frameworks = ['Ariana', 'Angular', 'React', 'Vue', 'Svelte', 'Solid'];
@@ -25,6 +25,7 @@ const results = [];
 
 for (const framework of frameworks) measure('derived-counter', framework, counter(framework), counterIterations, n => (n - 1) * 2);
 for (const framework of frameworks) measure('list-1000-update', framework, list(framework, listSize, 'update'), listUpdates, n => sumRange(listSize) + n, { warmupIterations: warmup, cumulative: true });
+for (const framework of frameworks) measure('keyed-list-1000-update', framework, keyedList(framework, listSize), listUpdates, n => sumRange(listSize) + n, { warmupIterations: warmup, cumulative: true });
 for (const framework of frameworks) measure('list-10000-move', framework, list(framework, largeListSize, 'move'), largeListMoves, () => largeListSize);
 for (const framework of frameworks) measure('array-push-move', framework, arrayCase(framework), 1, () => arraySize);
 
@@ -57,6 +58,23 @@ function list(name, size, mode) {
   if (name === 'Solid') return solidRoot(dispose => { const [s, setS] = solidSignal(initial); return { run(n) { for (let i = 0; i < n; i++) setS(items => transform(items, i)); return finish(s()); }, cleanup: dispose }; });
   let reactState = initial;
   return { run(n) { for (let i = 0; i < n; i++) reactState = transform(reactState, i); return finish(reactState); } };
+}
+
+function keyedList(name, size) {
+  const initial = Array.from({ length: size }, (_, id) => ({ id, value: id }));
+  const finish = items => items.reduce((sum, item) => sum + item.value, 0);
+  const update = (item) => ({ id: item.id, value: item.value + 1 });
+  if (name === 'Ariana') { const s = arianaListSignal(initial, item => item.id); return { run(n) { for (let i = 0; i < n; i++) s.updateByKey(i % size, update); return finish(s.peek()); } }; }
+  if (name === 'Angular') return signalList(angularSignal, initial, keyedTransform, finish);
+  if (name === 'Vue') { const s = vueRef(initial); return { run(n) { for (let i = 0; i < n; i++) s.value = keyedTransform(s.value, i); return finish(s.value); } }; }
+  if (name === 'Svelte') { const s = svelteWritable(initial); return { run(n) { for (let i = 0; i < n; i++) s.update(items => keyedTransform(items, i)); return finish(svelteGet(s)); } }; }
+  if (name === 'Solid') return solidRoot(dispose => { const [s, setS] = solidSignal(initial); return { run(n) { for (let i = 0; i < n; i++) setS(items => keyedTransform(items, i)); return finish(s()); }, cleanup: dispose }; });
+  let reactState = initial;
+  return { run(n) { for (let i = 0; i < n; i++) reactState = keyedTransform(reactState, i); return finish(reactState); } };
+
+  function keyedTransform(items, i) {
+    return items.map(item => item.id === i % size ? update(item) : item);
+  }
 }
 
 function arrayCase(name) {
