@@ -46,7 +46,15 @@ export function signal<T>(initialValue: T): Signal<T> {
     }
 
     if (subscribers.size === 1 && notificationDepth === 0) {
-      subscribers.values().next().value?.();
+      const subscriber = subscribers.values().next().value;
+      notificationDepth++;
+
+      try {
+        subscriber?.();
+      } finally {
+        notificationDepth--;
+      }
+
       return;
     }
 
