@@ -15,3 +15,18 @@ test('compiler typecheck respects for block item scope', () => {
   const result = typeCheckTemplate('@for (item of items(); track item.id) { <span>{{ item.title }}</span> }', { members: ['items'] });
   equal(result.diagnostics.length, 0);
 });
+
+test('compiler typecheck exposes $index inside for block scope', () => {
+  const result = typeCheckTemplate('@for (item of items()) { <span>{{ $index }} {{ item.title }}</span> }', { members: ['items'] });
+  equal(result.diagnostics.length, 0);
+});
+
+test('compiler typecheck exposes $event inside event bindings', () => {
+  const result = typeCheckTemplate('<button (click)="save($event)">Save</button>', { members: ['save'] });
+  equal(result.diagnostics.length, 0);
+});
+
+test('compiler typecheck allows safe expression globals', () => {
+  const result = typeCheckTemplate('<p>{{ Math.max(count(), 1) }}</p>', { members: ['count'] });
+  equal(result.diagnostics.length, 0);
+});
