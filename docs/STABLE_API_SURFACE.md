@@ -22,9 +22,12 @@ Required public API candidates:
 
 Required public API candidates:
 
+- `parseTemplateToAst`
+- `typeCheckTemplate`
+- `inferComponentContextMembers`
+- `mergeTypeCheckMembers`
 - template parsing diagnostics
 - template compile result
-- template typecheck helper
 - error codes
 
 ## Router
