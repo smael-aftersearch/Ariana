@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
 import { formatTemplateDiagnostic } from '@ariana/compiler/diagnostics';
-import { inferComponentContextMembers, mergeTypeCheckMembers, typeCheckTemplate } from '@ariana/compiler/typecheck';
+import { createTypeCheckContextFromSource, type TemplateTypeSymbol, typeCheckTemplate } from '@ariana/compiler/typecheck';
 
 
 type VitePlugin = {
@@ -16,8 +16,10 @@ export type ArianaVitePluginOptions = {
   include?: RegExp;
   compileTemplates?: boolean;
   strictTemplates?: boolean;
+  strictWarnings?: boolean;
   typeCheckTemplates?: boolean;
   templateTypeCheckMembers?: readonly string[];
+  templateTypeCheckSymbols?: Record<string, TemplateTypeSymbol>;
 };
 
 type ResourceTransformResult = {
@@ -29,8 +31,10 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
   const include = options.include ?? /\.(ts|tsx)$/;
   const compileTemplates = options.compileTemplates ?? true;
   const strictTemplates = options.strictTemplates ?? true;
+  const strictWarnings = options.strictWarnings ?? false;
   const typeCheckTemplates = options.typeCheckTemplates ?? false;
   const explicitTypeCheckMembers = options.templateTypeCheckMembers ?? [];
+  const explicitTypeCheckSymbols = options.templateTypeCheckSymbols ?? {};
 
   return {
     name: 'ariana-framework-template-url',
@@ -40,9 +44,9 @@ export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
         return null;
       }
 
-      const inferredMembers = inferComponentContextMembers(code).members;
-      const templateTypeCheckMembers = mergeTypeCheckMembers(explicitTypeCheckMembers, inferredMembers);
-      const result = transformComponentResources(code, id, compileTemplates, strictTemplates, typeCheckTemplates, templateTypeCheckMembers);
+      const typeCheckContext = createTypeCheckContextFromSource(code, explicitTypeCheckMembers);
+      typeCheckContext.symbols = { ...(typeCheckContext.symbols ?? {}), ...explicitTypeCheckSymbols };
+      const result = transformComponentResources(code, id, compileTemplates, strictTemplates, strictWarnings, typeCheckTemplates, typeCheckContext);
       return result.code === code ? null : result.code;
     }
   };
@@ -55,8 +59,9 @@ function transformComponentResources(
   id: string,
   compileTemplates: boolean,
   strictTemplates: boolean,
+  strictWarnings: boolean,
   typeCheckTemplates: boolean,
-  templateTypeCheckMembers: readonly string[]
+  templateTypeCheckContext: ReturnType<typeof createTypeCheckContextFromSource>
 ): ResourceTransformResult {
   const directory = dirname(id);
   let importIndex = 0;
@@ -76,13 +81,13 @@ function transformComponentResources(
     if (templateUrl) {
       const template = readTextResource(directory, templateUrl);
       const diagnostics = parseTemplateToAst(template).diagnostics;
-      const blockingDiagnostic = diagnostics.find(diagnostic => diagnostic.level === 'error');
+      const blockingDiagnostic = findBlockingDiagnostic(diagnostics, strictWarnings);
 
       if (typeCheckTemplates && strictTemplates) {
-        const typeCheck = typeCheckTemplate(template, { members: templateTypeCheckMembers });
-        const typeError = typeCheck.diagnostics.find(diagnostic => diagnostic.level === 'error');
-        if (typeError) {
-          throw new Error(`Ariana template typecheck error\n${formatTemplateDiagnostic(template, typeError, { fileName: templateUrl, includeSourceLine: true })}`);
+        const typeCheck = typeCheckTemplate(template, templateTypeCheckContext);
+        const typeDiagnostic = findBlockingDiagnostic(typeCheck.diagnostics, strictWarnings);
+        if (typeDiagnostic) {
+          throw new Error(`Ariana template typecheck error\n${formatTemplateDiagnostic(template, typeDiagnostic, { fileName: templateUrl, includeSourceLine: true })}`);
         }
       }
 
@@ -116,6 +121,10 @@ function transformComponentResources(
   }
 
   return { code: transformed, usedCompiler };
+}
+
+function findBlockingDiagnostic<T extends { level: 'error' | 'warning' }>(diagnostics: readonly T[], strictWarnings: boolean): T | undefined {
+  return diagnostics.find(diagnostic => diagnostic.level === 'error' || (strictWarnings && diagnostic.level === 'warning'));
 }
 
 function findStringProperty(source: string, propertyName: string): string | undefined {
