@@ -55,7 +55,8 @@ function list(name, size, mode) {
   if (name === 'Vue') { const s = vueRef(initial); return { run(n) { for (let i = 0; i < n; i++) s.value = transform(s.value, i); return finish(s.value); } }; }
   if (name === 'Svelte') { const s = svelteWritable(initial); return { run(n) { for (let i = 0; i < n; i++) s.update(items => transform(items, i)); return finish(svelteGet(s)); } }; }
   if (name === 'Solid') return solidRoot(dispose => { const [s, setS] = solidSignal(initial); return { run(n) { for (let i = 0; i < n; i++) setS(items => transform(items, i)); return finish(s()); }, cleanup: dispose }; });
-  return { run(n) { let s = initial; for (let i = 0; i < n; i++) s = transform(s, i); return finish(s); } };
+  let reactState = initial;
+  return { run(n) { for (let i = 0; i < n; i++) reactState = transform(reactState, i); return finish(reactState); } };
 }
 
 function arrayCase(name) {
