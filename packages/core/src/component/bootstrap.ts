@@ -13,6 +13,7 @@ export type BootstrapRef<T> = {
   readonly instance: T;
   readonly injector: Injector;
   readonly cleanupScope: CleanupScope;
+  readonly destroyed: boolean;
   destroy(): void;
 };
 
@@ -42,6 +43,7 @@ export function bootstrapApplication<T>(
   const rootInjector = new Injector(options.providers ?? []);
   const componentInjector = rootInjector.createChild(metadata.providers ?? []);
   const component = runInInjectionContext(componentInjector, () => new componentType());
+  let destroyed = false;
 
   if (metadata.render) {
     renderCompiledComponent(component, metadata, hostElement as HTMLElement, componentInjector, cleanupScope);
@@ -57,7 +59,10 @@ export function bootstrapApplication<T>(
     instance: component,
     injector: componentInjector,
     cleanupScope,
+    get destroyed() { return destroyed; },
     destroy() {
+      if (destroyed) return;
+      destroyed = true;
       if (hasLifecycle(component, 'onDestroy')) component.onDestroy();
       cleanupScope.cleanup();
       (hostElement as HTMLElement).replaceChildren();
