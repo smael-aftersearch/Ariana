@@ -1,8 +1,8 @@
 {
   "name": "ariana-framework-v4-release-ready",
   "private": true,
-  "version": "0.4.0",
-  "description": "Ariana Framework v4 official release with npm package artifacts and guarded publish workflow.",
+  "version": "0.5.0",
+  "description": "Ariana Framework v5 milestone preparation with npm package artifacts, smoke tests, and benchmark gates.",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -16,6 +16,10 @@
     "smoke:install": "node scripts/install-smoke.mjs",
     "smoke:create-ariana": "node scripts/create-ariana-smoke.mjs",
     "smoke:generated-app": "node scripts/generated-app-smoke.mjs",
+    "smoke:generated-app:coverage": "node scripts/generated-app-coverage-check.mjs",
+    "bench:smoke": "node scripts/bench-smoke.mjs",
+    "bench:framework": "npm --prefix benchmarks/framework-comparison install --no-audit --no-fund && npm --prefix benchmarks/framework-comparison run bench",
+    "pack:0.5:candidate": "node scripts/pack-0-5-candidate.mjs",
     "inspect:tarballs": "node scripts/inspect-tarballs.mjs",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
     "build:counter": "npm --workspace @ariana/counter-app run build",
