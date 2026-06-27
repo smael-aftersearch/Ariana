@@ -1,10 +1,46 @@
 # Ariana 1.0 Performance Guide
 
-This document explains how Ariana 1.0 performance should be measured, what is currently covered by the repository, how Ariana should be compared with other JavaScript frameworks, and which performance areas are currently strong, weak, or still unproven.
+This document explains how Ariana 1.0 performance must be measured. Performance documentation must be numeric. Words like `good`, `bad`, `fast`, or `slow` are only acceptable when they are attached to a measured value.
 
-Ariana must not make broad marketing claims such as "faster than Angular" or "faster than React" without reproducible benchmark results. Performance claims should be tied to a specific scenario, environment, framework configuration, and measurement method.
+Ariana must not make broad marketing claims such as `faster than Angular` or `faster than React` without reproducible benchmark results. Performance claims must be tied to a scenario, framework version, environment, build mode, and measurement method.
 
-## Current status
+## Current numeric result
+
+The first Ariana 1.0 numeric baseline is recorded in:
+
+```txt
+docs/PERFORMANCE_RESULTS_V1.md
+```
+
+Result set:
+
+```txt
+ariana-v1-local-gate-001
+```
+
+Measured output:
+
+| Rank | Scenario | Ariana 1.0 time | Current gate limit | Limit usage | Numeric reading |
+| ---: | --- | ---: | ---: | ---: | --- |
+| 1 | Core signal/computed updates | `4.07ms` | `1500ms` | `0.27%` | Fastest measured Ariana smoke path |
+| 2 | Query cache operations | `12.07ms` | `1500ms` | `0.80%` | Lightweight in current smoke test |
+| 3 | Router repeated matching | `27.73ms` | `1500ms` | `1.85%` | Still far below gate limit |
+| 4 | Forms array operations | `497.10ms` | `1500ms` | `33.14%` | Slowest measured Ariana smoke path |
+
+## Current weakness by number
+
+The current numeric weakness is `forms array operations` at `497.10ms`.
+
+| Comparison | Ratio |
+| --- | ---: |
+| Forms array vs signal/computed | `122.14x` slower |
+| Forms array vs query cache | `41.18x` slower |
+| Forms array vs router matching | `17.93x` slower |
+| Forms array vs current gate limit | uses `33.14%` of the limit |
+
+This makes form array performance the first optimization target after v1 release.
+
+## Current smoke benchmark command
 
 Ariana 1.0 includes an internal benchmark smoke gate:
 
@@ -21,132 +57,30 @@ The current smoke gate checks these internal scenarios:
 | Forms array operations | Large form array push and move operations | Forms scalability sanity check |
 | Query cache operations | Cache writes and prefix invalidation | Query state sanity check |
 
-These are smoke benchmarks. They are useful for preventing obvious regressions, but they are not enough to claim cross-framework superiority.
+These are smoke benchmarks. They prevent obvious regressions, but they are not enough to claim cross-framework superiority.
 
-## Latest local v1 gate sample
+## Cross-framework comparison matrix
 
-A local v1 gate run produced this sample output:
+Numbers for Angular, React, Vue, Svelte, and Solid must stay `not measured` until equivalent benchmark fixtures exist and are executed with the same rules.
 
-```txt
-core signal computed updates: 4.07ms
-router repeated matching: 27.73ms
-forms array operations: 497.10ms
-query cache operations: 12.07ms
-```
+| Scenario | Metric | Ariana 1.0 | Angular | React | Vue | Svelte | Solid |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Core signal/computed updates | Node-level runtime operation time | `4.07ms` | not measured | not measured | not measured | not measured | not measured |
+| Router repeated matching | Node-level route match time | `27.73ms` | not measured | not measured | not measured | not measured | not measured |
+| Forms array operations | Node-level form array push/move time | `497.10ms` | not measured | not measured | not measured | not measured | not measured |
+| Query cache operations | Node-level cache set/invalidate time | `12.07ms` | not measured | not measured | not measured | not measured | not measured |
+| Counter UI update | Browser DOM update time | not measured | not measured | not measured | not measured | not measured | not measured |
+| 1,000 row table update | Browser DOM update time | not measured | not measured | not measured | not measured | not measured | not measured |
+| 10,000 row stress table | Browser render/update time | not measured | not measured | not measured | not measured | not measured | not measured |
+| Form-heavy browser screen | Browser form update/validation time | not measured | not measured | not measured | not measured | not measured | not measured |
+| Startup cost | parse/evaluate/first render time | not measured | not measured | not measured | not measured | not measured | not measured |
+| Bundle cost | gzip/brotli KB | not measured | not measured | not measured | not measured | not measured | not measured |
 
-This sample is useful as a release signal, not as a universal benchmark. Hardware, Node version, OS, CPU state, and background processes can change these numbers.
-
-## What Ariana 1.0 is good at today
-
-### 1. Fine-grained reactive state
-
-Ariana uses signals and computed values. This is expected to be strong for scenarios where a small piece of state updates frequently and only dependent work should re-run.
-
-Good scenarios:
-
-- counter updates
-- small dashboard widgets
-- field-level UI state
-- computed labels and status fields
-- local component state
-
-### 2. Explicit lifecycle cleanup
-
-Ariana tracks cleanup explicitly. This is important for event listeners, effects, child rendering, and component teardown.
-
-Good scenarios:
-
-- components that mount/unmount frequently
-- event-heavy UI
-- dynamic child rendering
-- repeated conditionals and list sections
-
-### 3. Query cache operations
-
-The v1 query cache has simple and predictable state operations: set, stale checks, invalidation, deduped fetches, and retry. The smoke result shows this area is currently lightweight in Node-level checks.
-
-Good scenarios:
-
-- small and medium query caches
-- exact invalidation
-- prefix invalidation
-- request deduplication
-
-### 4. Router matching
-
-The router has a small explicit matching model with route params, route data, providers, guards, and nested route matching. The smoke result shows repeated matching is currently lightweight for the tested route shape.
-
-Good scenarios:
-
-- route tables with simple static and parameterized routes
-- guard chains
-- route data inheritance
-- route provider inheritance
-
-### 5. Package size discipline
-
-Ariana is split into focused packages. Applications can install only the packages they need.
-
-Good scenarios:
-
-- small applications
-- custom stacks
-- apps that need core runtime but not forms/query/rendering
-
-## Where Ariana 1.0 is weaker or not proven yet
-
-### 1. Browser DOM benchmark is not complete yet
-
-The current benchmark smoke is Node-level. It does not yet compare real browser DOM operations against Angular, React, Vue, Svelte, Solid, or other frameworks.
-
-Not proven yet:
-
-- 10k row browser rendering
-- keyed list replacement
-- DOM patch latency
-- hydration cost
-- browser memory retention
-- startup parse/evaluate time
-
-### 2. Forms array operations are the heaviest current smoke case
-
-The sample local v1 gate shows forms array operations as the slowest internal smoke scenario. This does not mean forms are too slow for real apps, but it shows that large dynamic form arrays should be watched closely.
-
-Needs more measurement:
-
-- 100 controls
-- 1,000 controls
-- nested groups and arrays
-- async validation under load
-- repeated move/remove operations
-
-### 3. Template compiler coverage is still early
-
-Ariana has compiler diagnostics and Vite integration, but v1 template compilation is still an early foundation compared with mature framework compilers.
-
-Needs more measurement:
-
-- template compile time
-- large template diagnostics time
-- template typecheck time
-- source map quality
-- incremental rebuild performance
-
-### 4. Ecosystem maturity is lower than established frameworks
-
-Angular, React, Vue, Svelte, and Solid have mature tooling, ecosystem integrations, devtools, profiling patterns, and battle-tested production usage. Ariana v1 is a foundation release.
-
-Not a runtime speed issue, but still a production-performance factor:
-
-- debugging tools
-- profiling tools
-- IDE integrations
-- production recipes
-- SSR/hydration maturity
+A `not measured` value is not a weakness or a strength. It means no repeatable number exists yet.
 
 ## Required comparison targets
 
-Ariana performance comparisons should include at least:
+Ariana performance comparisons must include at least:
 
 | Framework | Why it must be included |
 | --- | --- |
@@ -160,7 +94,7 @@ Ariana performance comparisons should include at least:
 Angular should be tested in more than one mode when possible:
 
 - default production setup
-- optimized setup using the recommended modern Angular performance patterns
+- optimized production setup using recommended modern Angular performance patterns
 
 This avoids unfair comparisons where one framework is tested in a naive mode and another in an optimized mode.
 
@@ -172,10 +106,12 @@ Measures frequent state updates with one or more derived values.
 
 Metrics:
 
-- update time
-- DOM text update latency
-- memory allocations
-- CPU time
+- median update time in ms
+- p75 update time in ms
+- p95 update time in ms
+- max update time in ms
+- DOM text update latency in ms
+- memory after test in MB when available
 
 ### Scenario B: 1,000 row table update
 
@@ -183,11 +119,11 @@ Measures keyed row rendering and one-row updates.
 
 Metrics:
 
-- initial render time
-- single row update time
-- replace all rows time
-- remove rows time
-- memory after cleanup
+- initial render time in ms
+- single row update time in ms
+- replace all rows time in ms
+- remove rows time in ms
+- memory after cleanup in MB when available
 
 ### Scenario C: 10,000 row stress table
 
@@ -195,11 +131,11 @@ Measures large list performance.
 
 Metrics:
 
-- initial render time
-- keyed reorder time
-- append time
-- delete time
-- browser responsiveness
+- initial render time in ms
+- keyed reorder time in ms
+- append time in ms
+- delete time in ms
+- p95 browser responsiveness in ms
 
 ### Scenario D: Form-heavy screen
 
@@ -207,11 +143,12 @@ Measures a large form with validation.
 
 Metrics:
 
-- form creation time
-- value update time
-- validation time
-- async validation behavior
-- memory after reset/destroy
+- form creation time in ms
+- value update time in ms
+- sync validation time in ms
+- async validation time in ms
+- reset/destroy time in ms
+- memory after reset/destroy in MB when available
 
 ### Scenario E: Router stress
 
@@ -219,10 +156,10 @@ Measures route matching and navigation.
 
 Metrics:
 
-- match time
-- navigation time
-- guard chain time
-- redirect handling
+- match time in ms
+- navigation time in ms
+- guard chain time in ms
+- redirect handling time in ms
 
 ### Scenario F: Query cache stress
 
@@ -230,11 +167,11 @@ Measures cache writes and invalidation.
 
 Metrics:
 
-- set 10k items
-- exact invalidation
-- prefix invalidation
-- deduped fetch behavior
-- stale checks
+- set 10k items time in ms
+- exact invalidation time in ms
+- prefix invalidation time in ms
+- deduped fetch behavior in ms
+- stale check time in ms
 
 ### Scenario G: Startup and bundle cost
 
@@ -242,12 +179,13 @@ Measures what users actually pay on page load.
 
 Metrics:
 
-- production bundle size
-- gzip/brotli size
-- parse time
-- evaluate time
-- first render time
-- time to interactive
+- production bundle size in KB
+- gzip size in KB
+- brotli size in KB
+- parse time in ms
+- evaluate time in ms
+- first render time in ms
+- time to interactive in ms
 
 ## Measurement rules
 
@@ -262,7 +200,7 @@ Every comparison must document:
 - source code used for each framework
 - number of warmup runs
 - number of measured runs
-- median, p75, p95, and worst result
+- median, p75, p95, and max result
 - bundle size with gzip or brotli
 - whether hydration is enabled
 - whether devtools/profilers are disabled
@@ -294,28 +232,32 @@ Rules:
 - Keep CSS comparable.
 - Keep logging disabled.
 
-## Ariana 1.0 performance position
+## Numeric optimization targets
 
-| Area | Current position | Confidence |
-| --- | --- | --- |
-| Signal/computed updates | Strong in current smoke benchmark | Medium |
-| Query cache operations | Strong in current smoke benchmark | Medium |
-| Router matching | Good in current smoke benchmark | Medium |
-| Forms array operations | Functional but currently the heaviest smoke benchmark | Medium |
-| Browser DOM rendering | Not proven by public comparison yet | Low |
-| Initial load and bundle comparison | Not proven by public comparison yet | Low |
-| Hydration comparison | Not implemented as a full public benchmark yet | Low |
-| Template diagnostics | Strong as a correctness gate, performance needs more measurement | Medium-low |
+These targets are for Ariana 1.x optimization work and should be revised after browser benchmarks exist.
+
+| Area | Current Ariana number | First target | Stretch target |
+| --- | ---: | ---: | ---: |
+| Core signal/computed smoke | `4.07ms` | `< 5ms` | `< 3ms` |
+| Query cache smoke | `12.07ms` | `< 15ms` | `< 8ms` |
+| Router matching smoke | `27.73ms` | `< 30ms` | `< 15ms` |
+| Forms array smoke | `497.10ms` | `< 250ms` | `< 100ms` |
 
 ## What can be said publicly today
 
-Safe statement:
+Allowed:
 
 ```txt
-Ariana 1.0 is designed for low framework overhead through signal-based reactivity, explicit lifecycle cleanup, external templates, and focused packages. The repository includes internal performance smoke checks for core signals, routing, forms, and query cache operations. Cross-framework browser benchmarks are planned and should be interpreted only when run through the documented benchmark matrix.
+Ariana 1.0 signal/computed smoke measured 4.07ms in result set ariana-v1-local-gate-001.
 ```
 
-Unsafe statement:
+Allowed:
+
+```txt
+Ariana 1.0 forms array operations are the slowest current smoke scenario at 497.10ms.
+```
+
+Not allowed:
 
 ```txt
 Ariana is faster than Angular, React, Vue, Svelte, and Solid.
@@ -326,12 +268,23 @@ That claim must not be made until the browser benchmark suite exists and produce
 ## Next work items
 
 1. Add browser benchmark fixtures for Ariana, Angular, React, Vue, Svelte, and Solid.
-2. Add CI workflow for benchmark smoke only.
-3. Add manual workflow for full benchmark comparison.
-4. Publish benchmark source code with results.
-5. Add charts to the documentation site after repeatable results exist.
-6. Track regressions across releases.
+2. Add a runner that outputs JSON and Markdown tables.
+3. Add CI workflow for benchmark smoke only.
+4. Add manual workflow for full benchmark comparison.
+5. Publish benchmark source code with results.
+6. Add charts to the documentation site after repeatable results exist.
+7. Track regressions across releases.
+8. Start optimization with forms array operations because the first baseline shows `497.10ms`.
 
 ## Summary
 
-Ariana 1.0 currently looks strongest in focused runtime operations: signals, query cache, and simple router matching. The main watch area is large form arrays. The biggest missing piece is a reproducible browser-level comparison suite against Angular, React, Vue, Svelte, and Solid.
+Current numeric baseline:
+
+```txt
+signal/computed: 4.07ms
+query cache: 12.07ms
+router matching: 27.73ms
+forms array: 497.10ms
+```
+
+The largest measured number is `497.10ms` for forms array operations. The next performance task should target that path first, then add comparable browser benchmarks for Angular, React, Vue, Svelte, Solid, and Ariana.
