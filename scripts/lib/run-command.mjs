@@ -1,11 +1,14 @@
 import { execFileSync } from 'node:child_process';
 
-export function bin(name) {
-  return process.platform === 'win32' ? `${name}.cmd` : name;
-}
-
 export function run(command, args, options = {}) {
-  return execFileSync(bin(command), args, {
+  if (process.platform === 'win32') {
+    return execFileSync(process.env.ComSpec ?? 'cmd.exe', ['/d', '/s', '/c', toWindowsCommandLine(command, args)], {
+      stdio: 'inherit',
+      ...options
+    });
+  }
+
+  return execFileSync(command, args, {
     stdio: 'inherit',
     ...options
   });
@@ -16,4 +19,14 @@ export function runNode(args, options = {}) {
     stdio: 'inherit',
     ...options
   });
+}
+
+function toWindowsCommandLine(command, args) {
+  return [command, ...args].map(quoteWindowsArg).join(' ');
+}
+
+function quoteWindowsArg(value) {
+  const text = String(value);
+  if (!/[\s"&()^|<>]/.test(text)) return text;
+  return `"${text.replaceAll('"', '\\"')}"`;
 }
