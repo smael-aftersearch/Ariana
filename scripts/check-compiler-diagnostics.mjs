@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 
 const docs = readFileSync('docs/COMPILER_DIAGNOSTICS_REGISTRY.md', 'utf8');
+const errorCodesDocs = readFileSync('docs/ERROR_CODES.md', 'utf8');
 const parserSource = readFileSync('packages/compiler/src/index.ts', 'utf8');
 const typecheckSource = readFileSync('packages/compiler/src/typecheck.ts', 'utf8');
 
@@ -20,7 +21,8 @@ const diagnostics = [
 ];
 
 for (const [code, source] of diagnostics) {
-  if (!docs.includes(code)) throw new Error(`Diagnostic ${code} is missing from docs.`);
+  if (!docs.includes(code)) throw new Error(`Diagnostic ${code} is missing from registry docs.`);
+  if (!errorCodesDocs.includes(code)) throw new Error(`Diagnostic ${code} is missing from error code docs.`);
   if (!source.includes(code)) throw new Error(`Diagnostic ${code} is missing from compiler source.`);
 }
 
@@ -28,7 +30,7 @@ for (const requiredHeader of ['Diagnostic shape', 'Parse diagnostics', 'Typechec
   if (!docs.includes(requiredHeader)) throw new Error(`Compiler diagnostics docs are missing section: ${requiredHeader}`);
 }
 
-for (const requiredSource of ['getSourceLocation', 'createTemplateDiagnostic', 'location']) {
+for (const requiredSource of ['getSourceLocation', 'createTemplateDiagnostic', 'location', 'findTagEnd']) {
   if (!parserSource.includes(requiredSource)) throw new Error(`Compiler diagnostic source mapping is missing: ${requiredSource}`);
 }
 
