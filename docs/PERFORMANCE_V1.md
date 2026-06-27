@@ -63,7 +63,7 @@ The workflow is:
 .github/workflows/framework-benchmark.yml
 ```
 
-Manual workflow runs commit the generated benchmark report back into the repository. Push-triggered runs upload the result as an artifact.
+Push-triggered and manual workflow runs execute the framework benchmark, copy `benchmarks/framework-comparison/results/latest.md` into `docs/PERFORMANCE_RESULTS_V1.md`, commit the numeric benchmark results, and upload them as an artifact.
 
 ## Performance optimization workflow
 
