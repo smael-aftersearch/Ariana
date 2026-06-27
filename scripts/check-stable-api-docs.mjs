@@ -11,6 +11,8 @@ const requiredTerms = [
   'typeCheckTemplate',
   'inferComponentContextMembers',
   'mergeTypeCheckMembers',
+  'getSourceLocation',
+  'createTemplateDiagnostic',
   'createRouter',
   'formControl',
   'formArray',
