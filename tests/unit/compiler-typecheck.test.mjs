@@ -31,6 +31,32 @@ test('compiler typecheck allows safe expression globals', () => {
   equal(result.diagnostics.length, 0);
 });
 
+test('compiler typecheck reports unknown typed object properties', () => {
+  const result = typeCheckTemplate('<p>{{ user.missingName }}</p>', {
+    members: [],
+    symbols: {
+      user: { kind: 'object', properties: { name: { kind: 'value' } } }
+    }
+  });
+  equal(result.diagnostics[0].code, 'ARI_TYPE_UNKNOWN_PROPERTY');
+});
+
+test('compiler typecheck reports calling non-method members', () => {
+  const result = typeCheckTemplate('<button (click)="title()">Save</button>', {
+    members: [],
+    symbols: { title: { kind: 'value' } }
+  });
+  equal(result.diagnostics[0].code, 'ARI_TYPE_CALL_NON_METHOD');
+});
+
+test('compiler typecheck reports method argument count violations', () => {
+  const result = typeCheckTemplate('<button (click)="save()">Save</button>', {
+    members: [],
+    symbols: { save: { kind: 'method', minArgs: 1, maxArgs: 1 } }
+  });
+  equal(result.diagnostics[0].code, 'ARI_TYPE_METHOD_ARGUMENT_COUNT');
+});
+
 test('compiler infers component fields methods and accessors from class source', () => {
   const result = inferComponentContextMembers(`
     class Page {
