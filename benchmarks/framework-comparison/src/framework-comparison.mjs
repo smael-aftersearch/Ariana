@@ -3,7 +3,7 @@ import React from 'react';
 import { computed as vueComputed, effect as vueEffect, ref as vueRef } from '@vue/reactivity';
 import { createEffect as solidEffect, createMemo as solidMemo, createRoot as solidRoot, createSignal as solidSignal } from 'solid-js';
 import { writable as svelteWritable, derived as svelteDerived, get as svelteGet } from 'svelte/store';
-import { computed as arianaComputed, effect as arianaEffect, signal as arianaSignal } from '../../packages/core/dist/index.js';
+import { computed as arianaComputed, effect as arianaEffect, signal as arianaSignal } from '../../../packages/core/dist/index.js';
 
 const iterations = Number(process.env.ARIA_BENCH_ITERATIONS ?? 50000);
 const warmup = Number(process.env.ARIA_BENCH_WARMUP ?? 5000);
