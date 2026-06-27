@@ -17,11 +17,18 @@ Generated app includes:
 - Vite
 - TypeScript
 - `@ariana-framework/core`
+- `@ariana-framework/router`
+- `@ariana-framework/forms`
+- `@ariana-framework/query`
 - `@ariana-framework/vite-plugin`
+
+## Current preset
+
+The default starter creates a small Vite application that imports core signals, router, forms, and query together.
 
 ## Next steps
 
 - add template selection
 - add package manager detection
-- add router/forms/query presets
-- add tests for generated projects
+- add advanced router/forms/query presets
+- add generated project build tests
