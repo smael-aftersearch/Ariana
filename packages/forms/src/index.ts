@@ -131,7 +131,7 @@ export function asyncUnique<T>(isUnique: (value: T) => Promise<boolean>, message
 
 function normalizeControlOptions<T>(input: readonly Validator<T>[] | FormControlOptions<T>): Required<FormControlOptions<T>> {
   if (isValidatorList(input)) return { validators: input, asyncValidators: [] };
-  return { validators: input.validators ?? [], asyncValidators: input.asyncValidators ?? [] };
+  return { validators: input.validators ?? [], asyncValidators: [] };
 }
 
 function isValidatorList<T>(input: readonly Validator<T>[] | FormControlOptions<T>): input is readonly Validator<T>[] {
@@ -144,5 +144,5 @@ function mergeErrors(errors: Array<ValidationErrors | undefined>): ValidationErr
   return result;
 }
 
-export { formArray } from './form-array.js';
-export type { FormArray } from './form-array.js';
+export { formArray } from './form-array-fast.js';
+export type { FormArray } from './form-array-fast.js';
