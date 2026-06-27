@@ -23,6 +23,11 @@ Patch 04 productionizes the Vite plugin for the version one path.
 - Vite edge case tracker added.
 - Diagnostic migration notes for version one added.
 - Vite plugin v1 docs check script added.
+- Vite plugin options smoke script added.
+- Version one release checklist added.
+- Version one release readiness document added.
+- Version one release notes draft added.
+- Version one candidate pack helper added.
 - Version one plan moved Patch 04 to started.
 
 ## Remaining Vite plugin work
@@ -31,9 +36,18 @@ Patch 04 productionizes the Vite plugin for the version one path.
 - Windows path fixture
 - style-only component fixture
 - generated render mode edge cases
-- package install smoke coverage for Vite plugin options
 - migration notes if any option name changes before version one
+
+## Release readiness gates
+
+- run `npm run build`
+- run `npm test`
+- run all docs checks
+- run template diagnostics fixture check
+- run Vite plugin options smoke
+- run `node scripts/pack-v1-candidate.mjs`
+- run publish dry-run only after all gates pass
 
 ## Next focus
 
-Continue Patch 04 with browser fixture coverage, style-only components, generated render mode edge cases, and install smoke coverage for Vite plugin options.
+Close Patch 04 by adding style-only and generated-render fixtures, then run the release gate list before publishing version one.
