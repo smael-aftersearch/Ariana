@@ -25,11 +25,21 @@ Patch 03 hardens compiler diagnostics and template typecheck for the version one
 - Stable API registry now includes compiler typecheck helpers.
 - Stable API docs check now requires compiler typecheck helpers.
 - Vite transform tests now validate compiler-owned inference behavior.
+- Compiler diagnostics now include one-based source locations.
+- Compiler exports `getSourceLocation` and `createTemplateDiagnostic`.
+- Empty interpolation diagnostic added.
+- Empty binding expression diagnostic added.
+- Unsupported inline binding expression diagnostic added.
+- Tag parsing now ignores `>` tokens inside quoted attributes.
+- Compiler diagnostics tests now cover location and new expression diagnostics.
+- Error code docs now include all current compiler diagnostics.
+- Compiler source mapping document added.
 - Version one plan moved patch 03 to started.
 
 ## Diagnostic codes covered
 
 - `ARI_UNCLOSED_INTERPOLATION`
+- `ARI_EMPTY_INTERPOLATION`
 - `ARI_UNCLOSED_ELEMENT`
 - `ARI_INVALID_ELEMENT`
 - `ARI_MISSING_CLOSE_TAG`
@@ -37,17 +47,18 @@ Patch 03 hardens compiler diagnostics and template typecheck for the version one
 - `ARI_INVALID_FOR`
 - `ARI_UNKNOWN_BINDING`
 - `ARI_INVALID_FOR_EXPRESSION`
+- `ARI_EMPTY_BINDING_EXPRESSION`
+- `ARI_UNSUPPORTED_BINDING_EXPRESSION`
 - `ARI_TYPE_UNKNOWN_MEMBER`
 
 ## Remaining compiler work
 
-- add source mapping for diagnostics
-- add diagnostics for empty interpolation expressions
-- add diagnostics for unsupported binding expression shapes
 - add type-aware property access validation
 - add method argument type validation
 - add migration notes if any diagnostic code changes before version one
+- add editor-facing diagnostic formatting helpers
+- add browser/editor fixture coverage for template diagnostics
 
 ## Next focus
 
-Continue Patch 03 by adding source mapping and additional diagnostics for empty interpolation and unsupported binding expression shapes.
+Continue Patch 03 with type-aware validation groundwork, diagnostic formatting helpers, and editor-facing examples.
