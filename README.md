@@ -33,6 +33,7 @@ Ariana 1.0 focuses on a stable foundation: package structure, release safety, co
 Start here:
 
 - [Ariana 1.0 Guide](docs/ARIANA_V1_GUIDE.md)
+- [Ariana 1.0 Performance Guide](docs/PERFORMANCE_V1.md)
 - [Documentation Index](docs/INDEX.md)
 - [GitHub Actions publish guide](docs/GITHUB_PUBLISH_V1.md)
 
@@ -228,6 +229,31 @@ Query features include cache state, stale time, fetch deduplication, retry, exac
 - static route page generation
 - route path to file path mapping
 - island manifest and placeholder generation
+
+---
+
+## Performance
+
+Ariana 1.0 includes an internal benchmark smoke gate:
+
+```bash
+npm run bench:smoke
+```
+
+The current smoke gate covers:
+
+- core signal/computed updates
+- router repeated matching
+- forms array operations
+- query cache operations
+
+Ariana's expected strengths in v1 are fine-grained signal updates, explicit cleanup, small package boundaries, simple router matching, and lightweight query cache operations. The main watch area is large dynamic form arrays, which are currently the heaviest internal smoke scenario.
+
+Ariana should not claim to be faster than Angular, React, Vue, Svelte, or Solid until the browser benchmark suite is implemented and repeatable results exist. The official comparison plan includes Angular, React, Vue, Svelte, Solid, and Ariana across counter updates, large table rendering, form-heavy screens, router stress, query cache stress, startup cost, and bundle cost.
+
+Read the full performance guide:
+
+- [Ariana 1.0 Performance Guide](docs/PERFORMANCE_V1.md)
 
 ---
 
