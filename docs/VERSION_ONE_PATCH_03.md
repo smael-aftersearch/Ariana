@@ -17,6 +17,14 @@ Patch 03 hardens compiler diagnostics and template typecheck for the version one
 - Compiler diagnostics registry check now validates all current diagnostics.
 - Template typecheck v1 contract document added.
 - Template typecheck docs check added to CI.
+- Compiler now owns component context inference with `inferComponentContextMembers`.
+- Compiler now exposes `mergeTypeCheckMembers` for stable member merging.
+- Vite plugin now uses compiler-owned `inferComponentContextMembers`, `mergeTypeCheckMembers`, and `typeCheckTemplate`.
+- Vite-local duplicate inference logic was removed.
+- TypeScript path aliases were added for compiler typecheck subpath.
+- Stable API registry now includes compiler typecheck helpers.
+- Stable API docs check now requires compiler typecheck helpers.
+- Vite transform tests now validate compiler-owned inference behavior.
 - Version one plan moved patch 03 to started.
 
 ## Diagnostic codes covered
@@ -33,13 +41,13 @@ Patch 03 hardens compiler diagnostics and template typecheck for the version one
 
 ## Remaining compiler work
 
-- infer typecheck context from component class source in the compiler package
 - add source mapping for diagnostics
 - add diagnostics for empty interpolation expressions
 - add diagnostics for unsupported binding expression shapes
-- wire compiler typecheck into the Vite plugin without duplicate logic
+- add type-aware property access validation
+- add method argument type validation
 - add migration notes if any diagnostic code changes before version one
 
 ## Next focus
 
-Continue Patch 03 by adding compiler-owned component context inference and replacing Vite-local inference with compiler-owned helpers.
+Continue Patch 03 by adding source mapping and additional diagnostics for empty interpolation and unsupported binding expression shapes.
