@@ -34,6 +34,16 @@ Patch 03 hardens compiler diagnostics and template typecheck for the version one
 - Compiler diagnostics tests now cover location and new expression diagnostics.
 - Error code docs now include all current compiler diagnostics.
 - Compiler source mapping document added.
+- Compiler typecheck now accepts explicit typed symbol metadata.
+- Type-aware unknown property diagnostic added.
+- Type-aware non-method call diagnostic added.
+- Type-aware method argument count diagnostic added.
+- Compiler diagnostic formatter subpath added.
+- `formatTemplateDiagnostic`, `formatTemplateDiagnostics`, and `getSourceLine` added.
+- Vite template errors now use compiler-owned formatted diagnostics.
+- Stable API registry now includes compiler formatter APIs.
+- Diagnostic formatter tests added.
+- Template typecheck docs now document type-aware groundwork and formatter APIs.
 - Version one plan moved patch 03 to started.
 
 ## Diagnostic codes covered
@@ -50,15 +60,18 @@ Patch 03 hardens compiler diagnostics and template typecheck for the version one
 - `ARI_EMPTY_BINDING_EXPRESSION`
 - `ARI_UNSUPPORTED_BINDING_EXPRESSION`
 - `ARI_TYPE_UNKNOWN_MEMBER`
+- `ARI_TYPE_UNKNOWN_PROPERTY`
+- `ARI_TYPE_CALL_NON_METHOD`
+- `ARI_TYPE_METHOD_ARGUMENT_COUNT`
 
 ## Remaining compiler work
 
-- add type-aware property access validation
+- add TypeScript-backed symbol extraction
 - add method argument type validation
 - add migration notes if any diagnostic code changes before version one
-- add editor-facing diagnostic formatting helpers
 - add browser/editor fixture coverage for template diagnostics
+- add CLI command that prints formatted diagnostics
 
 ## Next focus
 
-Continue Patch 03 with type-aware validation groundwork, diagnostic formatting helpers, and editor-facing examples.
+Continue Patch 03 with TypeScript-backed symbol extraction groundwork, CLI diagnostic command, and editor fixture coverage.
