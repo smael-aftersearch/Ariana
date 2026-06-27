@@ -1,5 +1,5 @@
-import { typeCheckTemplate } from '../../packages/compiler/dist/typecheck.js';
-import { test, equal } from './test-api.mjs';
+import { inferComponentContextMembers, mergeTypeCheckMembers, typeCheckTemplate } from '../../packages/compiler/dist/typecheck.js';
+import { test, equal, assert } from './test-api.mjs';
 
 test('compiler typecheck accepts known component members', () => {
   const result = typeCheckTemplate('<h1>{{ title }}</h1><button (click)="save()">Save</button>', { members: ['title', 'save'] });
@@ -29,4 +29,23 @@ test('compiler typecheck exposes $event inside event bindings', () => {
 test('compiler typecheck allows safe expression globals', () => {
   const result = typeCheckTemplate('<p>{{ Math.max(count(), 1) }}</p>', { members: ['count'] });
   equal(result.diagnostics.length, 0);
+});
+
+test('compiler infers component fields methods and accessors from class source', () => {
+  const result = inferComponentContextMembers(`
+    class Page {
+      title = 'Ariana';
+      saving: boolean = false;
+      get label() { return this.title; }
+      save() {}
+    }
+  `);
+  for (const member of ['title', 'saving', 'label', 'save']) {
+    assert(result.members.includes(member), `missing inferred member ${member}`);
+  }
+});
+
+test('compiler merges explicit and inferred typecheck members', () => {
+  const result = mergeTypeCheckMembers(['title', 'save'], ['title', 'label']);
+  equal(result.join(','), 'title,save,label');
 });
