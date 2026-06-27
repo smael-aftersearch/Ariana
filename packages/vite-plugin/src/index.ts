@@ -2,8 +2,8 @@ import { dirname, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
-import { formatTemplateDiagnostic } from '@ariana/compiler/diagnostics';
-import { createTypeCheckContextFromSource, type TemplateTypeSymbol, typeCheckTemplate } from '@ariana/compiler/typecheck';
+import { formatTemplateDiagnostic } from '@ariana-framework/compiler/diagnostics';
+import { createTypeCheckContextFromSource, type TemplateTypeSymbol, typeCheckTemplate } from '@ariana-framework/compiler/typecheck';
 
 
 type VitePlugin = {
