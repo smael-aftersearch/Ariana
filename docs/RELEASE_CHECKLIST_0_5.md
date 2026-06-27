@@ -13,6 +13,7 @@ Ariana 0.5.0 is the next meaningful milestone after the first public npm release
 - npm run smoke:create-ariana
 - npm run smoke:generated-app
 - Vite fixture workflow passes
+- Benchmark smoke workflow passes
 
 ## Package gates
 
@@ -30,6 +31,15 @@ Ariana 0.5.0 is the next meaningful milestone after the first public npm release
 - router includes lazy route resolution groundwork
 - Vite plugin transforms component resources safely
 - compiler typecheck groundwork is documented
+- compiled render cleanup is connected to bootstrap cleanup scope
+
+## Performance gates
+
+- benchmark smoke script passes
+- core signal/computed update smoke passes
+- router repeated matching smoke passes
+- forms FormArray operations smoke passes
+- query cache and invalidation smoke passes
 
 ## Documentation gates
 
@@ -38,6 +48,7 @@ Ariana 0.5.0 is the next meaningful milestone after the first public npm release
 - generated app smoke test is documented
 - query invalidation API is documented
 - compiler typecheck API is documented
+- benchmark smoke test is documented
 
 ## Not allowed for 0.5.0
 
