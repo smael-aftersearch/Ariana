@@ -1,4 +1,10 @@
 import type { Constructor, Injector, Provider } from '../di/index.js';
+import type { CleanupScope } from '../reactivity/index.js';
+
+export type ComponentRenderContext = {
+  injector: Injector;
+  cleanupScope?: CleanupScope;
+};
 
 export type ComponentOptions = {
   selector: string;
@@ -8,7 +14,7 @@ export type ComponentOptions = {
   style?: string;
   components?: Constructor[];
   providers?: Provider[];
-  render?: (component: unknown, host: HTMLElement, injector: Injector) => void | (() => void);
+  render?: (component: unknown, host: HTMLElement, context: ComponentRenderContext) => void | (() => void);
 };
 
 export type RouteOptions = {
