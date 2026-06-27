@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { run } from './lib/run-command.mjs';
 
 const commands = [
   ['npm', ['run', 'build']],
@@ -17,7 +17,7 @@ const commands = [
 
 for (const [command, args] of commands) {
   console.log(`\n> ${command} ${args.join(' ')}`);
-  execFileSync(command, args, { stdio: 'inherit' });
+  run(command, args);
 }
 
 console.log('\nAriana 1.0 release gates passed.');
