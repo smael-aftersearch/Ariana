@@ -22,6 +22,9 @@ jobs:
       - run: npm run check:compiler-diagnostics
       - run: npm run check:template-typecheck-docs
       - run: npm run check:template-diagnostics-fixture
+      - run: npm run check:vite-plugin-v1-docs
+      - run: npm run smoke:runtime-lifecycle
+      - run: npm run smoke:vite-plugin-options
       - run: npm run verify:release
       - run: npm run inspect:tarballs
       - run: npm run smoke:install
