@@ -34,8 +34,9 @@ export function formControl<T>(initialValue: T, validatorsOrOptions: readonly Va
   const dirty = signal(false);
   const pending = signal(false);
   const asyncErrors = signal<ValidationErrors | undefined>(undefined);
-  const errors = computed(() => mergeErrors([mergeErrors(validators.map((validator: Validator<T>) => validator(value()))), asyncErrors()]));
-  const valid = computed(() => errors() === undefined && !pending());
+  const hasValidation = validators.length > 0 || asyncValidators.length > 0;
+  const errors = hasValidation ? computed(() => mergeErrors([mergeErrors(validators.map((validator: Validator<T>) => validator(value()))), asyncErrors()])) : signal<ValidationErrors | undefined>(undefined);
+  const valid = hasValidation ? computed(() => errors() === undefined && !pending()) : signal(true);
   let asyncRunId = 0;
 
   async function validateAsync(): Promise<ValidationErrors | undefined> {
