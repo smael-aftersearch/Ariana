@@ -1,8 +1,18 @@
-import { parseTemplateToAst } from './index.js';
+import { createTemplateDiagnostic, parseTemplateToAst } from './index.js';
 import type { ArianaTemplateAstNode, ArianaTemplateDiagnostic } from './index.js';
+
+export type TemplateTypeSymbolKind = 'value' | 'method' | 'object' | 'array';
+
+export type TemplateTypeSymbol = {
+  kind: TemplateTypeSymbolKind;
+  properties?: Record<string, TemplateTypeSymbol>;
+  minArgs?: number;
+  maxArgs?: number;
+};
 
 export type TemplateTypeCheckContext = {
   members: readonly string[];
+  symbols?: Record<string, TemplateTypeSymbol>;
 };
 
 export type TemplateTypeCheckResult = {
@@ -11,6 +21,11 @@ export type TemplateTypeCheckResult = {
 
 export type ComponentContextInferenceResult = {
   members: string[];
+};
+
+type TypeCheckScope = {
+  members: Set<string>;
+  symbols: Map<string, TemplateTypeSymbol>;
 };
 
 const TEMPLATE_GLOBALS = new Set([
@@ -27,12 +42,14 @@ const TEMPLATE_GLOBALS = new Set([
   'JSON'
 ]);
 
+const CONTROL_WORDS = new Set(['if', 'for', 'while', 'switch', 'catch', 'return', 'function']);
+
 export function typeCheckTemplate(template: string, context: TemplateTypeCheckContext): TemplateTypeCheckResult {
   const result = parseTemplateToAst(template);
   const diagnostics = [...result.diagnostics];
-  const members = new Set(context.members);
+  const scope = createScope(context.members, context.symbols ?? {});
 
-  for (const node of result.ast.children) checkNode(node, members, diagnostics);
+  for (const node of result.ast.children) checkNode(template, node, scope, diagnostics);
 
   return { diagnostics };
 }
@@ -54,54 +71,153 @@ export function mergeTypeCheckMembers(...groups: readonly (readonly string[])[])
   return [...new Set(groups.flat())];
 }
 
-function checkNode(node: ArianaTemplateAstNode, members: Set<string>, diagnostics: ArianaTemplateDiagnostic[]) {
-  if (node.kind === 'Interpolation') checkExpression(node.expression, node.span.start, members, diagnostics);
+function checkNode(template: string, node: ArianaTemplateAstNode, scope: TypeCheckScope, diagnostics: ArianaTemplateDiagnostic[]) {
+  if (node.kind === 'Interpolation') checkExpression(template, node.expression, node.span.start, scope, diagnostics);
   if (node.kind === 'IfBlock') {
-    checkExpression(node.expression, node.span.start, members, diagnostics);
-    for (const child of node.children) checkNode(child, members, diagnostics);
+    checkExpression(template, node.expression, node.span.start, scope, diagnostics);
+    for (const child of node.children) checkNode(template, child, scope, diagnostics);
   }
   if (node.kind === 'ForBlock') {
-    checkExpression(node.iterableExpression, node.span.start, members, diagnostics);
-    const scoped = new Set([...members, node.itemName, '$index']);
-    if (node.trackExpression) checkExpression(node.trackExpression, node.span.start, scoped, diagnostics);
-    for (const child of node.children) checkNode(child, scoped, diagnostics);
+    checkExpression(template, node.iterableExpression, node.span.start, scope, diagnostics);
+    const scoped = extendScope(scope, [node.itemName, '$index']);
+    if (node.trackExpression) checkExpression(template, node.trackExpression, node.span.start, scoped, diagnostics);
+    for (const child of node.children) checkNode(template, child, scoped, diagnostics);
   }
   if (node.kind === 'Element') {
     for (const attribute of node.attributes) {
       if (attribute.binding === 'static') continue;
       const scoped = attribute.binding === 'event'
-        ? new Set([...members, '$event'])
-        : members;
-      checkExpression(attribute.value, attribute.span.start, scoped, diagnostics);
+        ? extendScope(scope, ['$event'])
+        : scope;
+      checkExpression(template, attribute.value, attribute.span.start, scoped, diagnostics);
     }
-    for (const child of node.children) checkNode(child, members, diagnostics);
+    for (const child of node.children) checkNode(template, child, scope, diagnostics);
   }
 }
 
-function checkExpression(expression: string, index: number, members: Set<string>, diagnostics: ArianaTemplateDiagnostic[]) {
+function checkExpression(template: string, expression: string, index: number, scope: TypeCheckScope, diagnostics: ArianaTemplateDiagnostic[]) {
+  checkRootIdentifiers(template, expression, index, scope, diagnostics);
+  checkPropertyAccess(template, expression, index, scope, diagnostics);
+  checkCallExpressions(template, expression, index, scope, diagnostics);
+}
+
+function checkRootIdentifiers(template: string, expression: string, index: number, scope: TypeCheckScope, diagnostics: ArianaTemplateDiagnostic[]) {
   const identifiers = extractRootIdentifiers(expression);
   for (const identifier of identifiers) {
-    if (TEMPLATE_GLOBALS.has(identifier)) continue;
-    if (!members.has(identifier)) {
-      diagnostics.push({
-        level: 'error',
-        code: 'ARI_TYPE_UNKNOWN_MEMBER',
-        message: `Unknown template member: ${identifier}`,
+    if (TEMPLATE_GLOBALS.has(identifier) || CONTROL_WORDS.has(identifier)) continue;
+    if (!scope.members.has(identifier)) {
+      diagnostics.push(createTemplateDiagnostic(
+        template,
+        'error',
+        'ARI_TYPE_UNKNOWN_MEMBER',
+        `Unknown template member: ${identifier}`,
         index
-      });
+      ));
     }
   }
+}
+
+function checkPropertyAccess(template: string, expression: string, index: number, scope: TypeCheckScope, diagnostics: ArianaTemplateDiagnostic[]) {
+  const propertyPattern = /\b([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = propertyPattern.exec(stripStrings(expression)))) {
+    const root = match[1];
+    const property = match[2];
+    if (TEMPLATE_GLOBALS.has(root)) continue;
+    const symbol = scope.symbols.get(root);
+    if (!symbol?.properties) continue;
+    if (!symbol.properties[property]) {
+      diagnostics.push(createTemplateDiagnostic(
+        template,
+        'error',
+        'ARI_TYPE_UNKNOWN_PROPERTY',
+        `Unknown template property: ${root}.${property}`,
+        index
+      ));
+    }
+  }
+}
+
+function checkCallExpressions(template: string, expression: string, index: number, scope: TypeCheckScope, diagnostics: ArianaTemplateDiagnostic[]) {
+  const callPattern = /\b([A-Za-z_$][\w$]*)\s*\(([^()]*)\)/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = callPattern.exec(stripStrings(expression)))) {
+    const name = match[1];
+    if (TEMPLATE_GLOBALS.has(name) || CONTROL_WORDS.has(name)) continue;
+    const symbol = scope.symbols.get(name);
+    if (!symbol) continue;
+    if (symbol.kind !== 'method') {
+      diagnostics.push(createTemplateDiagnostic(
+        template,
+        'error',
+        'ARI_TYPE_CALL_NON_METHOD',
+        `Template member is not callable: ${name}`,
+        index
+      ));
+      continue;
+    }
+
+    const argCount = countArguments(match[2]);
+    if (typeof symbol.minArgs === 'number' && argCount < symbol.minArgs) {
+      diagnostics.push(createTemplateDiagnostic(
+        template,
+        'error',
+        'ARI_TYPE_METHOD_ARGUMENT_COUNT',
+        `Template method ${name} expects at least ${symbol.minArgs} argument(s), got ${argCount}.`,
+        index
+      ));
+    }
+    if (typeof symbol.maxArgs === 'number' && argCount > symbol.maxArgs) {
+      diagnostics.push(createTemplateDiagnostic(
+        template,
+        'error',
+        'ARI_TYPE_METHOD_ARGUMENT_COUNT',
+        `Template method ${name} expects at most ${symbol.maxArgs} argument(s), got ${argCount}.`,
+        index
+      ));
+    }
+  }
+}
+
+function createScope(members: readonly string[], symbols: Record<string, TemplateTypeSymbol>): TypeCheckScope {
+  const memberSet = new Set(members);
+  const symbolMap = new Map<string, TemplateTypeSymbol>();
+  for (const [name, symbol] of Object.entries(symbols)) {
+    memberSet.add(name);
+    symbolMap.set(name, symbol);
+  }
+  return { members: memberSet, symbols: symbolMap };
+}
+
+function extendScope(scope: TypeCheckScope, names: readonly string[]): TypeCheckScope {
+  const members = new Set(scope.members);
+  const symbols = new Map(scope.symbols);
+  for (const name of names) {
+    members.add(name);
+    if (!symbols.has(name)) symbols.set(name, { kind: 'value' });
+  }
+  return { members, symbols };
 }
 
 function extractRootIdentifiers(expression: string): string[] {
   const identifiers = new Set<string>();
-  const sanitized = expression
-    .replace(/(['"`])(?:\\.|(?!\1).)*\1/g, '')
-    .replace(/\b(true|false|null|undefined)\b/g, '');
+  const sanitized = stripStrings(expression).replace(/\b(true|false|null|undefined)\b/g, '');
   const pattern = /(^|[^.\w$])([A-Za-z_$][\w$]*|\$[A-Za-z_][\w$]*)/g;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(sanitized))) identifiers.add(match[2]);
   return [...identifiers];
+}
+
+function stripStrings(expression: string): string {
+  return expression.replace(/(['"`])(?:\\.|(?!\1).)*\1/g, '');
+}
+
+function countArguments(args: string): number {
+  const trimmed = args.trim();
+  if (!trimmed) return 0;
+  return trimmed.split(',').map(arg => arg.trim()).filter(Boolean).length;
 }
 
 function extractClassBodies(source: string): string[] {
