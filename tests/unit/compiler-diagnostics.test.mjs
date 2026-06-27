@@ -25,7 +25,7 @@ test('compiler diagnostics: empty binding expression is reported', () => {
 });
 
 test('compiler diagnostics: unsupported binding expression shape is reported as warning', () => {
-  const diagnostic = firstDiagnostic('<button (click)="() => save()">Save</button>');
+  const diagnostic = firstDiagnostic('<button (click)="function saveInline() {}">Save</button>');
   equal(diagnostic.code, 'ARI_UNSUPPORTED_BINDING_EXPRESSION');
   equal(diagnostic.level, 'warning');
 });
