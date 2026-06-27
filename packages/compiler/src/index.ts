@@ -11,6 +11,11 @@ export type ArianaSourceSpan = {
   end: number;
 };
 
+export type ArianaSourceLocation = {
+  line: number;
+  column: number;
+};
+
 export type ArianaRootNode = {
   kind: 'Root';
   children: ArianaTemplateAstNode[];
@@ -67,6 +72,7 @@ export type ArianaTemplateDiagnostic = {
   code: string;
   message: string;
   index: number;
+  location?: ArianaSourceLocation;
 };
 
 export type ArianaParseResult = {
@@ -77,6 +83,31 @@ export type ArianaParseResult = {
 export function parseTemplateToAst(template: string): ArianaParseResult {
   const parser = new TemplateAstParser(template);
   return parser.parseRoot();
+}
+
+export function getSourceLocation(source: string, index: number): ArianaSourceLocation {
+  const safeIndex = Math.max(0, Math.min(index, source.length));
+  let line = 1;
+  let column = 1;
+  for (let cursor = 0; cursor < safeIndex; cursor++) {
+    if (source[cursor] === '\n') {
+      line++;
+      column = 1;
+    } else {
+      column++;
+    }
+  }
+  return { line, column };
+}
+
+export function createTemplateDiagnostic(
+  source: string,
+  level: 'error' | 'warning',
+  code: string,
+  message: string,
+  index: number
+): ArianaTemplateDiagnostic {
+  return { level, code, message, index, location: getSourceLocation(source, index) };
 }
 
 class TemplateAstParser {
@@ -126,19 +157,25 @@ class TemplateAstParser {
     const start = this.index;
     const end = this.source.indexOf('}}', start + 2);
     if (end < 0) {
-      this.diagnostics.push({ level: 'error', code: 'ARI_UNCLOSED_INTERPOLATION', message: 'Interpolation is missing closing braces.', index: start });
+      this.pushDiagnostic('error', 'ARI_UNCLOSED_INTERPOLATION', 'Interpolation is missing closing braces.', start);
       this.index = this.source.length;
       return { kind: 'Interpolation', expression: this.source.slice(start + 2).trim(), span: { start, end: this.source.length } };
     }
+
+    const expression = this.source.slice(start + 2, end).trim();
+    if (expression.length === 0) {
+      this.pushDiagnostic('error', 'ARI_EMPTY_INTERPOLATION', 'Interpolation expression cannot be empty.', start);
+    }
+
     this.index = end + 2;
-    return { kind: 'Interpolation', expression: this.source.slice(start + 2, end).trim(), span: { start, end: this.index } };
+    return { kind: 'Interpolation', expression, span: { start, end: this.index } };
   }
 
   private parseElement(): ArianaElementNode | undefined {
     const start = this.index;
     const openEnd = this.source.indexOf('>', start + 1);
     if (openEnd < 0) {
-      this.diagnostics.push({ level: 'error', code: 'ARI_UNCLOSED_ELEMENT', message: 'Element is missing closing angle bracket.', index: start });
+      this.pushDiagnostic('error', 'ARI_UNCLOSED_ELEMENT', 'Element is missing closing angle bracket.', start);
       this.index = this.source.length;
       return undefined;
     }
@@ -149,14 +186,14 @@ class TemplateAstParser {
     const tagMatch = /^([A-Za-z][\w-]*)/.exec(openContent);
 
     if (!tagMatch) {
-      this.diagnostics.push({ level: 'error', code: 'ARI_INVALID_ELEMENT', message: 'Invalid element tag.', index: start });
+      this.pushDiagnostic('error', 'ARI_INVALID_ELEMENT', 'Invalid element tag.', start);
       this.index = openEnd + 1;
       return undefined;
     }
 
     const tagName = tagMatch[1];
     const attributeSource = openContent.slice(tagName.length).trim();
-    const attributes = parseAttributes(attributeSource, start + 1 + tagName.length, this.diagnostics);
+    const attributes = parseAttributes(this.source, attributeSource, start + 1 + tagName.length, this.diagnostics);
     this.index = openEnd + 1;
     const children = selfClosing ? [] : this.parseChildren(tagName);
 
@@ -165,7 +202,7 @@ class TemplateAstParser {
         const closeEnd = this.source.indexOf('>', this.index);
         this.index = closeEnd < 0 ? this.source.length : closeEnd + 1;
       } else {
-        this.diagnostics.push({ level: 'error', code: 'ARI_MISSING_CLOSE_TAG', message: `Element <${tagName}> is missing a matching close tag.`, index: start });
+        this.pushDiagnostic('error', 'ARI_MISSING_CLOSE_TAG', `Element <${tagName}> is missing a matching close tag.`, start);
       }
     }
 
@@ -177,17 +214,17 @@ class TemplateAstParser {
     const parsed = this.readControlBlock('@if');
     const childParser = new TemplateAstParser(parsed.content);
     const result = childParser.parseRoot();
-    this.diagnostics.push(...result.diagnostics.map(diagnostic => ({ ...diagnostic, index: parsed.contentStart + diagnostic.index })));
+    this.diagnostics.push(...result.diagnostics.map(diagnostic => shiftDiagnostic(this.source, diagnostic, parsed.contentStart)));
     return { kind: 'IfBlock', expression: parsed.expression, children: result.ast.children, span: { start, end: parsed.endIndex } };
   }
 
   private parseForBlock(): ArianaForBlockNode {
     const start = this.index;
     const parsed = this.readControlBlock('@for');
-    const forParts = parseForExpression(parsed.expression, start, this.diagnostics);
+    const forParts = parseForExpression(this.source, parsed.expression, start, this.diagnostics);
     const childParser = new TemplateAstParser(parsed.content);
     const result = childParser.parseRoot();
-    this.diagnostics.push(...result.diagnostics.map(diagnostic => ({ ...diagnostic, index: parsed.contentStart + diagnostic.index })));
+    this.diagnostics.push(...result.diagnostics.map(diagnostic => shiftDiagnostic(this.source, diagnostic, parsed.contentStart)));
     return { kind: 'ForBlock', ...forParts, children: result.ast.children, span: { start, end: parsed.endIndex } };
   }
 
@@ -212,13 +249,17 @@ class TemplateAstParser {
   }
 
   private invalidControlBlock(kind: '@if' | '@for', start: number, message: string) {
-    this.diagnostics.push({ level: 'error', code: kind === '@if' ? 'ARI_INVALID_IF' : 'ARI_INVALID_FOR', message, index: start });
+    this.pushDiagnostic('error', kind === '@if' ? 'ARI_INVALID_IF' : 'ARI_INVALID_FOR', message, start);
     this.index = this.source.length;
     return { expression: '', content: '', contentStart: this.source.length, endIndex: this.source.length };
   }
+
+  private pushDiagnostic(level: 'error' | 'warning', code: string, message: string, index: number) {
+    this.diagnostics.push(createTemplateDiagnostic(this.source, level, code, message, index));
+  }
 }
 
-function parseAttributes(source: string, offset: number, diagnostics: ArianaTemplateDiagnostic[]): ArianaAttributeNode[] {
+function parseAttributes(fullSource: string, source: string, offset: number, diagnostics: ArianaTemplateDiagnostic[]): ArianaAttributeNode[] {
   const attributes: ArianaAttributeNode[] = [];
   const pattern = /([^\s=]+)(?:\s*=\s*"([^"]*)")?/g;
   let match: RegExpExecArray | null;
@@ -227,33 +268,59 @@ function parseAttributes(source: string, offset: number, diagnostics: ArianaTemp
     const rawName = match[1];
     const value = match[2] ?? '';
     const span = { start: offset + match.index, end: offset + match.index + match[0].length };
-    attributes.push(parseAttribute(rawName, value, span, diagnostics));
+    attributes.push(parseAttribute(fullSource, rawName, value, span, diagnostics));
   }
 
   return attributes;
 }
 
-function parseAttribute(name: string, value: string, span: ArianaSourceSpan, diagnostics: ArianaTemplateDiagnostic[]): ArianaAttributeNode {
+function parseAttribute(fullSource: string, name: string, value: string, span: ArianaSourceSpan, diagnostics: ArianaTemplateDiagnostic[]): ArianaAttributeNode {
   const property = /^\[([\w-]+)\]$/.exec(name);
-  if (property) return { name: property[1], value, binding: 'property', span };
+  if (property) {
+    validateBindingExpression(fullSource, value, span.start, diagnostics);
+    return { name: property[1], value, binding: 'property', span };
+  }
 
   const event = /^\(([\w-]+)\)$/.exec(name);
-  if (event) return { name: event[1], value, binding: 'event', span };
+  if (event) {
+    validateBindingExpression(fullSource, value, span.start, diagnostics);
+    return { name: event[1], value, binding: 'event', span };
+  }
 
   const classBinding = /^\[class\.([\w-]+)\]$/.exec(name);
-  if (classBinding) return { name: classBinding[1], value, binding: 'class', span };
+  if (classBinding) {
+    validateBindingExpression(fullSource, value, span.start, diagnostics);
+    return { name: classBinding[1], value, binding: 'class', span };
+  }
 
-  if (name.startsWith('[') || name.startsWith('(')) diagnostics.push({ level: 'warning', code: 'ARI_UNKNOWN_BINDING', message: `Unknown binding syntax: ${name}`, index: span.start });
+  if (name.startsWith('[') || name.startsWith('(')) {
+    diagnostics.push(createTemplateDiagnostic(fullSource, 'warning', 'ARI_UNKNOWN_BINDING', `Unknown binding syntax: ${name}`, span.start));
+  }
   return { name, value, binding: 'static', span };
 }
 
-function parseForExpression(expression: string, index: number, diagnostics: ArianaTemplateDiagnostic[]): Pick<ArianaForBlockNode, 'itemName' | 'iterableExpression' | 'trackExpression'> {
+function validateBindingExpression(fullSource: string, value: string, index: number, diagnostics: ArianaTemplateDiagnostic[]) {
+  if (value.trim().length === 0) {
+    diagnostics.push(createTemplateDiagnostic(fullSource, 'error', 'ARI_EMPTY_BINDING_EXPRESSION', 'Binding expression cannot be empty.', index));
+    return;
+  }
+  if (value.includes('=>')) {
+    diagnostics.push(createTemplateDiagnostic(fullSource, 'warning', 'ARI_UNSUPPORTED_BINDING_EXPRESSION', 'Inline arrow functions are not supported in template bindings.', index));
+  }
+}
+
+function parseForExpression(fullSource: string, expression: string, index: number, diagnostics: ArianaTemplateDiagnostic[]): Pick<ArianaForBlockNode, 'itemName' | 'iterableExpression' | 'trackExpression'> {
   const match = /^([A-Za-z_$][\w$]*)\s+of\s+(.+?)(?:;\s*track\s+(.+))?$/.exec(expression);
   if (!match) {
-    diagnostics.push({ level: 'error', code: 'ARI_INVALID_FOR_EXPRESSION', message: `Invalid @for expression: ${expression}`, index });
+    diagnostics.push(createTemplateDiagnostic(fullSource, 'error', 'ARI_INVALID_FOR_EXPRESSION', `Invalid @for expression: ${expression}`, index));
     return { itemName: '$item', iterableExpression: '[]' };
   }
   return { itemName: match[1], iterableExpression: match[2].trim(), trackExpression: match[3]?.trim() };
+}
+
+function shiftDiagnostic(source: string, diagnostic: ArianaTemplateDiagnostic, offset: number): ArianaTemplateDiagnostic {
+  const index = offset + diagnostic.index;
+  return { ...diagnostic, index, location: getSourceLocation(source, index) };
 }
 
 function findMatching(source: string, start: number, open: string, close: string): number {
