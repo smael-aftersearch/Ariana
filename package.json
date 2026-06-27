@@ -30,6 +30,8 @@
     "pack:v1:candidate": "node scripts/pack-v1-candidate.mjs",
     "inspect:tarballs": "node scripts/inspect-tarballs.mjs",
     "release:gates:v1": "node scripts/v1-release-gates.mjs",
+    "publish:v1": "node scripts/publish-v1-npm.mjs",
+    "publish:v1:dry": "node scripts/publish-v1-npm.mjs --dry-run",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
     "build:counter": "npm --workspace @ariana/counter-app run build",
     "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench",
