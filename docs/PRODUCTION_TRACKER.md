@@ -10,7 +10,7 @@ Release when a milestone is coherent:
 
 - `0.4.1`: first public package line under `@ariana-framework`.
 - `0.4.x`: only package integrity, CI, docs, or urgent fixes.
-- `0.5.0`: next meaningful milestone; clean install, Vite fixture, core/router/forms/query integration, compiler diagnostics, and usable docs.
+- `0.5.0`: next meaningful milestone; clean install, Vite fixture, core/router/forms/query integration, compiler diagnostics, usable docs, and benchmark smoke.
 - `1.0.0`: only after stable public APIs, integration tests, documented semantics, and production readiness evidence.
 
 ## Completed production batches
@@ -26,16 +26,17 @@ Release when a milestone is coherent:
 | prod-134..prod-154 | Done/partial | Generated app/Vite smoke hardening, query invalidation API docs, compiler typecheck docs, transform tests. |
 | prod-155..prod-166 | Done/partial | Vite transform hardening, typecheck member option, generated app router/forms/query coverage, 0.5 checklist. |
 | prod-167..prod-180 | Done/partial | create-ariana build promotion, inferred Vite typecheck members, cleanup scope render context, changelog draft. |
+| prod-181..prod-192 | Done/partial | render context type alignment, cleanup codegen tests, benchmark smoke workflow, 0.5 release readiness docs. |
 
 ## Current batch
 
 | ID | Task | Status |
 | --- | --- | --- |
-| prod-181 | Fix CI failures reported by GitHub Actions | Pending log review |
-| prod-182 | Finish cleanup scope registration inside generated event listener code | Pending |
-| prod-183 | Add browser runner decision for interaction tests | Pending |
-| prod-184 | Promote generated app coverage command into CI when safe | Pending |
-| prod-185 | Prepare 0.5.0 release notes after green CI | Pending |
+| prod-193 | Fix CI failures reported by GitHub Actions | Pending log review |
+| prod-194 | Promote generated app coverage command into CI if package script update is unblocked | Pending |
+| prod-195 | Review benchmark smoke thresholds after first Actions run | Pending |
+| prod-196 | Finalize 0.5.0 release notes after green CI | Pending |
+| prod-197 | Prepare npm version bump after release gates pass | Pending |
 
 ## Next milestone target: 0.5.0
 
@@ -46,6 +47,7 @@ Ariana 0.5.0 should mean:
 - Vite fixture builds
 - create-ariana skeleton is validated
 - generated app smoke build passes
+- benchmark smoke workflow passes
 - core lifecycle has a destroy contract
 - forms include a first FormArray path
 - query includes mutation/invalidation groundwork
