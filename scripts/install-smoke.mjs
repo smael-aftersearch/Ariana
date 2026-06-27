@@ -8,7 +8,7 @@ const packageDir = join(root, 'npm-packages');
 const appDir = mkdtempSync(join(tmpdir(), 'ariana-install-smoke-'));
 
 try {
-  execFileSync('npm', ['run', 'pack:npm'], { cwd: root, stdio: 'inherit' });
+  execFileSync('npm', ['run', 'verify:release'], { cwd: root, stdio: 'inherit' });
   const tarballs = readdirSync(packageDir).filter(name => name.endsWith('.tgz')).map(name => resolve(packageDir, name));
   if (tarballs.length === 0) throw new Error('No npm tarballs found.');
 
