@@ -7,9 +7,15 @@
     "bench": "node src/framework-comparison.mjs"
   },
   "dependencies": {
+    "@angular/core": "latest",
+    "@angular/forms": "latest",
+    "@angular/common": "latest",
+    "@angular/platform-browser": "latest",
     "@vue/reactivity": "latest",
     "svelte": "latest",
     "solid-js": "latest",
-    "react": "latest"
+    "react": "latest",
+    "rxjs": "latest",
+    "zone.js": "latest"
   }
 }
