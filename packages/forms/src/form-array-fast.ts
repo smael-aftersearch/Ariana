@@ -20,7 +20,7 @@ export function formArray<T>(initialControls: readonly FormControl<T>[] = []): F
   const store: FormControl<T>[] = [...initialControls];
   const version = signal(0);
   const length = signal(store.length);
-  const controls = readonlyVersionedSignal(() => store, version);
+  const controls = readonlyVersionedSignal(() => store.slice(), version);
   const value = readonlyVersionedSignal(() => store.map(control => control.value()), version);
   const pending = readonlyVersionedSignal(() => store.some(control => control.pending()), version);
   const errors = readonlyVersionedSignal(() => collectErrors(store), version);
@@ -33,7 +33,7 @@ export function formArray<T>(initialControls: readonly FormControl<T>[] = []): F
     version.update(current => current + 1);
   };
 
-  controls.update = updater => controls.set(updater(store));
+  controls.update = updater => controls.set(updater(store.slice()));
 
   return {
     controls,
@@ -71,16 +71,29 @@ export function formArray<T>(initialControls: readonly FormControl<T>[] = []): F
 }
 
 function readonlyVersionedSignal<T>(readValue: () => T, version: Signal<number>): Signal<T> {
+  let cache: T;
+  let cacheVersion = -1;
   const subscribers = new Set<Subscriber>();
 
   const read = (() => {
-    version();
-    return readValue();
+    const currentVersion = version();
+    if (cacheVersion !== currentVersion) {
+      cache = readValue();
+      cacheVersion = currentVersion;
+    }
+    return cache;
   }) as Signal<T>;
 
   read.set = () => {};
   read.update = () => {};
-  read.peek = readValue;
+  read.peek = () => {
+    const currentVersion = version.peek();
+    if (cacheVersion !== currentVersion) {
+      cache = readValue();
+      cacheVersion = currentVersion;
+    }
+    return cache;
+  };
   read.subscribe = (subscriber: Subscriber): Cleanup => {
     subscribers.add(subscriber);
     const unsubscribe = version.subscribe(subscriber);
