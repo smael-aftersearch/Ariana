@@ -1,5 +1,5 @@
 export { signal } from './signal.js';
-export { computed } from './computed.js';
+export { computed } from './computed-lazy.js';
 export { effect } from './effect.js';
 export { listSignal } from './list-signal.js';
 export { createCleanupScope } from './scope.js';
