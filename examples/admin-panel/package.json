@@ -1,0 +1,19 @@
+{
+  "name": "@ariana/admin-panel-example",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "typecheck": "tsc -b --pretty"
+  },
+  "dependencies": {
+    "@ariana/core": "file:../../packages/core",
+    "@ariana/vite-plugin": "file:../../packages/vite-plugin"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0"
+  }
+}
