@@ -19,14 +19,7 @@ const routePaths: Record<AdminRouteKey, string> = {
   dashboard: '/', analytics: '/analytics', users: '/users', roles: '/roles', products: '/products', orders: '/orders', reports: '/reports', calendar: '/calendar', settings: '/settings'
 };
 
-const router = createRouter(adminRoutes.map(route => ({
-  path: route.path,
-  title: route.title,
-  data: route.data,
-  providers: route.providers,
-  guards: route.guards,
-  component: RoutePlaceholder
-})) as readonly RouteDefinition[], '/');
+const router = createRouter(adminRoutes.map(route => ({ path: route.path, title: route.title, data: route.data, providers: route.providers, guards: route.guards, component: RoutePlaceholder })) as readonly RouteDefinition[], '/');
 
 @Route('/admin')
 @Component({ selector: 'ari-admin-panel-page', templateUrl: './admin-panel.page.html', styleUrl: './admin-panel.page.css' })
@@ -107,9 +100,7 @@ export class AdminPanelPage {
   readonly visibleUsers = computed(() => {
     const query = this.search().trim().toLowerCase();
     if (!query) return this.usersData();
-    return this.usersData().filter(user =>
-      user.id.toLowerCase().includes(query) || user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query) || user.role.toLowerCase().includes(query) || user.department.toLowerCase().includes(query) || user.status.toLowerCase().includes(query)
-    );
+    return this.usersData().filter(user => user.id.toLowerCase().includes(query) || user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query) || user.role.toLowerCase().includes(query) || user.department.toLowerCase().includes(query) || user.status.toLowerCase().includes(query));
   });
 
   readonly tableSource = computed(() => {
@@ -144,6 +135,7 @@ export class AdminPanelPage {
   });
 
   t(key: string) { return this.i18n.t(key); }
+  initials(name: string) { return name.split(' ').map(part => part[0] ?? '').join('').slice(0, 2).toUpperCase(); }
   setLoginEmail(value: string) { this.loginEmail.set(value); }
   setLoginPassword(value: string) { this.loginPassword.set(value); }
   toggleLanguage() { this.i18n.toggle(); }
@@ -160,7 +152,6 @@ export class AdminPanelPage {
   openModal(type: ModalType) { this.activeModal.set(type); this.activeDropdown.set(undefined); }
   closeModal() { this.activeModal.set(undefined); }
   closeDropdown() { this.activeDropdown.set(undefined); }
-
   nextPage() { this.pageIndex.update(value => Math.min(this.totalPages(), value + 1)); }
   previousPage() { this.pageIndex.update(value => Math.max(1, value - 1)); }
   setPageSize(value: string) { this.pageSize.set(Number(value)); this.pageIndex.set(1); }
@@ -170,15 +161,8 @@ export class AdminPanelPage {
     this.activeDropdown.update(current => current === name ? undefined : name);
   }
 
-  async login() {
-    const ok = await this.auth.login(this.loginEmail(), this.loginPassword());
-    if (ok) await this.navigate('dashboard');
-  }
-
-  async loginDemo() {
-    const ok = await this.auth.loginDemo();
-    if (ok) await this.navigate('dashboard');
-  }
+  async login() { const ok = await this.auth.login(this.loginEmail(), this.loginPassword()); if (ok) await this.navigate('dashboard'); }
+  async loginDemo() { const ok = await this.auth.loginDemo(); if (ok) await this.navigate('dashboard'); }
 
   logout() {
     this.auth.logout();
@@ -199,7 +183,6 @@ export class AdminPanelPage {
     this.themePanelOpen.set(false);
     this.commandOpen.set(false);
     this.pageIndex.set(1);
-
     try {
       const routeDefinition = adminRoutes.find(item => item.data?.key === route);
       if (!routeDefinition) throw new Error(`Missing route ${route}`);
