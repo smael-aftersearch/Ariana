@@ -6,7 +6,8 @@ Ariana 1.x is the supported release line for security fixes after the first stab
 
 | Version | Supported |
 | --- | --- |
-| 1.x | Yes |
+| 1.1.x | Yes |
+| 1.0.x | Yes |
 | < 1.0 | No |
 
 ## Reporting a vulnerability
@@ -23,10 +24,10 @@ A useful report should include:
 
 ## Security gate
 
-Before a release, run:
+Before the Ariana 1.1 Performance & Security release, run:
 
 ```bash
-npm run release:ready:v1
+npm run release:ready:v1.1
 ```
 
 This includes build, unit tests, typecheck, static security audit, API/documentation gates, smoke tests, package creation, tarball inspection, and publish dry run.
