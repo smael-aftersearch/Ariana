@@ -59,7 +59,7 @@ export function computed<T>(callback: () => T): Signal<T> {
     if (listeners.size === 0) return;
     if (listeners.size === 1) {
       const listener = listeners.values().next().value;
-      listener();
+      if (listener) listener();
       return;
     }
     const snapshot = Array.from(listeners);
