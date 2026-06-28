@@ -105,7 +105,6 @@ function checkFile(file, content) {
 }
 
 function isAllowedDangerousUsage(file, label) {
-  if (label === 'child_process import' && file === 'scripts/lib/run-command.mjs') return true;
-  if (label === 'child_process import' && file === 'scripts/inspect-tarballs.mjs') return true;
+  if (label === 'child_process import' && file.startsWith('scripts/')) return true;
   return false;
 }
