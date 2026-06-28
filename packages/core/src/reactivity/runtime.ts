@@ -5,9 +5,10 @@ export type Dependency = {
 };
 
 export class ReactiveComputation {
-  private cleanups = new Map<Dependency, Cleanup>();
-  private dependencies = new Set<Dependency>();
-  private nextDependencies = new Set<Dependency>();
+  private dependencies: Dependency[] = [];
+  private cleanups: Cleanup[] = [];
+  private seenRuns: number[] = [];
+  private runId = 0;
 
   constructor(
     private readonly callback: () => void,
@@ -15,7 +16,7 @@ export class ReactiveComputation {
   ) {}
 
   run = () => {
-    this.nextDependencies.clear();
+    this.runId++;
     pushComputation(this);
 
     try {
@@ -27,35 +28,38 @@ export class ReactiveComputation {
   };
 
   track(dependency: Dependency) {
-    this.nextDependencies.add(dependency);
+    const index = this.dependencies.indexOf(dependency);
 
-    if (this.dependencies.has(dependency)) {
+    if (index !== -1) {
+      this.seenRuns[index] = this.runId;
       return;
     }
 
-    this.dependencies.add(dependency);
-    this.cleanups.set(dependency, dependency.subscribe(this.scheduler));
+    this.dependencies.push(dependency);
+    this.cleanups.push(dependency.subscribe(this.scheduler));
+    this.seenRuns.push(this.runId);
   }
 
   cleanup() {
-    for (const cleanup of this.cleanups.values()) {
-      cleanup();
+    for (let index = 0; index < this.cleanups.length; index++) {
+      this.cleanups[index]();
     }
 
-    this.cleanups.clear();
-    this.dependencies.clear();
-    this.nextDependencies.clear();
+    this.cleanups.length = 0;
+    this.dependencies.length = 0;
+    this.seenRuns.length = 0;
   }
 
   private reconcileDependencies() {
-    for (const dependency of this.dependencies) {
-      if (this.nextDependencies.has(dependency)) {
+    for (let index = this.dependencies.length - 1; index >= 0; index--) {
+      if (this.seenRuns[index] === this.runId) {
         continue;
       }
 
-      this.cleanups.get(dependency)?.();
-      this.cleanups.delete(dependency);
-      this.dependencies.delete(dependency);
+      this.cleanups[index]();
+      this.dependencies.splice(index, 1);
+      this.cleanups.splice(index, 1);
+      this.seenRuns.splice(index, 1);
     }
   }
 }
