@@ -12,6 +12,7 @@ const commands = [
   ['npm', ['run', 'check:template-diagnostics-fixture']],
   ['npm', ['run', 'check:vite-plugin-v1-docs']],
   ['npm', ['run', 'check:scss-styleurl-support']],
+  ['node', ['scripts/check-animation-api-support.mjs']],
   ['npm', ['run', 'smoke:runtime-lifecycle']],
   ['npm', ['run', 'smoke:vite-plugin-options']],
   ['npm', ['run', 'bench:smoke']],
