@@ -67,6 +67,16 @@ export class AdminPanelPage {
     { title: 'System backup completed', meta: 'Yesterday', tone: 'info' }
   ]);
 
+  readonly metrics = computed(() => this.dashboardData()?.metrics ?? []);
+  readonly chartBars = computed(() => this.dashboardData()?.chartBars ?? []);
+  readonly traffic = computed(() => this.dashboardData()?.traffic ?? []);
+  readonly activities = computed(() => this.dashboardData()?.activities ?? []);
+  readonly users = computed(() => this.usersData());
+  readonly orders = computed(() => this.ordersData());
+  readonly products = computed(() => this.productsData());
+  readonly roles = computed(() => this.rolesData());
+  readonly reports = computed(() => this.reportsData());
+
   readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
   readonly showLogin = computed(() => !this.auth.isAuthenticated());
   readonly authLoading = computed(() => this.auth.loading());
@@ -157,36 +167,14 @@ export class AdminPanelPage {
     }
   }
 
-  async reload() {
-    await this.loadRouteData(this.activeQueryKey(), true);
-  }
+  async reload() { await this.loadRouteData(this.activeQueryKey(), true); }
 
   async loadRouteData(queryKey = 'dashboard', force = false) {
-    if (queryKey === 'users') {
-      const data = await this.query.fetch('users', () => this.api.users(), { staleTime: 15000, force });
-      this.usersData.set(data);
-      return;
-    }
-    if (queryKey === 'orders') {
-      const data = await this.query.fetch('orders', () => this.api.orders(), { staleTime: 15000, force });
-      this.ordersData.set(data);
-      return;
-    }
-    if (queryKey === 'products') {
-      const data = await this.query.fetch('products', () => this.api.products(), { staleTime: 15000, force });
-      this.productsData.set(data);
-      return;
-    }
-    if (queryKey === 'roles') {
-      const data = await this.query.fetch('roles', () => this.api.roles(), { staleTime: 15000, force });
-      this.rolesData.set(data);
-      return;
-    }
-    if (queryKey === 'reports') {
-      const data = await this.query.fetch('reports', () => this.api.reports(), { staleTime: 15000, force });
-      this.reportsData.set(data);
-      return;
-    }
+    if (queryKey === 'users') { const data = await this.query.fetch('users', () => this.api.users(), { staleTime: 15000, force }); this.usersData.set(data); return; }
+    if (queryKey === 'orders') { const data = await this.query.fetch('orders', () => this.api.orders(), { staleTime: 15000, force }); this.ordersData.set(data); return; }
+    if (queryKey === 'products') { const data = await this.query.fetch('products', () => this.api.products(), { staleTime: 15000, force }); this.productsData.set(data); return; }
+    if (queryKey === 'roles') { const data = await this.query.fetch('roles', () => this.api.roles(), { staleTime: 15000, force }); this.rolesData.set(data); return; }
+    if (queryKey === 'reports') { const data = await this.query.fetch('reports', () => this.api.reports(), { staleTime: 15000, force }); this.reportsData.set(data); return; }
     const data = await this.query.fetch('dashboard', () => this.api.dashboard(), { staleTime: 15000, force });
     this.dashboardData.set(data);
   }
@@ -194,9 +182,7 @@ export class AdminPanelPage {
   async saveModal() {
     if (this.activeModal() === 'note' && this.quickNote().trim()) {
       const current = this.dashboardData();
-      if (current) {
-        this.dashboardData.set({ ...current, activities: [{ title: 'Note added', meta: this.quickNote().trim(), tone: 'info' }, ...current.activities] });
-      }
+      if (current) this.dashboardData.set({ ...current, activities: [{ title: 'Note added', meta: this.quickNote().trim(), tone: 'info' }, ...current.activities] });
       this.quickNote.set('');
     }
     this.closeModal();
