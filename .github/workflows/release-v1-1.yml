@@ -1,0 +1,135 @@
+name: Release Ariana 1.1
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Version to publish"
+        required: true
+        default: "1.1.0"
+      npm_dist_tag:
+        description: "npm dist-tag"
+        required: true
+        default: "latest"
+      publish_to_npm:
+        description: "Publish to npm after all gates pass"
+        required: true
+        type: boolean
+        default: false
+      create_github_release:
+        description: "Create GitHub release after publish"
+        required: true
+        type: boolean
+        default: false
+      deprecate_core_1_0_0:
+        description: "Deprecate @ariana-framework/core@1.0.0 after successful publish"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-ariana-${{ github.event.inputs.release_version }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release ${{ github.event.inputs.release_version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+      NPM_DIST_TAG: ${{ github.event.inputs.npm_dist_tag }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate manual inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid release_version: $RELEASE_VERSION" >&2
+            exit 1
+          fi
+
+          PACKAGE_VERSION="$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")"
+          if [[ "$PACKAGE_VERSION" != "$RELEASE_VERSION" ]]; then
+            echo "package.json version ($PACKAGE_VERSION) does not match release_version ($RELEASE_VERSION)." >&2
+            exit 1
+          fi
+
+          if [[ "${{ github.event.inputs.publish_to_npm }}" == "true" && -z "${NPM_TOKEN:-}" ]]; then
+            echo "NPM_TOKEN repository secret is required for npm publish." >&2
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if [[ -f package-lock.json ]]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Build
+        run: npm run build
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Security audit
+        run: npm run security:audit
+
+      - name: Release gates
+        run: npm run release:gates:v1.1
+
+      - name: Framework benchmark
+        run: npm run bench:framework
+
+      - name: Publish dry run
+        run: npm run publish:v1:dry
+
+      - name: Upload package tarballs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ariana-${{ github.event.inputs.release_version }}-tarballs
+          path: npm-packages/*.tgz
+          if-no-files-found: error
+
+      - name: Publish to npm
+        if: ${{ github.event.inputs.publish_to_npm == 'true' }}
+        run: npm run publish:v1
+
+      - name: Deprecate vulnerable core 1.0.0
+        if: ${{ github.event.inputs.publish_to_npm == 'true' && github.event.inputs.deprecate_core_1_0_0 == 'true' }}
+        shell: bash
+        run: |
+          npm deprecate @ariana-framework/core@1.0.0 "Security warning: runtime template evaluator used dynamic code execution. Upgrade to @ariana-framework/core@${RELEASE_VERSION}."
+
+      - name: Create GitHub release
+        if: ${{ github.event.inputs.publish_to_npm == 'true' && github.event.inputs.create_github_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.release_version }}-performance-security
+          name: Ariana ${{ github.event.inputs.release_version }} — Performance & Security Release Candidate
+          body_path: docs/RELEASE_NOTES_V1_1.md
+          files: npm-packages/*.tgz
