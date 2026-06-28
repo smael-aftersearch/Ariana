@@ -1,4 +1,4 @@
-import { dirname, extname, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
@@ -145,8 +145,8 @@ function transformComponentResources(
 }
 
 function createStyleResourceTransform(directory: string, styleUrl: string, importIndex: number): { expression: string; importLine?: string } {
-  const extension = extname(styleUrl).toLowerCase();
-  if (extension === '.scss' || extension === '.sass') {
+  const normalizedStyleUrl = styleUrl.toLowerCase();
+  if (normalizedStyleUrl.endsWith('.scss') || normalizedStyleUrl.endsWith('.sass')) {
     const name = `__ari_style_${importIndex}`;
     return {
       expression: name,
