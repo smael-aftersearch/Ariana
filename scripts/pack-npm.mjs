@@ -9,6 +9,18 @@ const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 const releaseVersion = process.env.RELEASE_VERSION ?? rootPackage.version;
 const releaseScope = '@ariana-framework';
 const packages = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
+const blockedPackageFiles = new Map([
+  ['core', [
+    'dist/template/expression.js',
+    'dist/template/expression.js.map',
+    'dist/template/expression.d.ts',
+    'dist/template/expression.d.ts.map',
+    'dist/template/render.js',
+    'dist/template/render.js.map',
+    'dist/template/render.d.ts',
+    'dist/template/render.d.ts.map'
+  ]]
+]);
 
 if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(releaseVersion)) {
   throw new Error(`Invalid release version: ${releaseVersion}`);
@@ -30,6 +42,7 @@ for (const name of packages) {
   const stagePackageDir = join(stagingDir, name);
   mkdirSync(stagePackageDir, { recursive: true });
   cpSync(distDir, join(stagePackageDir, 'dist'), { recursive: true });
+  removeBlockedPackageFiles(name, stagePackageDir);
   rewritePackageImports(join(stagePackageDir, 'dist'));
 
   const sourceReadme = join(sourceDir, 'README.md');
@@ -56,6 +69,12 @@ for (const name of packages) {
 
 rmSync(stagingDir, { recursive: true, force: true });
 console.log(`\nNPM tarballs for ${releaseVersion} written to ${outDir}`);
+
+function removeBlockedPackageFiles(packageName, stagePackageDir) {
+  for (const file of blockedPackageFiles.get(packageName) ?? []) {
+    rmSync(join(stagePackageDir, file), { force: true });
+  }
+}
 
 function sanitizeDependencies(dependencies) {
   if (!dependencies) return;
