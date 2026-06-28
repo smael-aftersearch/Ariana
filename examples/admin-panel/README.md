@@ -19,12 +19,39 @@ This is the full Ariana 1.1 admin-panel showcase. It is inspired by the previous
 - dashboard, analytics, users, roles, products, orders, reports, calendar and settings sections
 - SCSS compiled by Vite in the admin workspace
 - `animate.enter` and `animate.leave` samples for panels, toasts, rows and removal flow
+- dedicated `/animate` page with slow visible animations for manual inspection
 
 ## Run
 
 ```bash
 npm run demo:admin
 ```
+
+## Dedicated Animate page
+
+Run the admin app and open:
+
+```txt
+http://localhost:5173/animate
+```
+
+Fallback URL if the dev server does not resolve the direct path:
+
+```txt
+http://localhost:5173/?page=animate
+```
+
+This page is intentionally slower than production UI. It uses a default motion duration of `1200ms` so enter and leave behavior can be inspected visually.
+
+It includes:
+
+- hero enter and leave animation
+- continuous orb animator
+- timeline animation
+- signal-driven card insertion
+- signal-driven card removal
+- slow/normal speed toggle
+- SCSS variables, nesting, keyframes and media queries
 
 ## Animation and SCSS lab
 
@@ -76,10 +103,11 @@ demo1234
 
 ## Release gate
 
-The release gate checks that the admin animation lab keeps using SCSS and animation attributes:
+The release gate checks that the admin animation lab and dedicated animate page keep using SCSS and animation attributes:
 
 ```bash
 node scripts/check-admin-animation-lab.mjs
+node scripts/check-admin-animate-page.mjs
 ```
 
 ## Notes
