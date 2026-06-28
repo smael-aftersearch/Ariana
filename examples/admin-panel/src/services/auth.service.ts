@@ -6,6 +6,9 @@ export type AdminUser = {
   role: string;
 };
 
+const demoEmail = 'admin@ariana.dev';
+const demoPassword = 'demo1234';
+
 export class AuthService {
   readonly user = signal<AdminUser | undefined>(undefined);
   readonly loading = signal(false);
@@ -16,21 +19,27 @@ export class AuthService {
     this.loading.set(true);
     this.error.set(undefined);
 
-    await sleep(450);
+    await sleep(360);
 
-    if (!email.includes('@') || password.length < 4) {
-      this.error.set('Invalid demo credentials. Use admin@ariana.dev / demo1234.');
+    const normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail !== demoEmail || password !== demoPassword) {
+      this.error.set('Use the demo credentials: admin@ariana.dev / demo1234.');
       this.loading.set(false);
       return false;
     }
 
-    this.user.set({ name: 'Alex Morgan', email, role: 'Administrator' });
+    this.user.set({ name: 'Alex Morgan', email: demoEmail, role: 'Administrator' });
     this.loading.set(false);
     return true;
   }
 
+  async loginDemo() {
+    return this.login(demoEmail, demoPassword);
+  }
+
   logout() {
     this.user.set(undefined);
+    this.error.set(undefined);
   }
 }
 
