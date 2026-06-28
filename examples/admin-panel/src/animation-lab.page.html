@@ -1,0 +1,49 @@
+<main class="animation-lab">
+  <section class="lab-hero" animate.enter="ari-fade-in">
+    <div>
+      <span class="lab-badge">Ariana Admin Sample</span>
+      <h1>Animation + SCSS Lab</h1>
+      <p>This page exists to test SCSS styleUrl support and the class-based animate.enter / animate.leave API inside the admin example.</p>
+    </div>
+    <div class="lab-actions">
+      <button class="lab-btn primary" (click)="togglePanel()">Toggle panel</button>
+      <button class="lab-btn" (click)="toggleToast()">Toggle toast</button>
+      <button class="lab-btn" (click)="addRow()">Add row</button>
+    </div>
+  </section>
+
+  @if (showPanel()) {
+    <section class="lab-panel" animate.enter="ari-slide-up ari-scale-in" animate.leave="ari-slide-down ari-scale-out">
+      <h2>Animated enterprise panel</h2>
+      <p>The panel enters and leaves using static CSS classes. No runtime expression evaluation is needed.</p>
+      <div class="lab-metrics">
+        <article><span>Runtime</span><strong>small</strong></article>
+        <article><span>Strategy</span><strong>class</strong></article>
+        <article><span>Security</span><strong>validated</strong></article>
+      </div>
+    </section>
+  }
+
+  @if (showToast()) {
+    <aside class="lab-toast" animate.enter="ari-slide-up" animate.leave="ari-slide-down">
+      Animation event completed through CSS class lifecycle.
+    </aside>
+  }
+
+  <section class="lab-table" animate.enter="ari-slide-up">
+    <header>
+      <h2>Animated rows</h2>
+      <p>Rows use animate.enter and animate.leave while the data comes from a signal.</p>
+    </header>
+    <div class="lab-grid">
+      @for (row of rows(); track row.id) {
+        <div class="lab-row" animate.enter="ari-fade-in" animate.leave="ari-fade-out">
+          <strong>{{ row.id }}</strong>
+          <span>{{ row.name }}</span>
+          <em>{{ row.state }}</em>
+          <button (click)="removeRow(row.id)">Remove</button>
+        </div>
+      }
+    </div>
+  </section>
+</main>
