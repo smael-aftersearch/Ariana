@@ -1,8 +1,8 @@
-# Ariana 1.0 Presentation Brief
+# Ariana 1.1.0 Performance & Security Presentation Brief
 
 ## One-line summary
 
-Ariana 1.0 is a lightweight frontend framework/runtime focused on predictable reactivity, typed forms, packageable modules, and measured performance without weakening framework contracts.
+Ariana 1.1.0 is a lightweight frontend framework/runtime focused on predictable reactivity, typed forms, packageable modules, measured performance, and formal security release gates without weakening framework contracts.
 
 ## What changed in the final performance track
 
@@ -49,14 +49,14 @@ Security readiness now includes:
 - secret scanning,
 - unsafe API scanning,
 - conditional `npm audit --audit-level=high`,
-- security gate inside `release:gates:v1`.
+- security gate inside `release:gates:v1.1`.
 
 ## Release command
 
 Before presenting or publishing, run:
 
 ```bash
-npm run release:ready:v1
+npm run release:ready:v1.1
 ```
 
 This validates build, tests, typecheck, security audit, documentation gates, smoke tests, package candidate generation, tarball inspection, and publish dry run.
@@ -64,7 +64,7 @@ This validates build, tests, typecheck, security audit, documentation gates, smo
 ## Suggested presentation flow
 
 1. Why Ariana exists.
-2. What version 1 includes.
+2. What Ariana 1.1.0 includes.
 3. Performance results.
 4. Contract and correctness guarantees.
 5. Security review and release gates.
@@ -80,4 +80,4 @@ This validates build, tests, typecheck, security audit, documentation gates, smo
 
 ## Release decision statement
 
-Ariana 1.0 is ready to present as a release candidate after `npm run release:ready:v1` passes and the latest benchmark report confirms no regression in the tracked scenarios.
+Ariana 1.1.0 is ready to present as a Performance & Security release candidate after `npm run release:ready:v1.1` passes and the latest benchmark report confirms no regression in the tracked scenarios.
