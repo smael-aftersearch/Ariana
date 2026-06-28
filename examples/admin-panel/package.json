@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@ariana/core": "file:../../packages/core",
+    "@ariana/query": "file:../../packages/query",
+    "@ariana/router": "file:../../packages/router",
     "@ariana/vite-plugin": "file:../../packages/vite-plugin"
   },
   "devDependencies": {
