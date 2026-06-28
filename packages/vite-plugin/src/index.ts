@@ -1,4 +1,4 @@
-import { dirname, resolve } from 'node:path';
+import { dirname, extname, resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { parseTemplateToAst } from './compiler-diagnostics.js';
 import { compileTemplateToRender } from './compiler.js';
@@ -83,8 +83,9 @@ function transformComponentResources(
     let nextBody = body;
 
     if (styleUrl) {
-      const style = readTextResource(directory, styleUrl, 'styleUrl');
-      nextBody = replaceStringProperty(nextBody, 'styleUrl', `style: ${JSON.stringify(style)}`);
+      const styleResource = createStyleResourceTransform(directory, styleUrl, importIndex++);
+      if (styleResource.importLine) imports.push(styleResource.importLine);
+      nextBody = replaceStringProperty(nextBody, 'styleUrl', `style: ${styleResource.expression}`);
       transformedComponents++;
     }
 
@@ -141,6 +142,20 @@ function transformComponentResources(
   }
 
   return { code: codeWithImports, usedCompiler, transformedComponents };
+}
+
+function createStyleResourceTransform(directory: string, styleUrl: string, importIndex: number): { expression: string; importLine?: string } {
+  const extension = extname(styleUrl).toLowerCase();
+  if (extension === '.scss' || extension === '.sass') {
+    const name = `__ari_style_${importIndex}`;
+    return {
+      expression: name,
+      importLine: `import ${name} from ${JSON.stringify(`${styleUrl}?inline`)};`
+    };
+  }
+
+  const style = readTextResource(directory, styleUrl, 'styleUrl');
+  return { expression: JSON.stringify(style) };
 }
 
 function replaceComponentMetadata(source: string, transformBody: (body: string) => string): string {
@@ -252,12 +267,12 @@ function findBlockingDiagnostic<T extends { level: 'error' | 'warning' }>(diagno
 }
 
 function findStringProperty(source: string, propertyName: string): string | undefined {
-  const match = source.match(new RegExp(`${propertyName}\\s*:\\s*(['\"])(.*?)\\1`));
+  const match = source.match(new RegExp(`${propertyName}\\s*:\\s*(['"])(.*?)\\1`));
   return match?.[2];
 }
 
 function replaceStringProperty(source: string, propertyName: string, replacement: string): string {
-  return source.replace(new RegExp(`${propertyName}\\s*:\\s*(['\"])(.*?)\\1`), replacement);
+  return source.replace(new RegExp(`${propertyName}\\s*:\\s*(['"])(.*?)\\1`), replacement);
 }
 
 function readTextResource(directory: string, resourcePath: string, propertyName: 'templateUrl' | 'styleUrl'): string {
