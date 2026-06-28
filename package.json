@@ -1,8 +1,8 @@
 {
   "name": "ariana-framework",
   "private": true,
-  "version": "1.0.0",
-  "description": "Ariana Framework version one release candidate with stable API gates and npm package artifacts.",
+  "version": "1.1.0",
+  "description": "Ariana Framework 1.1 performance and security release candidate with stable API gates and npm package artifacts.",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -30,9 +30,12 @@
     "bench:framework": "npm --prefix benchmarks/framework-comparison install --no-audit --no-fund && npm --prefix benchmarks/framework-comparison run bench",
     "bench:ariana-core": "node benchmarks/framework-comparison/src/ariana-core-breakdown.mjs",
     "pack:v1:candidate": "node scripts/pack-v1-candidate.mjs",
+    "pack:v1.1:candidate": "node scripts/pack-v1-candidate.mjs",
     "inspect:tarballs": "node scripts/inspect-tarballs.mjs",
     "release:gates:v1": "node scripts/v1-release-gates.mjs",
+    "release:gates:v1.1": "node scripts/v1-release-gates.mjs",
     "release:ready:v1": "npm run release:gates:v1 && npm run publish:v1:dry",
+    "release:ready:v1.1": "npm run release:gates:v1.1 && npm run publish:v1:dry",
     "publish:v1": "node scripts/publish-v1-npm.mjs",
     "publish:v1:dry": "node scripts/publish-v1-npm.mjs --dry-run",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
