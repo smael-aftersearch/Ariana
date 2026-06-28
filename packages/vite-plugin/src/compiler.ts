@@ -8,13 +8,16 @@ export function compileTemplateToRender(template: string): CompileResult {
   try {
     const idState = { ifId: 0, forId: 0 };
     const segment = compileTemplateSegment(template, idState);
+    const usesAnimations = segmentUsesAnimations(segment);
     const lines: string[] = [];
 
     lines.push(`function __ari_render(ctx, host) {`);
     lines.push(`  const __ari_createFragment = (html) => document.createRange().createContextualFragment(html);`);
+    if (usesAnimations) appendAnimationHelperLines(lines);
     lines.push(`  host.replaceChildren(__ari_createFragment(${JSON.stringify(segment.html)}));`);
     lines.push(`  const cleanups = [];`);
-    appendBindingLines(lines, segment, 'host', 'ctx', 'cleanups', 'root', {});
+    appendBindingLines(lines, segment, 'host', 'ctx', 'cleanups', 'root', {}, usesAnimations);
+    if (usesAnimations) lines.push(`  __ari_applyEnter(Array.from(host.childNodes));`);
     lines.push(`  return () => { for (const cleanup of cleanups.splice(0)) cleanup(); };`);
     lines.push(`}`);
 
@@ -47,6 +50,10 @@ function compileTemplateSegment(template: string, idState: { ifId: number; forId
   html = html.replace(/\{\{\s*(.*?)\s*\}\}/g, (_match, expression: string) => {
     const index = textBindings.push(expression.trim()) - 1;
     return `<span data-ari-text="${index}"></span>`;
+  });
+
+  html = html.replace(/\sanimate\.(enter|leave)="(.*?)"/g, (_match, kind: 'enter' | 'leave', value: string) => {
+    return ` data-ari-animate-${kind}="${escapeAttribute(normalizeAnimationClassList(value))}"`;
   });
 
   html = html.replace(/\s\[class\.([\w-]+)\]="(.*?)"/g, (_match, className: string, expression: string) => {
@@ -145,7 +152,8 @@ function appendBindingLines(
   ctxVar: string,
   cleanupsVar: string,
   prefix: string,
-  localAccess: LocalAccessMap
+  localAccess: LocalAccessMap,
+  usesAnimations: boolean
 ) {
   segment.textBindings.forEach((expression, index) => {
     const variable = `${prefix}_text_${index}`;
@@ -172,11 +180,11 @@ function appendBindingLines(
     lines.push(`  if (${variable}) { ${variable}.removeAttribute('${binding.marker}'); const ${listener} = ($event) => { ${compileStatement(binding.statement, ctxVar, localAccess)}; }; ${variable}.addEventListener(${JSON.stringify(binding.eventName)}, ${listener}); ${cleanupsVar}.push(() => ${variable}.removeEventListener(${JSON.stringify(binding.eventName)}, ${listener})); }`);
   });
 
-  appendIfBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localAccess);
-  appendForBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localAccess);
+  appendIfBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localAccess, usesAnimations);
+  appendForBlockLines(lines, segment, rootVar, ctxVar, cleanupsVar, prefix, localAccess, usesAnimations);
 }
 
-function appendIfBlockLines(lines: string[], segment: CompiledTemplateSegment, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap) {
+function appendIfBlockLines(lines: string[], segment: CompiledTemplateSegment, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap, usesAnimations: boolean) {
   segment.ifBlocks.forEach((block, index) => {
     const anchor = `${prefix}_if_anchor_${index}`;
     const mountedNodes = `${prefix}_if_nodes_${index}`;
@@ -189,25 +197,27 @@ function appendIfBlockLines(lines: string[], segment: CompiledTemplateSegment, r
     lines.push(`  let ${childCleanups} = [];`);
     lines.push(`  if (${anchor}) { ${anchor}.removeAttribute('data-ari-if-anchor'); ${cleanupsVar}.push(__ari_effect(() => {`);
     lines.push(`    for (const cleanup of ${childCleanups}.splice(0)) cleanup();`);
-    lines.push(`    for (const node of ${mountedNodes}.splice(0)) node.parentNode?.removeChild(node);`);
+    if (usesAnimations) lines.push(`    __ari_removeNodes(${mountedNodes}.splice(0));`);
+    else lines.push(`    for (const node of ${mountedNodes}.splice(0)) node.parentNode?.removeChild(node);`);
     lines.push(`    if (Boolean(${compileExpression(block.expression, ctxVar, localAccess)})) {`);
     lines.push(`      const ${fragment} = __ari_createFragment(${JSON.stringify(block.segment.html)});`);
     lines.push(`      const ${nodes} = Array.from(${fragment}.childNodes);`);
-    appendBindingLines(lines, block.segment, fragment, ctxVar, childCleanups, nestedPrefix, localAccess);
+    appendBindingLines(lines, block.segment, fragment, ctxVar, childCleanups, nestedPrefix, localAccess, usesAnimations);
     lines.push(`      ${anchor}.after(${fragment});`);
+    if (usesAnimations) lines.push(`      __ari_applyEnter(${nodes});`);
     lines.push(`      ${mountedNodes} = ${nodes};`);
     lines.push(`    }`);
     lines.push(`  })); }`);
   });
 }
 
-function appendForBlockLines(lines: string[], segment: CompiledTemplateSegment, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap) {
+function appendForBlockLines(lines: string[], segment: CompiledTemplateSegment, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap, usesAnimations: boolean) {
   segment.forBlocks.forEach((block, index) => {
     if (canUseFastRowBinding(block.segment)) {
-      appendFastForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index);
+      appendFastForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index, usesAnimations);
       return;
     }
-    appendSignalForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index);
+    appendSignalForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index, usesAnimations);
   });
 }
 
@@ -217,7 +227,7 @@ function canUseFastRowBinding(segment: CompiledTemplateSegment): boolean {
 
 type ForBlock = CompiledTemplateSegment['forBlocks'][number];
 
-function appendFastForBlockLines(lines: string[], block: ForBlock, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap, index: number) {
+function appendFastForBlockLines(lines: string[], block: ForBlock, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap, index: number, usesAnimations: boolean) {
   const anchor = `${prefix}_for_anchor_${index}`;
   const values = `${prefix}_for_values_${index}`;
   const records = `${prefix}_for_records_${index}`;
@@ -264,6 +274,7 @@ function appendFastForBlockLines(lines: string[], block: ForBlock, rootVar: stri
   lines.push(`          ${record} = { item: ${block.itemName}, index: i, nodes: ${nodes}, cleanups: [], update: () => {} };`);
   appendFastRowInitLines(lines, block.segment, fragment, ctxVar, record, nestedPrefix, rowLocalAccess);
   lines.push(`          ${record}.update();`);
+  if (usesAnimations) lines.push(`          __ari_applyEnter(${nodes});`);
   lines.push(`          ${records}.set(${key}, ${record});`);
   lines.push(`        }`);
   lines.push(`        for (const node of ${record}.nodes) { if (previousNode.nextSibling !== node) previousNode.after(node); previousNode = node; }`);
@@ -271,7 +282,8 @@ function appendFastForBlockLines(lines: string[], block: ForBlock, rootVar: stri
   lines.push(`      for (const [key, ${removedRecord}] of ${oldRecords}) {`);
   lines.push(`        if (!${records}.has(key)) {`);
   lines.push(`          for (const cleanup of ${removedRecord}.cleanups.splice(0)) cleanup();`);
-  lines.push(`          for (const node of ${removedRecord}.nodes) node.parentNode?.removeChild(node);`);
+  if (usesAnimations) lines.push(`          __ari_removeNodes(${removedRecord}.nodes);`);
+  else lines.push(`          for (const node of ${removedRecord}.nodes) node.parentNode?.removeChild(node);`);
   lines.push(`        }`);
   lines.push(`      }`);
   lines.push(`    };`);
@@ -321,8 +333,33 @@ function appendFastRowInitLines(lines: string[], segment: CompiledTemplateSegmen
   lines.push(`          ${recordVar}.update = () => { ${updateLines.join(' ')} };`);
 }
 
-function appendSignalForBlockLines(lines: string[], block: ForBlock, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap, index: number) {
-  appendFastForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index);
+function appendSignalForBlockLines(lines: string[], block: ForBlock, rootVar: string, ctxVar: string, cleanupsVar: string, prefix: string, localAccess: LocalAccessMap, index: number, usesAnimations: boolean) {
+  appendFastForBlockLines(lines, block, rootVar, ctxVar, cleanupsVar, prefix, localAccess, index, usesAnimations);
+}
+
+function appendAnimationHelperLines(lines: string[]) {
+  lines.push(`  const __ari_animationClasses = (value) => String(value ?? '').split(/\\s+/).filter(Boolean);`);
+  lines.push(`  const __ari_collectAnimated = (nodes, attribute) => { const result = []; for (const node of nodes) { if (node.nodeType !== 1) continue; if (node.hasAttribute(attribute)) result.push(node); result.push(...node.querySelectorAll('[' + attribute + ']')); } return result; };`);
+  lines.push(`  const __ari_applyEnter = (nodes) => { for (const element of __ari_collectAnimated(nodes, 'data-ari-animate-enter')) { const classes = __ari_animationClasses(element.getAttribute('data-ari-animate-enter')); element.removeAttribute('data-ari-animate-enter'); if (classes.length) requestAnimationFrame(() => element.classList.add(...classes)); } };`);
+  lines.push(`  const __ari_removeNodes = (nodes) => { const nodeList = Array.from(nodes); const targets = __ari_collectAnimated(nodeList, 'data-ari-animate-leave'); const removeAll = () => { for (const node of nodeList) node.parentNode?.removeChild(node); }; if (targets.length === 0) { removeAll(); return; } let pending = targets.length; let finished = false; const timeout = setTimeout(() => { if (!finished) { finished = true; removeAll(); } }, 350); for (const element of targets) { const classes = __ari_animationClasses(element.getAttribute('data-ari-animate-leave')); element.removeAttribute('data-ari-animate-leave'); let settled = false; const done = () => { if (settled || finished) return; settled = true; pending--; if (pending === 0) { finished = true; clearTimeout(timeout); removeAll(); } }; element.addEventListener('animationend', done, { once: true }); element.addEventListener('transitionend', done, { once: true }); if (classes.length) element.classList.add(...classes); else done(); } };`);
+}
+
+function segmentUsesAnimations(segment: CompiledTemplateSegment): boolean {
+  return segment.html.includes('data-ari-animate-') || segment.ifBlocks.some(block => segmentUsesAnimations(block.segment)) || segment.forBlocks.some(block => segmentUsesAnimations(block.segment));
+}
+
+function normalizeAnimationClassList(value: string): string {
+  const classes = value.trim().split(/\s+/).filter(Boolean);
+  for (const className of classes) {
+    if (!/^-?[A-Za-z_][A-Za-z0-9_-]*$/.test(className)) {
+      throw new Error(`Invalid Ariana animation class name: ${className}`);
+    }
+  }
+  return classes.join(' ');
+}
+
+function escapeAttribute(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function getSimpleListSourceExpression(expression: string, contextName: string, localAccess: LocalAccessMap): string | undefined {
