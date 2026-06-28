@@ -1,6 +1,10 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { run } from './lib/run-command.mjs';
 
-const targetVersion = '1.0.0';
+const root = process.cwd();
+const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+const targetVersion = process.env.RELEASE_VERSION ?? rootPackage.version;
 const env = { ...process.env, RELEASE_VERSION: targetVersion };
 
 run('npm', ['run', 'pack:npm'], { env });
