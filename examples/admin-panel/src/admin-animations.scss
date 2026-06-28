@@ -1,0 +1,69 @@
+:root {
+  --ari-motion-fast: 140ms;
+  --ari-motion-normal: 190ms;
+}
+
+.ari-fade-in {
+  animation: ari-fade-in var(--ari-motion-normal) ease-out both;
+}
+
+.ari-fade-out {
+  animation: ari-fade-out var(--ari-motion-fast) ease-in both;
+}
+
+.ari-slide-up {
+  animation: ari-slide-up var(--ari-motion-normal) cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.ari-slide-down {
+  animation: ari-slide-down var(--ari-motion-fast) ease-in both;
+}
+
+.ari-scale-in {
+  animation: ari-scale-in var(--ari-motion-normal) cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.ari-scale-out {
+  animation: ari-scale-out var(--ari-motion-fast) ease-in both;
+}
+
+@keyframes ari-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ari-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes ari-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ari-slide-down {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(12px); }
+}
+
+@keyframes ari-scale-in {
+  from { opacity: 0; transform: scale(.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ari-scale-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ari-fade-in,
+  .ari-fade-out,
+  .ari-slide-up,
+  .ari-slide-down,
+  .ari-scale-in,
+  .ari-scale-out {
+    animation-duration: 1ms;
+  }
+}
