@@ -1,0 +1,77 @@
+# Ariana 1.1.0 Performance & Security Release Notes
+
+Ariana 1.1.0 is the Performance & Security release candidate. This version finalizes the performance track, keeps the framework contracts guarded, and adds formal security gates before packaging or presentation.
+
+## Release tag
+
+Recommended release tag:
+
+```text
+v1.1.0-performance-security
+```
+
+Recommended release title:
+
+```text
+Ariana 1.1.0 — Performance & Security Release Candidate
+```
+
+## What is included
+
+### Performance
+
+- Optimized reactivity runtime dependency tracking.
+- Optimized computed invalidation/read paths while preserving lazy semantics.
+- Added keyed list benchmark coverage.
+- Optimized form array internals while preserving snapshot behavior.
+- Reverted the validator-free form-control fast path after benchmark regression.
+- Added performance guardrails to prevent benchmark-only optimizations from weakening contracts.
+
+### Correctness and contracts
+
+Contract tests now cover:
+
+- lazy computed direct reads,
+- computed chains,
+- conditional computed dependencies,
+- effect cleanup lifecycle,
+- form array snapshot stability,
+- form array move behavior,
+- validator-free form-control behavior.
+
+### Security
+
+- Added `npm run security:audit`.
+- Added static repository scan for common secret/token patterns.
+- Added unsafe API checks for `eval`, `new Function`, `innerHTML`, `document.write`, and non-approved `exec` usage.
+- Added conditional `npm audit --audit-level=high` when lockfiles exist.
+- Added security audit to the release gate.
+- Updated `SECURITY.md` for the supported 1.x release line.
+
+### Release readiness
+
+- Root package version is `1.1.0`.
+- Packaging now uses the root package version unless `RELEASE_VERSION` is explicitly supplied.
+- Added `release:ready:v1.1`.
+- Added release readiness, security review, and presentation documents.
+
+## Required verification
+
+Run before presenting or publishing:
+
+```bash
+npm run release:ready:v1.1
+npm run bench:framework
+```
+
+The release should not be presented if security audit, typecheck, tests, packaging, tarball inspection, dry publish, or benchmark verification fails.
+
+## Known release notes
+
+- The latest benchmark report must be regenerated after the final revert of the validator-free form-control fast path.
+- Benchmark results are a decision aid, not a substitute for application-level profiling.
+- Applications built on Ariana must still implement their own authentication, authorization, storage, validation, and transport security.
+
+## Decision
+
+Ariana 1.1.0 is ready to present as a Performance & Security Release Candidate after `npm run release:ready:v1.1` and `npm run bench:framework` pass on the latest `main`.
