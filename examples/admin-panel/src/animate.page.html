@@ -1,0 +1,93 @@
+<main class="animate-page" [class.normal-speed]="!slowMode()">
+  <nav class="animate-nav">
+    <a href="/">← Back to Admin</a>
+    <strong>Animate</strong>
+    <span>{{ speedLabel() }}</span>
+  </nav>
+
+  @if (showHero()) {
+    <section class="animate-hero" animate.enter="animate-enter-slow animate-rise" animate.leave="animate-leave-slow animate-drop">
+      <div>
+        <span class="eyebrow">Ariana Animation Runtime</span>
+        <h1>Visible animation playground</h1>
+        <p>This page is intentionally slower than production UI so we can inspect enter and leave behavior by eye.</p>
+      </div>
+      <div class="hero-meter">
+        <span></span>
+        <strong>1200ms</strong>
+        <small>inspection speed</small>
+      </div>
+    </section>
+  }
+
+  <section class="control-panel" animate.enter="animate-enter-slow animate-rise">
+    <button class="primary" (click)="replayAll()">Replay all</button>
+    <button (click)="toggleHero()">Toggle hero</button>
+    <button (click)="toggleOrb()">Toggle orb</button>
+    <button (click)="togglePanel()">Toggle panel</button>
+    <button (click)="addCard()">Add card</button>
+    <button (click)="toggleSpeed()">{{ speedLabel() }}</button>
+  </section>
+
+  <section class="stage-grid">
+    @if (showOrb()) {
+      <article class="stage-card orbit-card" animate.enter="animate-enter-slow animate-scale" animate.leave="animate-leave-slow animate-scale-out">
+        <header>
+          <span>01</span>
+          <div>
+            <h2>Orb animator</h2>
+            <p>Continuous CSS keyframe animation. Useful for checking motion smoothness.</p>
+          </div>
+        </header>
+        <div class="orb-stage">
+          <div class="orb-ring"></div>
+          <div class="orb-dot one"></div>
+          <div class="orb-dot two"></div>
+          <div class="orb-core">A</div>
+        </div>
+      </article>
+    }
+
+    @if (showPanel()) {
+      <article class="stage-card timeline-card" animate.enter="animate-enter-slow animate-rise" animate.leave="animate-leave-slow animate-drop">
+        <header>
+          <span>02</span>
+          <div>
+            <h2>Enter / Leave timeline</h2>
+            <p>Remove this panel to verify that DOM removal waits for the leave animation.</p>
+          </div>
+        </header>
+        <div class="timeline-steps">
+          <div><b>mount</b><small>fragment inserted</small></div>
+          <div><b>enter</b><small>class applied</small></div>
+          <div><b>event</b><small>animationend</small></div>
+          <div><b>cleanup</b><small>node removed</small></div>
+        </div>
+      </article>
+    }
+  </section>
+
+  <section class="cards-panel" animate.enter="animate-enter-slow animate-rise">
+    <header>
+      <div>
+        <h2>Signal-driven animated rows</h2>
+        <p>Add and remove rows to inspect animate.enter and animate.leave with @for.</p>
+      </div>
+      <strong>{{ cards().length }} cards</strong>
+    </header>
+
+    <div class="cards-grid">
+      @for (card of cards(); track card.id) {
+        <article class="motion-card" animate.enter="animate-enter-slow animate-rise" animate.leave="animate-leave-slow animate-drop">
+          <span>{{ card.id }}</span>
+          <h3>{{ card.title }}</h3>
+          <p>{{ card.subtitle }}</p>
+          <footer>
+            <em>{{ card.status }}</em>
+            <button (click)="removeCard(card.id)">Remove</button>
+          </footer>
+        </article>
+      }
+    </div>
+  </section>
+</main>
