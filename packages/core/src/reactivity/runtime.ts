@@ -29,6 +29,11 @@ export class ReactiveComputation {
   };
 
   track(dependency: Dependency) {
+    if (this.dependencies[0] === dependency) {
+      this.seenRuns[0] = this.runId;
+      return;
+    }
+
     const index = this.dependencies.indexOf(dependency);
 
     if (index !== -1) {
