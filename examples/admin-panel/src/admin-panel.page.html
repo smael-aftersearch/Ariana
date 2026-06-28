@@ -1,0 +1,202 @@
+<main class="admin-shell" [class.sidebar-collapsed]="!sidebarOpen()" [class.compact]="compactMode()">
+  <aside class="sidebar">
+    <div class="brand-row">
+      <span class="brand-mark">A</span>
+      <div>
+        <strong>Ariana Admin</strong>
+        <small>Framework 1.1 demo</small>
+      </div>
+    </div>
+
+    <nav class="nav-list" aria-label="Admin sections">
+      <button [class.active]="activeSection() === 'dashboard'" (click)="setSection('dashboard')">Dashboard</button>
+      <button [class.active]="activeSection() === 'users'" (click)="setSection('users')">Users</button>
+      <button [class.active]="activeSection() === 'roles'" (click)="setSection('roles')">Roles</button>
+      <button [class.active]="activeSection() === 'products'" (click)="setSection('products')">Products</button>
+      <button [class.active]="activeSection() === 'reports'" (click)="setSection('reports')">Reports</button>
+      <button [class.active]="activeSection() === 'settings'" (click)="setSection('settings')">Settings</button>
+    </nav>
+
+    <section class="upgrade-card">
+      <span>Current plan</span>
+      <strong>{{ selectedPlan() }}</strong>
+      <button (click)="openModal('note')">Add note</button>
+    </section>
+  </aside>
+
+  <section class="workspace">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Ariana compiled template demo</p>
+        <h1>{{ activeSectionTitle() }}</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="ghost" (click)="toggleSidebar()">Toggle sidebar</button>
+        <button class="ghost" (click)="toggleCompactMode()">Compact mode</button>
+        <button class="primary" (click)="openModal('user')">Add User</button>
+      </div>
+    </header>
+
+    <section class="quick-actions" aria-label="Quick actions">
+      <button (click)="openModal('user')">Add User</button>
+      <button (click)="openModal('role')">Add Role</button>
+      <button (click)="openModal('product')">Add Product</button>
+      <button (click)="openModal('report')">Add Report</button>
+      <button (click)="openModal('order')">Add Order</button>
+      <button (click)="openModal('note')">Add Note</button>
+    </section>
+
+    <section class="metric-grid">
+      @for (metric of metrics(); track metric.label) {
+        <article class="metric-card" [class.purple]="metric.tone === 'purple'" [class.green]="metric.tone === 'green'" [class.orange]="metric.tone === 'orange'" [class.blue]="metric.tone === 'blue'">
+          <span>{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+          <small>{{ metric.delta }} this month</small>
+        </article>
+      }
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel wide">
+        <div class="panel-head">
+          <div>
+            <span class="eyebrow">User directory</span>
+            <h2>Team members</h2>
+          </div>
+          <label class="search-box">
+            <span>Search</span>
+            <input type="search" [value]="search()" (input)="changeSearch($event.target.value)" placeholder="Name, email, role" />
+          </label>
+        </div>
+
+        <div class="table">
+          <div class="table-row table-head">
+            <span>Name</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span>Joined</span>
+          </div>
+          @for (user of visibleUsers(); track user.email) {
+            <div class="table-row">
+              <span>
+                <b>{{ user.name }}</b>
+                <small>{{ user.email }}</small>
+              </span>
+              <span>{{ user.role }}</span>
+              <span class="status">{{ user.status }}</span>
+              <span>{{ user.joined }}</span>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head slim">
+          <div>
+            <span class="eyebrow">Activity</span>
+            <h2>Timeline</h2>
+          </div>
+        </div>
+        <div class="timeline">
+          @for (item of activities(); track item.title) {
+            <div class="timeline-item" [class.success]="item.tone === 'success'" [class.info]="item.tone === 'info'" [class.warning]="item.tone === 'warning'">
+              <span></span>
+              <div>
+                <b>{{ item.title }}</b>
+                <small>{{ item.meta }}</small>
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+    </section>
+
+    <section class="dashboard-grid lower">
+      <article class="panel">
+        <div class="panel-head slim">
+          <div>
+            <span class="eyebrow">Products</span>
+            <h2>Operations</h2>
+          </div>
+          <button class="mini" (click)="openModal('product')">New</button>
+        </div>
+        <div class="product-list">
+          @for (product of products(); track product.name) {
+            <div class="product-row">
+              <div>
+                <b>{{ product.name }}</b>
+                <small>{{ product.category }}</small>
+              </div>
+              <span>{{ product.inventory }}</span>
+              <strong>{{ product.revenue }}</strong>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="panel wide">
+        <div class="panel-head slim">
+          <div>
+            <span class="eyebrow">Reports</span>
+            <h2>Completion {{ completionRate() }}</h2>
+          </div>
+          <button class="mini" (click)="openModal('report')">Export</button>
+        </div>
+        <div class="report-list">
+          @for (report of reports(); track report.name) {
+            <div class="report-row">
+              <div>
+                <b>{{ report.name }}</b>
+                <small>{{ report.owner }} · {{ report.state }}</small>
+              </div>
+              <div class="progress-track"><span [style.width.%]="report.progress"></span></div>
+              <strong>{{ report.progress }}%</strong>
+            </div>
+          }
+        </div>
+      </article>
+    </section>
+  </section>
+
+  @if (activeModal()) {
+    <section class="modal-backdrop">
+      <div class="modal-card">
+        <header>
+          <div>
+            <span class="eyebrow">Workspace action</span>
+            <h2>{{ modalTitle() }}</h2>
+          </div>
+          <button class="icon" (click)="closeModal()">×</button>
+        </header>
+
+        <div class="modal-grid">
+          <label>
+            Name
+            <input placeholder="Enter name" />
+          </label>
+          <label>
+            Owner
+            <input placeholder="Owner or team" />
+          </label>
+          <label>
+            Plan
+            <select [value]="selectedPlan()" (change)="setPlan($event.target.value)">
+              <option>Starter</option>
+              <option>Growth</option>
+              <option>Enterprise</option>
+            </select>
+          </label>
+          <label>
+            Note
+            <textarea [value]="quickNote()" (input)="updateQuickNote($event.target.value)" placeholder="Add a short note"></textarea>
+          </label>
+        </div>
+
+        <footer>
+          <button class="ghost" (click)="closeModal()">Cancel</button>
+          <button class="primary" (click)="saveModal()">Save</button>
+        </footer>
+      </div>
+    </section>
+  }
+</main>
