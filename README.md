@@ -1,6 +1,6 @@
 # Ariana Framework
 
-**Ariana** is a TypeScript-first, class-based frontend framework for building structured UI applications with signal-based reactivity, compiler-assisted templates, explicit rendering paths, and small focused packages.
+**Ariana** is a TypeScript-first, class-based frontend framework for building structured UI applications with signal-based reactivity, compiler-assisted templates, explicit rendering paths, typed forms, router/query packages, Vite integration, and release gates.
 
 Ariana keeps the disciplined class-based developer experience many Angular developers like, while removing framework layers that are not needed in a new runtime:
 
@@ -10,6 +10,7 @@ Ariana keeps the disciplined class-based developer experience many Angular devel
 - no global dirty checking
 - no Virtual DOM
 - external HTML/CSS by default
+- compiled render functions through the compiler/Vite plugin
 
 In Ariana, every component is independent by design. Because there is no module system, there is no need for a `standalone` flag.
 
@@ -18,13 +19,14 @@ In Ariana, every component is independent by design. Because there is no module 
 ## Status
 
 ```txt
-Ariana 1.0.0
-Status: Version 1 release candidate / publish-ready after release gates
+Ariana 1.1.0
+Status: Performance & Security release candidate
 NPM scope: @ariana-framework
 Release line: core runtime, compiler, router, forms, query, rendering, Vite plugin
+Publish path: guarded GitHub Actions workflow
 ```
 
-Ariana 1.0 focuses on a stable foundation: package structure, release safety, compiler diagnostics, template type checking, runtime cleanup, forms, router, query state, rendering helpers, unit tests, smoke tests, benchmarks, and a GitHub Actions publishing path.
+Ariana 1.1 focuses on release confidence: performance work, contract tests, compiled rendering, package security review, tarball inspection, GitHub Actions publishing, and a professional admin-panel example based on the previous ITSurge Admin Pro design.
 
 ---
 
@@ -32,18 +34,21 @@ Ariana 1.0 focuses on a stable foundation: package structure, release safety, co
 
 Start here:
 
+- [Ariana 1.1 Release Notes](docs/RELEASE_NOTES_V1_1.md)
+- [Ariana 1.1 Release Readiness](docs/RELEASE_READINESS_V1.md)
+- [Ariana 1.1 Security Review](docs/SECURITY_REVIEW_V1.md)
+- [Ariana 1.1 Release Workflow](docs/RELEASE_WORKFLOW_V1_1.md)
 - [Ariana 1.0 Guide](docs/ARIANA_V1_GUIDE.md)
 - [Ariana 1.0 Performance Guide](docs/PERFORMANCE_V1.md)
 - [Documentation Index](docs/INDEX.md)
-- [GitHub Actions publish guide](docs/GITHUB_PUBLISH_V1.md)
 
-The static documentation landing page lives in:
+The static GitHub Pages landing page lives in:
 
 ```txt
 site/index.html
 ```
 
-It is deployed by the GitHub Pages workflow:
+It is deployed by:
 
 ```txt
 .github/workflows/pages.yml
@@ -157,7 +162,7 @@ Ariana templates support:
 - diagnostics with line and column output
 - optional template type checking through the Vite plugin
 
-See [Ariana 1.0 Guide](docs/ARIANA_V1_GUIDE.md) for full examples.
+Ariana 1.1 expects components to use compiler/Vite generated render functions. The core package no longer ships the old runtime template evaluator path.
 
 ---
 
@@ -232,28 +237,96 @@ Query features include cache state, stale time, fetch deduplication, retry, exac
 
 ---
 
-## Performance
+## Examples
 
-Ariana 1.0 includes an internal benchmark smoke gate:
+Counter example:
 
 ```bash
-npm run bench:smoke
+npm run demo:counter
 ```
 
-The current smoke gate covers:
+Admin panel example:
 
-- core signal/computed updates
-- router repeated matching
-- forms array operations
-- query cache operations
+```bash
+npm run demo:admin
+npm run build:admin
+```
 
-Ariana's expected strengths in v1 are fine-grained signal updates, explicit cleanup, small package boundaries, simple router matching, and lightweight query cache operations. The main watch area is large dynamic form arrays, which are currently the heaviest internal smoke scenario.
+The admin panel is an Ariana implementation inspired by the previous ITSurge Admin Pro static HTML/CSS dashboard. It demonstrates signals, computed values, event bindings, list rendering, modal actions, topbar tools, theme controls, cards, tables, charts, reports, and responsive layout.
 
-Ariana should not claim to be faster than Angular, React, Vue, Svelte, or Solid until the browser benchmark suite is implemented and repeatable results exist. The official comparison plan includes Angular, React, Vue, Svelte, Solid, and Ariana across counter updates, large table rendering, form-heavy screens, router stress, query cache stress, startup cost, and bundle cost.
+---
 
-Read the full performance guide:
+## Performance
 
-- [Ariana 1.0 Performance Guide](docs/PERFORMANCE_V1.md)
+Ariana 1.1 includes performance work for:
+
+- signal notification paths
+- lazy computed values
+- stable dependency tracking
+- keyed list updates
+- form array behavior and snapshot correctness
+
+Run the framework comparison benchmark:
+
+```bash
+npm run bench:framework
+```
+
+Run the core breakdown benchmark:
+
+```bash
+npm run bench:ariana-core
+```
+
+Performance results are documented in:
+
+```txt
+docs/PERFORMANCE_RESULTS_V1.md
+```
+
+Ariana should not claim to be faster than every framework in every scenario. The practical target is lower framework overhead for fine-grained UI updates, form-heavy screens, keyed updates, and signal-bound text or attribute updates.
+
+---
+
+## Security and release gates
+
+Focused audit:
+
+```bash
+npm run security:audit
+```
+
+Full release gate:
+
+```bash
+npm run release:gates:v1.1
+```
+
+Release-ready dry run:
+
+```bash
+npm run release:ready:v1.1
+```
+
+Ariana 1.1 release gates include:
+
+- full package build
+- unit tests
+- TypeScript typecheck
+- static security audit
+- stable API docs check
+- runtime lifecycle docs check
+- compiler diagnostics registry check
+- template typecheck docs check
+- Vite plugin docs check
+- runtime lifecycle smoke test
+- Vite plugin options smoke test
+- benchmark smoke test
+- candidate tarball packing
+- tarball inspection
+- guarded GitHub Actions npm publish workflow
+
+Real publish is handled by GitHub Actions, not from a local machine.
 
 ---
 
@@ -267,9 +340,8 @@ packages/forms         forms package
 packages/query         query/cache package
 packages/rendering     rendering and island helpers
 packages/vite-plugin   Vite integration
-examples/counter-app   demo application
-examples/todo-app      typed package integration fixture
-examples/vite-fixture  Vite integration fixture
+examples/counter-app   counter demo application
+examples/admin-panel   Ariana admin panel demo
 benchmarks/            benchmark suites
 docs/                  release, architecture, package, and usage docs
 site/                  GitHub Pages documentation landing page
@@ -283,54 +355,9 @@ site/                  GitHub Pages documentation landing page
 npm install
 npm run build
 npm test
+npm run typecheck
+npm run security:audit
 ```
-
-Counter example:
-
-```bash
-npm run demo:counter
-```
-
-Full release gate:
-
-```bash
-npm run release:gates:v1
-```
-
-Dry-run publish:
-
-```bash
-npm run publish:v1:dry
-```
-
-Real publish is handled by GitHub Actions, not from a local machine.
-
----
-
-## Release gates
-
-Ariana 1.0 releases are guarded by:
-
-- full package build
-- unit tests
-- stable API docs check
-- runtime lifecycle docs check
-- compiler diagnostics registry check
-- template typecheck docs check
-- template diagnostics fixture check
-- Vite plugin docs check
-- runtime lifecycle smoke test
-- Vite plugin options smoke test
-- benchmark smoke test
-- candidate tarball packing
-- tarball inspection
-- guarded GitHub Actions npm publish workflow
-
----
-
-## Performance philosophy
-
-Ariana should not claim to be faster than every framework in every scenario. The practical target is lower framework overhead for fine-grained UI updates, form-heavy screens, single-row updates, and signal-bound text or attribute updates.
 
 ---
 
