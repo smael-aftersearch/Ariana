@@ -9,13 +9,15 @@ import { I18nService } from './services/i18n.service.js';
 import './admin-panel.extra.css';
 import './admin-animations.scss';
 
-const showAnimationLab = new URLSearchParams(window.location.search).get('lab') === 'animation';
+const providers = [
+  AdminApiService,
+  AuthService,
+  I18nService,
+  provide(ADMIN_QUERY_CLIENT, { useFactory: () => createQueryClient() })
+];
 
-bootstrap(showAnimationLab ? AdminAnimationLabPage : AdminPanelPage, '#app', {
-  providers: [
-    AdminApiService,
-    AuthService,
-    I18nService,
-    provide(ADMIN_QUERY_CLIENT, { useFactory: () => createQueryClient() })
-  ]
-});
+if (new URLSearchParams(window.location.search).get('lab') === 'animation') {
+  bootstrap(AdminAnimationLabPage, '#app', { providers });
+} else {
+  bootstrap(AdminPanelPage, '#app', { providers });
+}
