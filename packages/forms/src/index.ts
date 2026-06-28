@@ -25,7 +25,9 @@ export type FormControlOptions<T> = {
   asyncValidators?: readonly AsyncValidator<T>[];
 };
 
-export function formControl<T>(initialValue: T, validatorsOrOptions: readonly Validator<T>[] | FormControlOptions<T> = []): FormControl<T> {
+export function formControl<T>(initialValue: T, validatorsOrOptions?: readonly Validator<T>[] | FormControlOptions<T>): FormControl<T> {
+  if (validatorsOrOptions === undefined) return plainFormControl(initialValue);
+
   const options = normalizeControlOptions(validatorsOrOptions);
   const validators = options.validators;
   const asyncValidators = options.asyncValidators;
@@ -78,6 +80,46 @@ export function formControl<T>(initialValue: T, validatorsOrOptions: readonly Va
     validateAsync,
     reset(nextValue: T = initialValue) {
       asyncRunId++;
+      value.set(nextValue);
+      touched.set(false);
+      dirty.set(false);
+      pending.set(false);
+      asyncErrors.set(undefined);
+    }
+  };
+}
+
+function plainFormControl<T>(initialValue: T): FormControl<T> {
+  const value = signal(initialValue);
+  const touched = signal(false);
+  const dirty = signal(false);
+  const pending = signal(false);
+  const errors = signal<ValidationErrors | undefined>(undefined);
+  const asyncErrors = signal<ValidationErrors | undefined>(undefined);
+  const valid = signal(true);
+
+  return {
+    value,
+    touched,
+    dirty,
+    pending,
+    errors,
+    asyncErrors,
+    valid,
+    setValue(nextValue: T) {
+      if (!Object.is(value.peek(), nextValue)) {
+        value.set(nextValue);
+        dirty.set(true);
+        asyncErrors.set(undefined);
+      }
+    },
+    patchValue(nextValue: T) { this.setValue(nextValue); },
+    markTouched() { touched.set(true); },
+    async validateAsync() {
+      asyncErrors.set(undefined);
+      return undefined;
+    },
+    reset(nextValue: T = initialValue) {
       value.set(nextValue);
       touched.set(false);
       dirty.set(false);
