@@ -17,12 +17,13 @@ export class ReactiveComputation {
 
   run = () => {
     this.runId++;
-    pushComputation(this);
+    const previousComputation = currentComputation;
+    currentComputation = this;
 
     try {
       this.callback();
     } finally {
-      popComputation();
+      currentComputation = previousComputation;
       this.reconcileDependencies();
     }
   };
@@ -68,16 +69,8 @@ export class ReactiveComputation {
   }
 }
 
-const stack: ReactiveComputation[] = [];
+let currentComputation: ReactiveComputation | undefined;
 
 export function getActiveComputation(): ReactiveComputation | undefined {
-  return stack[stack.length - 1];
-}
-
-function pushComputation(computation: ReactiveComputation) {
-  stack.push(computation);
-}
-
-function popComputation() {
-  stack.pop();
+  return currentComputation;
 }
