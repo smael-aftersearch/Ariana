@@ -1,30 +1,43 @@
-import { Component, Route, computed, signal } from '@ariana/core';
+import { Component, Route, computed, inject, signal } from '@ariana/core';
+import { createRouter } from '@ariana/router';
+import type { RouteDefinition } from '@ariana/router';
+import { ADMIN_QUERY_CLIENT } from './app-tokens.js';
+import { adminRoutes, type AdminRouteKey } from './app.routes.js';
+import { AdminApiService } from './services/admin-api.service.js';
+import type { DashboardData, OrderRow, ProductRow, ReportItem, RoleCard, UserRow } from './services/admin-api.service.js';
+import { AuthService } from './services/auth.service.js';
+import { I18nService } from './services/i18n.service.js';
 
-type Section = 'dashboard' | 'analytics' | 'users' | 'roles' | 'products' | 'orders' | 'reports' | 'calendar' | 'settings';
+class RoutePlaceholder {}
+
 type ModalType = 'user' | 'role' | 'product' | 'report' | 'order' | 'note';
 type Dropdown = 'notifications' | 'profile' | undefined;
 type Accent = 'emerald' | 'indigo' | 'violet' | 'sky' | 'rose' | 'amber' | 'slate';
 
-type NavItem = { section: Section; label: string; badge?: string };
-type NavGroup = { title: string; items: NavItem[] };
-type Metric = { label: string; value: string; delta: string; trend: 'up' | 'down'; icon: string };
-type ChartBar = { label: string; value: string; size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' };
-type UserRow = { id: string; name: string; email: string; role: string; department: string; status: string; lastLogin: string };
-type OrderRow = { id: string; customer: string; channel: string; total: string; payment: string; state: string };
-type ProductRow = { sku: string; name: string; category: string; stock: number; revenue: string; state: string };
-type RoleCard = { name: string; description: string; permissions: string; users: string; tone: 'accent' | 'purple' | 'warning' };
-type ActivityItem = { title: string; meta: string; tone: 'success' | 'info' | 'warning' };
-type ReportItem = { name: string; owner: string; state: string; progress: string; bar: 'full' | 'high' | 'mid' };
-type NotificationItem = { title: string; meta: string; tone: 'success' | 'info' | 'warning' };
+const routePaths: Record<AdminRouteKey, string> = {
+  dashboard: '/', analytics: '/analytics', users: '/users', roles: '/roles', products: '/products', orders: '/orders', reports: '/reports', calendar: '/calendar', settings: '/settings'
+};
+
+const router = createRouter(adminRoutes.map(route => ({
+  path: route.path,
+  title: route.title,
+  data: route.data,
+  providers: route.providers,
+  guards: route.guards,
+  component: RoutePlaceholder
+})) as readonly RouteDefinition[], '/');
 
 @Route('/admin')
-@Component({
-  selector: 'ari-admin-panel-page',
-  templateUrl: './admin-panel.page.html',
-  styleUrl: './admin-panel.page.css'
-})
+@Component({ selector: 'ari-admin-panel-page', templateUrl: './admin-panel.page.html', styleUrl: './admin-panel.page.css' })
 export class AdminPanelPage {
-  readonly activeSection = signal<Section>('dashboard');
+  private readonly api = inject(AdminApiService);
+  private readonly auth = inject(AuthService);
+  private readonly i18n = inject(I18nService);
+  private readonly query = inject(ADMIN_QUERY_CLIENT);
+
+  readonly loginEmail = signal('admin@ariana.dev');
+  readonly loginPassword = signal('demo1234');
+  readonly activeRoute = signal<AdminRouteKey>('dashboard');
   readonly activeModal = signal<ModalType | undefined>(undefined);
   readonly activeDropdown = signal<Dropdown>(undefined);
   readonly search = signal('');
@@ -36,120 +49,61 @@ export class AdminPanelPage {
   readonly quickNote = signal('');
   readonly selectedPlan = signal('Enterprise');
   readonly selectedRange = signal('Jan 01 - Jan 31, 2026');
+  readonly routeLoading = signal(false);
+  readonly routeError = signal<string | undefined>(undefined);
+  readonly loadedModule = signal('none');
+  readonly activeQueryKey = signal('dashboard');
 
-  readonly navGroups = signal<NavGroup[]>([
-    { title: 'Main', items: [{ section: 'dashboard', label: 'Dashboard' }, { section: 'analytics', label: 'Analytics' }] },
-    { title: 'Management', items: [{ section: 'users', label: 'Users', badge: '12' }, { section: 'roles', label: 'Roles' }, { section: 'products', label: 'Products' }, { section: 'orders', label: 'Orders', badge: '8' }] },
-    { title: 'Workspace', items: [{ section: 'reports', label: 'Reports' }, { section: 'calendar', label: 'Calendar' }, { section: 'settings', label: 'Settings' }] }
-  ]);
+  readonly dashboardData = signal<DashboardData | undefined>(undefined);
+  readonly usersData = signal<UserRow[]>([]);
+  readonly ordersData = signal<OrderRow[]>([]);
+  readonly productsData = signal<ProductRow[]>([]);
+  readonly rolesData = signal<RoleCard[]>([]);
+  readonly reportsData = signal<ReportItem[]>([]);
 
-  readonly metrics = signal<Metric[]>([
-    { label: 'Revenue', value: '$84,254', delta: '12% vs last month', trend: 'up', icon: '◇' },
-    { label: 'Orders', value: '3,845', delta: '8% vs last month', trend: 'up', icon: '◎' },
-    { label: 'Users', value: '1,205', delta: '24% vs last month', trend: 'up', icon: '◌' },
-    { label: 'Errors', value: '14', delta: '2% vs last month', trend: 'down', icon: '△' }
-  ]);
-
-  readonly chartBars = signal<ChartBar[]>([
-    { label: 'Jan', value: '$42K', size: 'md' },
-    { label: 'Feb', value: '$51K', size: 'lg' },
-    { label: 'Mar', value: '$48K', size: 'sm' },
-    { label: 'Apr', value: '$64K', size: 'xl' },
-    { label: 'May', value: '$58K', size: 'lg' },
-    { label: 'Jun', value: '$76K', size: 'xl' },
-    { label: 'Jul', value: '$69K', size: 'md' }
-  ]);
-
-  readonly traffic = signal([
-    { label: 'Direct', value: '42%', tone: 'accent' },
-    { label: 'Organic', value: '26%', tone: 'blue' },
-    { label: 'Referral', value: '18%', tone: 'warning' },
-    { label: 'Social', value: '14%', tone: 'purple' }
-  ]);
-
-  readonly users = signal<UserRow[]>([
-    { id: 'USR-1001', name: 'Alex Morgan', email: 'alex@itsurge.dev', role: 'Owner', department: 'Platform', status: 'Active', lastLogin: 'Today' },
-    { id: 'USR-1002', name: 'Sara Kim', email: 'sara@itsurge.dev', role: 'Manager', department: 'Sales', status: 'Active', lastLogin: 'Yesterday' },
-    { id: 'USR-1003', name: 'Mina Stone', email: 'mina@itsurge.dev', role: 'Analyst', department: 'Finance', status: 'Invited', lastLogin: 'Jun 24' },
-    { id: 'USR-1004', name: 'Owen Clark', email: 'owen@itsurge.dev', role: 'Support', department: 'Success', status: 'Paused', lastLogin: 'Jun 20' }
-  ]);
-
-  readonly orders = signal<OrderRow[]>([
-    { id: '#ORD-2048', customer: 'Sara Kim', channel: 'Storefront', total: '$1,299', payment: 'Paid', state: 'Packing' },
-    { id: '#ORD-2049', customer: 'Daniel Lee', channel: 'Partner', total: '$842', payment: 'Pending', state: 'Review' },
-    { id: '#ORD-2050', customer: 'Ava Thompson', channel: 'Direct', total: '$2,180', payment: 'Paid', state: 'Delivered' },
-    { id: '#ORD-2051', customer: 'Owen Clark', channel: 'Marketplace', total: '$540', payment: 'Refund', state: 'Hold' }
-  ]);
-
-  readonly products = signal<ProductRow[]>([
-    { sku: 'PRD-110', name: 'Ariana Pro', category: 'Subscription', stock: 1200, revenue: '$48.2K', state: 'Active' },
-    { sku: 'PRD-220', name: 'Admin Kit', category: 'Template', stock: 420, revenue: '$19.4K', state: 'Active' },
-    { sku: 'PRD-310', name: 'Release Pack', category: 'Add-on', stock: 310, revenue: '$12.8K', state: 'Draft' }
-  ]);
-
-  readonly roles = signal<RoleCard[]>([
-    { name: 'Owner', description: 'Full workspace ownership with billing and release actions.', permissions: '42', users: '3', tone: 'accent' },
-    { name: 'Manager', description: 'Operational access for users, orders, reports, and products.', permissions: '31', users: '8', tone: 'purple' },
-    { name: 'Analyst', description: 'Read-only reporting access with export and dashboard views.', permissions: '18', users: '12', tone: 'warning' }
-  ]);
-
-  readonly activities = signal<ActivityItem[]>([
-    { title: 'Order completed', meta: 'Checkout flow finished by customer #4821', tone: 'success' },
-    { title: 'User registered', meta: 'New manager invited to the workspace', tone: 'info' },
-    { title: 'Report exported', meta: 'Monthly revenue report generated as CSV', tone: 'success' },
-    { title: 'Release gate passed', meta: 'Audit completed with zero findings', tone: 'warning' }
-  ]);
-
-  readonly reports = signal<ReportItem[]>([
-    { name: 'Revenue Summary', owner: 'Finance', state: 'Ready', progress: '100%', bar: 'full' },
-    { name: 'User Growth', owner: 'Marketing', state: 'Scheduled', progress: '74%', bar: 'high' },
-    { name: 'Release Review', owner: 'Platform', state: 'Ready', progress: '100%', bar: 'full' },
-    { name: 'Inventory Health', owner: 'Operations', state: 'Draft', progress: '45%', bar: 'mid' }
-  ]);
-
-  readonly notifications = signal<NotificationItem[]>([
+  readonly notifications = signal([
     { title: 'New order received', meta: '2 minutes ago', tone: 'success' },
     { title: 'Payment needs review', meta: '1 hour ago', tone: 'warning' },
     { title: 'System backup completed', meta: 'Yesterday', tone: 'info' }
   ]);
 
+  readonly isLoggedIn = computed(() => this.auth.isAuthenticated());
+  readonly showLogin = computed(() => !this.auth.isAuthenticated());
+  readonly authLoading = computed(() => this.auth.loading());
+  readonly authError = computed(() => this.auth.error());
+  readonly userName = computed(() => this.auth.user()?.name ?? 'Guest');
+  readonly userRole = computed(() => this.auth.user()?.role ?? 'Visitor');
+  readonly locale = computed(() => this.i18n.locale());
+  readonly direction = computed(() => this.i18n.direction());
+  readonly queryStatus = computed(() => this.query.get<unknown>(this.activeQueryKey())?.status() ?? 'idle');
+  readonly queryIsLoading = computed(() => this.queryStatus() === 'loading' || this.routeLoading());
+  readonly activeTitle = computed(() => this.t(this.activeRoute()));
+
   readonly visibleUsers = computed(() => {
     const query = this.search().trim().toLowerCase();
-    if (!query) return this.users();
-    return this.users().filter(user =>
-      user.id.toLowerCase().includes(query) ||
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query) ||
-      user.role.toLowerCase().includes(query) ||
-      user.department.toLowerCase().includes(query) ||
-      user.status.toLowerCase().includes(query)
+    if (!query) return this.usersData();
+    return this.usersData().filter(user =>
+      user.id.toLowerCase().includes(query) || user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query) || user.role.toLowerCase().includes(query) || user.department.toLowerCase().includes(query) || user.status.toLowerCase().includes(query)
     );
   });
 
-  readonly activeSectionTitle = computed(() => {
-    const titles: Record<Section, string> = {
-      dashboard: 'Dashboard', analytics: 'Analytics', users: 'Users', roles: 'Roles & Permissions', products: 'Products', orders: 'Orders', reports: 'Reports', calendar: 'Calendar', settings: 'Settings'
-    };
-    return titles[this.activeSection()];
-  });
-
   readonly completionRate = computed(() => {
-    const ready = this.reports().filter(report => report.state === 'Ready').length;
-    return `${Math.round((ready / this.reports().length) * 100)}%`;
+    const reports = this.reportsData();
+    if (reports.length === 0) return '0%';
+    const ready = reports.filter(report => report.state === 'Ready').length;
+    return `${Math.round((ready / reports.length) * 100)}%`;
   });
 
   readonly modalTitle = computed(() => {
     const modal = this.activeModal();
-    const titles: Record<ModalType, string> = { user: 'Add User', role: 'Add Role', product: 'Add Product', report: 'Create Report', order: 'Create Order', note: 'Add Note' };
-    return modal ? titles[modal] : '';
+    const titles: Record<ModalType, string> = { user: 'addUser', role: 'addRole', product: 'addProduct', report: 'addReport', order: 'addOrder', note: 'addNote' };
+    return modal ? this.t(titles[modal]) : '';
   });
 
-  readonly shellClass = computed(() => `${this.darkMode() ? 'dark ' : ''}accent-${this.accent()}`);
-
-  setSection(section: Section) { this.activeSection.set(section); }
-  openModal(type: ModalType) { this.activeModal.set(type); this.activeDropdown.set(undefined); }
-  closeModal() { this.activeModal.set(undefined); }
-  changeSearch(value: string) { this.search.set(value); }
+  t(key: string) { return this.i18n.t(key); }
+  setLoginEmail(value: string) { this.loginEmail.set(value); }
+  setLoginPassword(value: string) { this.loginPassword.set(value); }
+  toggleLanguage() { this.i18n.toggle(); }
   toggleSidebar() { this.sidebarOpen.update(value => !value); }
   toggleDarkMode() { this.darkMode.update(value => !value); }
   toggleThemePanel() { this.themePanelOpen.update(value => !value); this.activeDropdown.set(undefined); }
@@ -159,18 +113,90 @@ export class AdminPanelPage {
   updateQuickNote(value: string) { this.quickNote.set(value); }
   setPlan(value: string) { this.selectedPlan.set(value); }
   setRange(value: string) { this.selectedRange.set(value); }
+  changeSearch(value: string) { this.search.set(value); }
+  openModal(type: ModalType) { this.activeModal.set(type); this.activeDropdown.set(undefined); }
+  closeModal() { this.activeModal.set(undefined); }
+  closeDropdown() { this.activeDropdown.set(undefined); }
 
   toggleDropdown(name: Exclude<Dropdown, undefined>) {
     this.themePanelOpen.set(false);
     this.activeDropdown.update(current => current === name ? undefined : name);
   }
 
-  closeDropdown() { this.activeDropdown.set(undefined); }
+  async login() {
+    const ok = await this.auth.login(this.loginEmail(), this.loginPassword());
+    if (ok) await this.navigate('dashboard');
+  }
 
-  saveModal() {
-    const modal = this.activeModal();
-    if (modal === 'note' && this.quickNote().trim()) {
-      this.activities.update(items => [{ title: 'Note added', meta: this.quickNote().trim(), tone: 'info' }, ...items]);
+  logout() {
+    this.auth.logout();
+    this.activeDropdown.set(undefined);
+  }
+
+  async navigate(route: AdminRouteKey) {
+    if (!this.auth.isAuthenticated()) return;
+    this.routeError.set(undefined);
+    this.routeLoading.set(true);
+    this.activeDropdown.set(undefined);
+    this.themePanelOpen.set(false);
+    this.commandOpen.set(false);
+
+    try {
+      const routeDefinition = adminRoutes.find(item => item.data?.key === route);
+      if (!routeDefinition) throw new Error(`Missing route ${route}`);
+      const loaded = await routeDefinition.loadComponent();
+      this.loadedModule.set(loaded.name);
+      await router.navigate(routePaths[route]);
+      this.activeRoute.set(route);
+      this.activeQueryKey.set(String(routeDefinition.data?.query ?? route));
+      await this.loadRouteData(routeDefinition.data?.query as string | undefined);
+    } catch (error) {
+      this.routeError.set(error instanceof Error ? error.message : 'Route failed');
+    } finally {
+      this.routeLoading.set(false);
+    }
+  }
+
+  async reload() {
+    await this.loadRouteData(this.activeQueryKey(), true);
+  }
+
+  async loadRouteData(queryKey = 'dashboard', force = false) {
+    if (queryKey === 'users') {
+      const data = await this.query.fetch('users', () => this.api.users(), { staleTime: 15000, force });
+      this.usersData.set(data);
+      return;
+    }
+    if (queryKey === 'orders') {
+      const data = await this.query.fetch('orders', () => this.api.orders(), { staleTime: 15000, force });
+      this.ordersData.set(data);
+      return;
+    }
+    if (queryKey === 'products') {
+      const data = await this.query.fetch('products', () => this.api.products(), { staleTime: 15000, force });
+      this.productsData.set(data);
+      return;
+    }
+    if (queryKey === 'roles') {
+      const data = await this.query.fetch('roles', () => this.api.roles(), { staleTime: 15000, force });
+      this.rolesData.set(data);
+      return;
+    }
+    if (queryKey === 'reports') {
+      const data = await this.query.fetch('reports', () => this.api.reports(), { staleTime: 15000, force });
+      this.reportsData.set(data);
+      return;
+    }
+    const data = await this.query.fetch('dashboard', () => this.api.dashboard(), { staleTime: 15000, force });
+    this.dashboardData.set(data);
+  }
+
+  async saveModal() {
+    if (this.activeModal() === 'note' && this.quickNote().trim()) {
+      const current = this.dashboardData();
+      if (current) {
+        this.dashboardData.set({ ...current, activities: [{ title: 'Note added', meta: this.quickNote().trim(), tone: 'info' }, ...current.activities] });
+      }
       this.quickNote.set('');
     }
     this.closeModal();
