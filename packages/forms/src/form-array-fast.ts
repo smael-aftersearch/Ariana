@@ -1,4 +1,4 @@
-import { signal } from '@ariana-framework/core';
+import { computed, signal } from '@ariana-framework/core';
 import type { Cleanup, Signal, Subscriber } from '@ariana-framework/core';
 import type { FormControl, ValidationErrors } from './index.js';
 
@@ -21,10 +21,19 @@ export function formArray<T>(initialControls: readonly FormControl<T>[] = []): F
   const version = signal(0);
   const length = signal(store.length);
   const controls = readonlyVersionedSignal(() => store.slice(), version);
-  const value = readonlyVersionedSignal(() => store.map(control => control.value()), version);
-  const pending = readonlyVersionedSignal(() => store.some(control => control.pending()), version);
-  const errors = readonlyVersionedSignal(() => collectErrors(store), version);
-  const valid = readonlyVersionedSignal(() => errors() === undefined && !pending(), version);
+  const value = computed(() => {
+    version();
+    return store.map(control => control.value());
+  });
+  const pending = computed(() => {
+    version();
+    return store.some(control => control.pending());
+  });
+  const errors = computed(() => {
+    version();
+    return collectErrors(store);
+  });
+  const valid = computed(() => errors() === undefined && !pending());
 
   controls.set = nextControls => {
     store.length = 0;
