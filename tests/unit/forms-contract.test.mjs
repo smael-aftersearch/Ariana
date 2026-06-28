@@ -1,6 +1,34 @@
 import { formArray, formControl } from '../../packages/forms/dist/index.js';
 import { deepEqual, equal, test } from './test-api.mjs';
 
+test('validator-free formControl preserves core state behavior', async () => {
+  const control = formControl(1);
+
+  equal(control.value(), 1, 'initial value should be readable');
+  equal(control.valid(), true, 'validator-free control should start valid');
+  equal(control.errors(), undefined, 'validator-free control should have no errors');
+  equal(control.pending(), false, 'validator-free control should not be pending');
+  equal(control.dirty(), false, 'control should start clean');
+  equal(control.touched(), false, 'control should start untouched');
+
+  control.setValue(2);
+  equal(control.value(), 2, 'setValue should update value');
+  equal(control.dirty(), true, 'setValue should mark dirty when value changes');
+
+  control.markTouched();
+  equal(control.touched(), true, 'markTouched should mark control touched');
+
+  const validationResult = await control.validateAsync();
+  equal(validationResult, undefined, 'validator-free validateAsync should resolve without errors');
+  equal(control.errors(), undefined, 'validator-free validateAsync should keep errors empty');
+
+  control.reset();
+  equal(control.value(), 1, 'reset should restore initial value');
+  equal(control.dirty(), false, 'reset should clear dirty');
+  equal(control.touched(), false, 'reset should clear touched');
+  equal(control.pending(), false, 'reset should clear pending');
+});
+
 test('formArray controls snapshots remain stable', () => {
   const array = formArray([formControl(1)]);
   const snapshot = array.controls();
