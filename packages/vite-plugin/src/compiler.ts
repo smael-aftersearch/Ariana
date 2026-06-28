@@ -11,7 +11,8 @@ export function compileTemplateToRender(template: string): CompileResult {
     const lines: string[] = [];
 
     lines.push(`function __ari_render(ctx, host) {`);
-    lines.push(`  host.innerHTML = ${JSON.stringify(segment.html)};`);
+    lines.push(`  const __ari_createFragment = (html) => document.createRange().createContextualFragment(html);`);
+    lines.push(`  host.replaceChildren(__ari_createFragment(${JSON.stringify(segment.html)}));`);
     lines.push(`  const cleanups = [];`);
     appendBindingLines(lines, segment, 'host', 'ctx', 'cleanups', 'root', {});
     lines.push(`  return () => { for (const cleanup of cleanups.splice(0)) cleanup(); };`);
@@ -180,7 +181,6 @@ function appendIfBlockLines(lines: string[], segment: CompiledTemplateSegment, r
     const anchor = `${prefix}_if_anchor_${index}`;
     const mountedNodes = `${prefix}_if_nodes_${index}`;
     const childCleanups = `${prefix}_if_cleanups_${index}`;
-    const template = `${prefix}_if_template_${index}`;
     const fragment = `${prefix}_if_fragment_${index}`;
     const nodes = `${prefix}_if_new_nodes_${index}`;
     const nestedPrefix = `${prefix}_if_${index}`;
@@ -191,9 +191,7 @@ function appendIfBlockLines(lines: string[], segment: CompiledTemplateSegment, r
     lines.push(`    for (const cleanup of ${childCleanups}.splice(0)) cleanup();`);
     lines.push(`    for (const node of ${mountedNodes}.splice(0)) node.parentNode?.removeChild(node);`);
     lines.push(`    if (Boolean(${compileExpression(block.expression, ctxVar, localAccess)})) {`);
-    lines.push(`      const ${template} = document.createElement('template');`);
-    lines.push(`      ${template}.innerHTML = ${JSON.stringify(block.segment.html)};`);
-    lines.push(`      const ${fragment} = ${template}.content.cloneNode(true);`);
+    lines.push(`      const ${fragment} = __ari_createFragment(${JSON.stringify(block.segment.html)});`);
     lines.push(`      const ${nodes} = Array.from(${fragment}.childNodes);`);
     appendBindingLines(lines, block.segment, fragment, ctxVar, childCleanups, nestedPrefix, localAccess);
     lines.push(`      ${anchor}.after(${fragment});`);
@@ -227,7 +225,6 @@ function appendFastForBlockLines(lines: string[], block: ForBlock, rootVar: stri
   const key = `${prefix}_for_key_${index}`;
   const record = `${prefix}_for_record_${index}`;
   const removedRecord = `${prefix}_for_removed_record_${index}`;
-  const template = `${prefix}_for_template_${index}`;
   const fragment = `${prefix}_for_fragment_${index}`;
   const nodes = `${prefix}_for_nodes_${index}`;
   const nestedPrefix = `${prefix}_for_fast_${index}`;
@@ -262,9 +259,7 @@ function appendFastForBlockLines(lines: string[], block: ForBlock, rootVar: stri
   lines.push(`          if (!sameItem || !sameIndex) ${record}.update();`);
   lines.push(`          ${records}.set(${key}, ${record});`);
   lines.push(`        } else {`);
-  lines.push(`          const ${template} = document.createElement('template');`);
-  lines.push(`          ${template}.innerHTML = ${JSON.stringify(block.segment.html)};`);
-  lines.push(`          const ${fragment} = ${template}.content.cloneNode(true);`);
+  lines.push(`          const ${fragment} = __ari_createFragment(${JSON.stringify(block.segment.html)});`);
   lines.push(`          const ${nodes} = Array.from(${fragment}.childNodes);`);
   lines.push(`          ${record} = { item: ${block.itemName}, index: i, nodes: ${nodes}, cleanups: [], update: () => {} };`);
   appendFastRowInitLines(lines, block.segment, fragment, ctxVar, record, nestedPrefix, rowLocalAccess);
