@@ -1,7 +1,6 @@
 import { Injector, runInInjectionContext, type Provider } from '../di/index.js';
 import { createCleanupScope, type CleanupScope } from '../reactivity/index.js';
 import { renderCompiledComponent } from '../template/compiled.js';
-import { renderComponent } from '../template/render.js';
 import { getComponentMetadata } from './component.js';
 import type { ComponentType } from './metadata.js';
 
@@ -45,12 +44,15 @@ export function bootstrapApplication<T>(
   const component = runInInjectionContext(componentInjector, () => new componentType());
   let destroyed = false;
 
-  if (metadata.render) {
-    renderCompiledComponent(component, metadata, hostElement as HTMLElement, componentInjector, cleanupScope);
-  } else {
-    const cleanup = renderComponent(component, metadata, hostElement as HTMLElement, componentInjector);
-    if (typeof cleanup === 'function') cleanupScope.add(cleanup);
+  if (!metadata.render) {
+    const hint = metadata.templateUrl
+      ? ` The Vite plugin must transform templateUrl (${metadata.templateUrl}) into a compiled render function.`
+      : ' Use the compiler or Vite plugin to provide a compiled render function.';
+
+    throw new Error(`Component ${metadata.selector} does not have a compiled render function.${hint}`);
   }
+
+  renderCompiledComponent(component, metadata, hostElement as HTMLElement, componentInjector, cleanupScope);
 
   if (hasLifecycle(component, 'onInit')) component.onInit();
   if (hasLifecycle(component, 'afterRender')) component.afterRender();
