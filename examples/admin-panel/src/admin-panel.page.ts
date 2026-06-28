@@ -53,7 +53,10 @@ export class AdminPanelPage {
   readonly routeLoading = signal(false);
   readonly routeError = signal<string | undefined>(undefined);
   readonly loadedModule = signal('none');
+  readonly loadedChunk = signal('none');
   readonly activeQueryKey = signal('dashboard');
+  readonly pageIndex = signal(1);
+  readonly pageSize = signal(4);
 
   readonly dashboardData = signal<DashboardData | undefined>(undefined);
   readonly usersData = signal<UserRow[]>([]);
@@ -87,8 +90,19 @@ export class AdminPanelPage {
   readonly locale = computed(() => this.i18n.locale());
   readonly direction = computed(() => this.i18n.direction());
   readonly queryStatus = computed(() => this.query.get<unknown>(this.activeQueryKey())?.status() ?? 'idle');
-  readonly queryIsLoading = computed(() => this.queryStatus() === 'loading' || this.routeLoading());
   readonly activeTitle = computed(() => this.t(this.activeRoute()));
+
+  readonly hasActiveData = computed(() => {
+    const route = this.activeRoute();
+    if (route === 'users') return this.usersData().length > 0;
+    if (route === 'orders') return this.ordersData().length > 0;
+    if (route === 'products') return this.productsData().length > 0;
+    if (route === 'roles') return this.rolesData().length > 0;
+    if (route === 'reports') return this.reportsData().length > 0;
+    return this.dashboardData() !== undefined;
+  });
+
+  readonly showPageLoader = computed(() => (this.routeLoading() || this.queryStatus() === 'loading') && !this.hasActiveData());
 
   readonly visibleUsers = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -97,6 +111,24 @@ export class AdminPanelPage {
       user.id.toLowerCase().includes(query) || user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query) || user.role.toLowerCase().includes(query) || user.department.toLowerCase().includes(query) || user.status.toLowerCase().includes(query)
     );
   });
+
+  readonly tableSource = computed(() => {
+    const route = this.activeRoute();
+    if (route === 'users') return this.visibleUsers();
+    if (route === 'orders') return this.ordersData();
+    if (route === 'products') return this.productsData();
+    if (route === 'roles') return this.rolesData();
+    if (route === 'reports') return this.reportsData();
+    return [];
+  });
+
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.tableSource().length / this.pageSize())));
+  readonly pageSummary = computed(() => `${this.pageIndex()} / ${this.totalPages()} · ${this.tableSource().length} rows`);
+  readonly pagedUsers = computed(() => paginate(this.visibleUsers(), this.pageIndex(), this.pageSize()));
+  readonly pagedOrders = computed(() => paginate(this.ordersData(), this.pageIndex(), this.pageSize()));
+  readonly pagedProducts = computed(() => paginate(this.productsData(), this.pageIndex(), this.pageSize()));
+  readonly pagedRoles = computed(() => paginate(this.rolesData(), this.pageIndex(), this.pageSize()));
+  readonly pagedReports = computed(() => paginate(this.reportsData(), this.pageIndex(), this.pageSize()));
 
   readonly completionRate = computed(() => {
     const reports = this.reportsData();
@@ -124,10 +156,14 @@ export class AdminPanelPage {
   updateQuickNote(value: string) { this.quickNote.set(value); }
   setPlan(value: string) { this.selectedPlan.set(value); }
   setRange(value: string) { this.selectedRange.set(value); }
-  changeSearch(value: string) { this.search.set(value); }
+  changeSearch(value: string) { this.search.set(value); this.pageIndex.set(1); }
   openModal(type: ModalType) { this.activeModal.set(type); this.activeDropdown.set(undefined); }
   closeModal() { this.activeModal.set(undefined); }
   closeDropdown() { this.activeDropdown.set(undefined); }
+
+  nextPage() { this.pageIndex.update(value => Math.min(this.totalPages(), value + 1)); }
+  previousPage() { this.pageIndex.update(value => Math.max(1, value - 1)); }
+  setPageSize(value: string) { this.pageSize.set(Number(value)); this.pageIndex.set(1); }
 
   toggleDropdown(name: Exclude<Dropdown, undefined>) {
     this.themePanelOpen.set(false);
@@ -139,9 +175,20 @@ export class AdminPanelPage {
     if (ok) await this.navigate('dashboard');
   }
 
+  async loginDemo() {
+    const ok = await this.auth.loginDemo();
+    if (ok) await this.navigate('dashboard');
+  }
+
   logout() {
     this.auth.logout();
     this.activeDropdown.set(undefined);
+    this.dashboardData.set(undefined);
+    this.usersData.set([]);
+    this.ordersData.set([]);
+    this.productsData.set([]);
+    this.rolesData.set([]);
+    this.reportsData.set([]);
   }
 
   async navigate(route: AdminRouteKey) {
@@ -151,12 +198,14 @@ export class AdminPanelPage {
     this.activeDropdown.set(undefined);
     this.themePanelOpen.set(false);
     this.commandOpen.set(false);
+    this.pageIndex.set(1);
 
     try {
       const routeDefinition = adminRoutes.find(item => item.data?.key === route);
       if (!routeDefinition) throw new Error(`Missing route ${route}`);
       const loaded = await routeDefinition.loadComponent();
       this.loadedModule.set(loaded.name);
+      this.loadedChunk.set(String(routeDefinition.data?.chunk ?? 'unknown chunk'));
       await router.navigate(routePaths[route]);
       this.activeRoute.set(route);
       this.activeQueryKey.set(String(routeDefinition.data?.query ?? route));
@@ -188,4 +237,8 @@ export class AdminPanelPage {
     }
     this.closeModal();
   }
+}
+
+function paginate<T>(items: readonly T[], page: number, size: number): T[] {
+  return items.slice((page - 1) * size, page * size);
 }
