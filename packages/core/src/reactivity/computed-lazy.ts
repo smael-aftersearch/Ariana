@@ -51,6 +51,7 @@ export function computed<T>(callback: () => T): Signal<T> {
   function markDirty() {
     if (dirty) return;
     dirty = true;
+    if (listeners.size === 0) return;
     notifyListeners();
   }
 
