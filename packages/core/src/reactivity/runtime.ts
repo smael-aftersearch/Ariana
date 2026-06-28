@@ -51,6 +51,10 @@ export class ReactiveComputation {
   }
 
   private reconcileDependencies() {
+    if (this.dependencies.length === 1 && this.seenRuns[0] === this.runId) {
+      return;
+    }
+
     for (let index = this.dependencies.length - 1; index >= 0; index--) {
       if (this.seenRuns[index] === this.runId) {
         continue;
