@@ -8,6 +8,12 @@ const inspectDir = join(root, '.tarball-inspection');
 const expectedScope = '@ariana-framework';
 const expectedVersion = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
 const packages = ['core', 'compiler', 'router', 'forms', 'query', 'rendering', 'vite-plugin'];
+const unsafePublishedPatterns = [
+  ['eval usage', /\beval\s*\(/],
+  ['new Function usage', /new\s+Function\s*\(/],
+  ['innerHTML assignment', /\.innerHTML\s*=/],
+  ['document.write usage', /document\.write\s*\(/]
+];
 
 if (!existsSync(packageDir)) execFileSync('npm', ['run', 'verify:release'], { cwd: root, stdio: 'inherit' });
 
@@ -52,9 +58,13 @@ function scanPublishedFiles(directory, tarball) {
       scanPublishedFiles(fullPath, tarball);
       continue;
     }
-    if (!/\.(js|d\.ts|json)$/.test(entry)) continue;
+    if (!/\.(js|d\.ts|json|map)$/.test(entry)) continue;
     const content = readFileSync(fullPath, 'utf8');
     if (content.includes('file:../')) throw new Error(`Workspace dependency leaked into ${tarball}: ${fullPath}`);
-    if (content.includes('@ariana/')) throw new Error(`Old @ariana scope leaked into ${tarball}: ${fullPath}`);
+    if (content.includes('@ariana/')) throw new Error(`Old @ariana scope leaked into package metadata for ${tarball}: ${fullPath}`);
+
+    for (const [label, pattern] of unsafePublishedPatterns) {
+      if (pattern.test(content)) throw new Error(`Unsafe published code detected in ${tarball}: ${label} at ${fullPath}`);
+    }
   }
 }
