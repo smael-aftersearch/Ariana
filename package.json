@@ -9,9 +9,9 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin packages/create-ariana examples/counter-app",
+    "build": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin packages/create-ariana examples/counter-app examples/admin-panel",
     "clean": "node scripts/clean.mjs",
-    "typecheck": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin packages/create-ariana examples/counter-app --pretty",
+    "typecheck": "tsc -b packages/core packages/compiler packages/router packages/forms packages/query packages/rendering packages/vite-plugin packages/create-ariana examples/counter-app examples/admin-panel --pretty",
     "test": "node tests/unit/test-runner.mjs",
     "security:audit": "node scripts/security-audit.mjs",
     "check:stable-api-docs": "node scripts/check-stable-api-docs.mjs",
@@ -39,7 +39,9 @@
     "publish:v1": "node scripts/publish-v1-npm.mjs",
     "publish:v1:dry": "node scripts/publish-v1-npm.mjs --dry-run",
     "demo:counter": "npm --workspace @ariana/counter-app run dev",
+    "demo:admin": "npm --workspace @ariana/admin-panel-example run dev",
     "build:counter": "npm --workspace @ariana/counter-app run build",
+    "build:admin": "npm --workspace @ariana/admin-panel-example run build",
     "benchmark:micro": "npm --prefix benchmarks/micro-update install && npm --prefix benchmarks/micro-update run bench",
     "benchmark:list": "npm --prefix benchmarks/list-update install && npm --prefix benchmarks/list-update run bench",
     "benchmark:scheduler": "npm --prefix benchmarks/list-scheduler run bench",
