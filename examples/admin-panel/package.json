@@ -15,6 +15,7 @@
     "@ariana/vite-plugin": "file:../../packages/vite-plugin"
   },
   "devDependencies": {
+    "sass": "^1.69.0",
     "typescript": "^5.8.3",
     "vite": "^7.0.0"
   }
