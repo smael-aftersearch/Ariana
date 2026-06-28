@@ -20,6 +20,7 @@
     "check:template-typecheck-docs": "node scripts/check-template-typecheck-docs.mjs",
     "check:template-diagnostics-fixture": "node scripts/check-template-diagnostics-fixture.mjs",
     "check:vite-plugin-v1-docs": "node scripts/check-vite-plugin-v1-docs.mjs",
+    "check:scss-styleurl-support": "node scripts/check-scss-styleurl-support.mjs",
     "smoke:runtime-lifecycle": "node scripts/runtime-lifecycle-smoke.mjs",
     "smoke:vite-plugin-options": "node scripts/vite-plugin-options-smoke.mjs",
     "smoke:install": "node scripts/install-smoke.mjs",
