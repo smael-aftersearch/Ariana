@@ -3,6 +3,8 @@ import { run } from './lib/run-command.mjs';
 const commands = [
   ['npm', ['run', 'build']],
   ['npm', ['test']],
+  ['npm', ['run', 'typecheck']],
+  ['npm', ['run', 'security:audit']],
   ['npm', ['run', 'check:stable-api-docs']],
   ['npm', ['run', 'check:runtime-lifecycle-docs']],
   ['npm', ['run', 'check:compiler-diagnostics']],
