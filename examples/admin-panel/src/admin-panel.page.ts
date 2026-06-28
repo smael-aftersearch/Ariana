@@ -1,6 +1,7 @@
 import { Component, Route, computed, inject, signal } from '@ariana/core';
 import { createRouter } from '@ariana/router';
 import type { RouteDefinition } from '@ariana/router';
+import type { QueryClient } from '@ariana/query';
 import { ADMIN_QUERY_CLIENT } from './app-tokens.js';
 import { adminRoutes, type AdminRouteKey } from './app.routes.js';
 import { AdminApiService } from './services/admin-api.service.js';
@@ -33,7 +34,7 @@ export class AdminPanelPage {
   private readonly api = inject(AdminApiService);
   private readonly auth = inject(AuthService);
   private readonly i18n = inject(I18nService);
-  private readonly query = inject(ADMIN_QUERY_CLIENT);
+  private readonly query = inject<QueryClient>(ADMIN_QUERY_CLIENT);
 
   readonly loginEmail = signal('admin@ariana.dev');
   readonly loginPassword = signal('demo1234');
