@@ -9,7 +9,10 @@ export class ReactiveComputation {
   private dependencies = new Set<Dependency>();
   private nextDependencies = new Set<Dependency>();
 
-  constructor(private readonly callback: () => void) {}
+  constructor(
+    private readonly callback: () => void,
+    private readonly scheduler: () => void = () => this.run()
+  ) {}
 
   run = () => {
     this.nextDependencies.clear();
@@ -31,7 +34,7 @@ export class ReactiveComputation {
     }
 
     this.dependencies.add(dependency);
-    this.cleanups.set(dependency, dependency.subscribe(this.run));
+    this.cleanups.set(dependency, dependency.subscribe(this.scheduler));
   }
 
   cleanup() {
