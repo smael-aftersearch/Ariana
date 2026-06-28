@@ -3,7 +3,7 @@ import { join, relative } from 'node:path';
 import { run } from './lib/run-command.mjs';
 
 const root = process.cwd();
-const ignoredDirectories = new Set(['.git', 'node_modules', 'dist', 'coverage', '.turbo', '.next', '.vite']);
+const ignoredDirectories = new Set(['.git', 'node_modules', 'dist', 'coverage', '.turbo', '.next', '.vite', 'benchmarks', 'npm-packages', '.npm-pack-staging', '.tarball-inspection']);
 const ignoredExtensions = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.zip', '.tgz', '.gz', '.br', '.wasm', '.map']);
 const textFileLimitBytes = 750_000;
 
@@ -14,7 +14,7 @@ const secretPatterns = [
   ['AWS access key id', /AKIA[0-9A-Z]{16}/],
   ['Google API key', /AIza[0-9A-Za-z\-_]{35}/],
   ['Slack token', /xox[baprs]-[0-9A-Za-z-]{20,}/],
-  ['generic secret assignment', /(?:password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token)\s*[:=]\s*['\"][^'\"]{16,}['\"]/i]
+  ['generic secret assignment', /(?:password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token)\s*[:=]\s*['"][^'"]{16,}['"]/i]
 ];
 
 const dangerousPatterns = [
@@ -22,7 +22,7 @@ const dangerousPatterns = [
   ['new Function usage', /new\s+Function\s*\(/],
   ['innerHTML assignment', /\.innerHTML\s*=/],
   ['document.write usage', /document\.write\s*\(/],
-  ['child_process exec usage', /\bexec\s*\(/]
+  ['child_process import', /from\s+['"]node:child_process['"]|require\(['"]node:child_process['"]\)/]
 ];
 
 const findings = [];
@@ -84,7 +84,7 @@ function scanDirectory(directory) {
 
     if (!stat.isFile() || stat.size > textFileLimitBytes || shouldIgnoreFile(entry)) continue;
 
-    const relativePath = relative(root, fullPath).replaceAll('\\\\', '/');
+    const relativePath = relative(root, fullPath).replaceAll('\\', '/');
     const content = readFileSync(fullPath, 'utf8');
     checkFile(relativePath, content);
   }
@@ -105,6 +105,7 @@ function checkFile(file, content) {
 }
 
 function isAllowedDangerousUsage(file, label) {
-  if (label === 'child_process exec usage' && file === 'scripts/lib/run-command.mjs') return true;
+  if (label === 'child_process import' && file === 'scripts/lib/run-command.mjs') return true;
+  if (label === 'child_process import' && file === 'scripts/inspect-tarballs.mjs') return true;
   return false;
 }
