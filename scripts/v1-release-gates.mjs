@@ -11,6 +11,7 @@ const commands = [
   ['npm', ['run', 'check:template-typecheck-docs']],
   ['npm', ['run', 'check:template-diagnostics-fixture']],
   ['npm', ['run', 'check:vite-plugin-v1-docs']],
+  ['npm', ['run', 'check:scss-styleurl-support']],
   ['npm', ['run', 'smoke:runtime-lifecycle']],
   ['npm', ['run', 'smoke:vite-plugin-options']],
   ['npm', ['run', 'bench:smoke']],
@@ -22,4 +23,4 @@ for (const [command, args] of commands) {
   run(command, args);
 }
 
-console.log('\nAriana 1.0 release gates passed.');
+console.log('\nAriana release gates passed.');
