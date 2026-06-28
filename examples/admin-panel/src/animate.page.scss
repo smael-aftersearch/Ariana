@@ -1,0 +1,446 @@
+$bg: #f5f8fc;
+$surface: rgba(255, 255, 255, .9);
+$border: #dbe4f0;
+$text: #0f172a;
+$muted: #64748b;
+$accent: #7c3aed;
+$accent2: #06b6d4;
+$good: #10b981;
+
+.animate-page {
+  --motion-duration: 1200ms;
+  min-height: 100vh;
+  padding: clamp(1rem, 3vw, 3rem);
+  color: $text;
+  background:
+    radial-gradient(circle at 10% 8%, rgba($accent, .18), transparent 28rem),
+    radial-gradient(circle at 92% 0%, rgba($accent2, .18), transparent 26rem),
+    linear-gradient(180deg, $bg, #edf4fb);
+
+  &.normal-speed {
+    --motion-duration: 420ms;
+  }
+}
+
+.animate-nav {
+  max-width: 1180px;
+  margin: 0 auto 1rem;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1rem;
+  border: 1px solid $border;
+  border-radius: 20px;
+  background: $surface;
+  box-shadow: 0 12px 38px rgba(15, 23, 42, .06);
+
+  a,
+  strong,
+  span {
+    font-weight: 900;
+  }
+
+  a,
+  span {
+    color: $muted;
+    text-decoration: none;
+  }
+}
+
+.animate-hero,
+.control-panel,
+.stage-card,
+.cards-panel {
+  max-width: 1180px;
+  margin: 0 auto 1rem;
+  border: 1px solid $border;
+  border-radius: 30px;
+  background: $surface;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, .09);
+  backdrop-filter: blur(18px);
+}
+
+.animate-hero {
+  min-height: 300px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  align-items: center;
+  gap: 2rem;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+
+  h1 {
+    max-width: 780px;
+    margin: .7rem 0 1rem;
+    font-size: clamp(3rem, 8vw, 7rem);
+    line-height: .86;
+    letter-spacing: -.09em;
+  }
+
+  p {
+    max-width: 680px;
+    margin: 0;
+    color: $muted;
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+}
+
+.eyebrow {
+  display: inline-flex;
+  padding: .5rem .75rem;
+  border-radius: 999px;
+  color: $accent;
+  background: rgba($accent, .12);
+  font-size: .8rem;
+  font-weight: 950;
+}
+
+.hero-meter {
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border-radius: 26px;
+  background:
+    conic-gradient(from 120deg, rgba($accent, .14), rgba($accent2, .28), rgba($good, .18), rgba($accent, .14));
+
+  span {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $accent, $accent2);
+    box-shadow: 0 22px 55px rgba($accent, .28);
+    animation: pulse-meter 2200ms ease-in-out infinite;
+  }
+
+  strong,
+  small {
+    display: block;
+  }
+
+  small {
+    color: $muted;
+    font-weight: 850;
+  }
+}
+
+.control-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  padding: 1rem;
+
+  button {
+    min-height: 44px;
+    border: 1px solid $border;
+    border-radius: 14px;
+    padding: 0 1rem;
+    color: $text;
+    background: white;
+    font-weight: 900;
+    cursor: pointer;
+
+    &.primary {
+      border-color: transparent;
+      color: white;
+      background: linear-gradient(135deg, $accent, $accent2);
+    }
+  }
+}
+
+.stage-grid {
+  max-width: 1180px;
+  margin: 0 auto 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.stage-card {
+  margin: 0;
+  padding: 1.25rem;
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    gap: .9rem;
+    margin-bottom: 1.2rem;
+
+    > span {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: linear-gradient(135deg, $accent, $accent2);
+      font-weight: 950;
+    }
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  p {
+    margin-top: .35rem;
+    color: $muted;
+    line-height: 1.6;
+  }
+}
+
+.orb-stage {
+  position: relative;
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  border-radius: 26px;
+  background: radial-gradient(circle, rgba($accent2, .12), rgba($accent, .05), transparent 70%);
+  overflow: hidden;
+}
+
+.orb-ring {
+  width: 230px;
+  height: 230px;
+  border: 1px dashed rgba($accent, .35);
+  border-radius: 50%;
+  animation: orbit-spin 4600ms linear infinite;
+}
+
+.orb-core,
+.orb-dot {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.orb-core {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: linear-gradient(135deg, $accent, $accent2);
+  font-size: 2rem;
+  font-weight: 950;
+  box-shadow: 0 22px 60px rgba($accent, .28);
+  animation: core-breathe 2400ms ease-in-out infinite;
+}
+
+.orb-dot {
+  width: 28px;
+  height: 28px;
+  background: $good;
+  animation: dot-orbit 4600ms linear infinite;
+
+  &.two {
+    width: 18px;
+    height: 18px;
+    background: $accent2;
+    animation-delay: -2300ms;
+  }
+}
+
+.timeline-steps {
+  display: grid;
+  gap: .8rem;
+
+  div {
+    padding: 1rem;
+    border: 1px solid $border;
+    border-radius: 18px;
+    background: #fff;
+    animation: step-glow 2400ms ease-in-out infinite;
+
+    &:nth-child(2) { animation-delay: 250ms; }
+    &:nth-child(3) { animation-delay: 500ms; }
+    &:nth-child(4) { animation-delay: 750ms; }
+  }
+
+  b,
+  small {
+    display: block;
+  }
+
+  small {
+    margin-top: .25rem;
+    color: $muted;
+  }
+}
+
+.cards-panel {
+  padding: 1.25rem;
+
+  > header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    h2,
+    p {
+      margin: 0;
+    }
+
+    p {
+      margin-top: .35rem;
+      color: $muted;
+    }
+  }
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .9rem;
+}
+
+.motion-card {
+  min-height: 190px;
+  padding: 1rem;
+  border: 1px solid $border;
+  border-radius: 22px;
+  background: #fff;
+
+  span {
+    color: $accent;
+    font-size: .8rem;
+    font-weight: 950;
+  }
+
+  h3 {
+    margin: .65rem 0 .35rem;
+  }
+
+  p {
+    margin: 0;
+    color: $muted;
+    line-height: 1.6;
+  }
+
+  footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .8rem;
+    margin-top: 1rem;
+  }
+
+  em {
+    color: $good;
+    font-style: normal;
+    font-weight: 900;
+  }
+
+  button {
+    min-height: 34px;
+    border: 0;
+    border-radius: 12px;
+    padding: 0 .75rem;
+    color: white;
+    background: $text;
+    cursor: pointer;
+  }
+}
+
+.animate-enter-slow {
+  animation-duration: var(--motion-duration);
+  animation-fill-mode: both;
+}
+
+.animate-leave-slow {
+  animation-duration: var(--motion-duration);
+  animation-fill-mode: both;
+}
+
+.animate-rise {
+  animation-name: animate-rise;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+.animate-drop {
+  animation-name: animate-drop;
+  animation-timing-function: ease-in;
+}
+
+.animate-scale {
+  animation-name: animate-scale;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+.animate-scale-out {
+  animation-name: animate-scale-out;
+  animation-timing-function: ease-in;
+}
+
+@keyframes animate-rise {
+  from { opacity: 0; transform: translateY(38px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes animate-drop {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(38px); }
+}
+
+@keyframes animate-scale {
+  from { opacity: 0; transform: scale(.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes animate-scale-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(.88); }
+}
+
+@keyframes orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes dot-orbit {
+  from { transform: rotate(0deg) translateX(115px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(115px) rotate(-360deg); }
+}
+
+@keyframes core-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes step-glow {
+  0%, 100% { box-shadow: 0 0 0 rgba($accent, 0); }
+  50% { box-shadow: 0 18px 50px rgba($accent, .14); }
+}
+
+@keyframes pulse-meter {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-enter-slow,
+  .animate-leave-slow,
+  .orb-ring,
+  .orb-core,
+  .orb-dot,
+  .timeline-steps div,
+  .hero-meter span {
+    animation-duration: 1ms;
+  }
+}
+
+@media (max-width: 880px) {
+  .animate-hero,
+  .stage-grid,
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .animate-nav,
+  .cards-panel > header {
+    align-items: flex-start;
+    display: grid;
+  }
+}
