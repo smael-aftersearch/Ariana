@@ -15,6 +15,7 @@ export async function resolveLazyRoute<TComponent>(route: LazyRouteDefinition<TC
     data: route.data,
     providers: route.providers,
     guards: route.guards,
+    transition: route.transition,
     children
   };
 }
