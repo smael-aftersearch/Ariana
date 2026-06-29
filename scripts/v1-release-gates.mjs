@@ -2,6 +2,7 @@ import { run } from './lib/run-command.mjs';
 
 const commands = [
   ['npm', ['run', 'build']],
+  ['npm', ['run', 'build:admin']],
   ['npm', ['test']],
   ['npm', ['run', 'typecheck']],
   ['npm', ['run', 'security:audit']],
