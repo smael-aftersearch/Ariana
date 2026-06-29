@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { ariana } from '@ariana/vite-plugin';
+import { ariana } from '../../packages/vite-plugin/src/index.ts';
 
 export default defineConfig({
   plugins: [ariana()]
