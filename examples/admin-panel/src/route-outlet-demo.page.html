@@ -1,0 +1,30 @@
+<main class="outlet-demo">
+  <nav class="outlet-demo-nav">
+    <a href="/animate">← Animate</a>
+    <strong>Router Outlet Transition Demo</strong>
+    <span>{{ status() }}</span>
+  </nav>
+
+  <section class="outlet-demo-hero" animate.enter="animate-enter-slow animate-rise">
+    <div>
+      <span class="eyebrow">Router outlet</span>
+      <h1>Real route DOM transition</h1>
+      <p>This page mounts real route components through createRouterOutlet and applies route enter/leave classes to the outlet view.</p>
+    </div>
+    <div class="outlet-demo-actions">
+      <button class="primary" (click)="mountOutlet()">Mount outlet</button>
+      <button (click)="navigate('/')">Alpha</button>
+      <button (click)="navigate('/beta')">Beta</button>
+      <button (click)="navigate('/gamma')">Gamma</button>
+      <button (click)="destroyOutlet()">Destroy</button>
+    </div>
+  </section>
+
+  <section class="outlet-demo-shell">
+    <header>
+      <span>Current path</span>
+      <strong>{{ currentPath() }}</strong>
+    </header>
+    <div id="router-outlet-demo-host" class="router-outlet-demo-host"></div>
+  </section>
+</main>
