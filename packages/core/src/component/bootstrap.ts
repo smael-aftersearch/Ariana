@@ -16,6 +16,12 @@ export type BootstrapRef<T> = {
   destroy(): void;
 };
 
+export type MountOptions = BootstrapOptions & {
+  clearHostOnDestroy?: boolean;
+};
+
+export type MountRef<T> = BootstrapRef<T>;
+
 export function bootstrap<T>(
   componentType: ComponentType<T>,
   host: string | HTMLElement,
@@ -29,12 +35,20 @@ export function bootstrapApplication<T>(
   host: string | HTMLElement,
   options: BootstrapOptions = {}
 ): BootstrapRef<T> {
+  return mountComponent(componentType, host, { ...options, clearHostOnDestroy: true });
+}
+
+export function mountComponent<T>(
+  componentType: ComponentType<T>,
+  host: string | HTMLElement,
+  options: MountOptions = {}
+): MountRef<T> {
   const hostElement = typeof host === 'string'
     ? document.querySelector(host)
     : host;
 
   if (!hostElement) {
-    throw new Error(`Ariana bootstrap failed: host element not found (${String(host)}).`);
+    throw new Error(`Ariana mount failed: host element not found (${String(host)}).`);
   }
 
   const metadata = getComponentMetadata(componentType);
@@ -67,7 +81,7 @@ export function bootstrapApplication<T>(
       destroyed = true;
       if (hasLifecycle(component, 'onDestroy')) component.onDestroy();
       cleanupScope.cleanup();
-      (hostElement as HTMLElement).replaceChildren();
+      if (options.clearHostOnDestroy ?? false) (hostElement as HTMLElement).replaceChildren();
     }
   };
 }
