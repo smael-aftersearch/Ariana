@@ -36,7 +36,7 @@ type ResourceTransformResult = {
 };
 
 export function ariana(options: ArianaVitePluginOptions = {}): VitePlugin {
-  const include = options.include ?? /\.(ts|tsx)$/;
+  const include = options.include ?? /\.(ts|tsx|js|jsx)(\?.*)?$/;
   const compileTemplates = options.compileTemplates ?? true;
   const strictTemplates = options.strictTemplates ?? true;
   const strictWarnings = options.strictWarnings ?? false;
@@ -71,7 +71,7 @@ function transformComponentResources(
   typeCheckTemplates: boolean,
   templateTypeCheckContext: ReturnType<typeof createTypeCheckContextFromSource>
 ): ResourceTransformResult {
-  const directory = dirname(id);
+  const directory = dirname(id.split('?')[0]);
   let importIndex = 0;
   const imports: string[] = [];
   let usedCompiler = false;
@@ -121,6 +121,9 @@ function transformComponentResources(
         nextBody = replaceStringProperty(nextBody, 'templateUrl', `render: ${compiled.renderCode}`);
         usedCompiler = true;
       } else {
+        if (compileTemplates) {
+          throw new Error(`Ariana template compiler could not compile ${templateUrl}: ${compiled.reason}`);
+        }
         const name = `__ari_template_${importIndex++}`;
         imports.push(`import ${name} from ${JSON.stringify(`${templateUrl}?raw`)};`);
         nextBody = replaceStringProperty(nextBody, 'templateUrl', `template: ${name}`);
