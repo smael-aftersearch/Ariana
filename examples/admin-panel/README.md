@@ -20,6 +20,9 @@ This is the full Ariana 1.1 admin-panel showcase. It is inspired by the previous
 - SCSS compiled by Vite in the admin workspace
 - `animate.enter` and `animate.leave` samples for panels, toasts, rows and removal flow
 - dedicated `/animate` page with slow visible animations for manual inspection
+- scene transition samples powered by `@if`
+- stagger list samples powered by `@for`
+- runtime notes for performance and security behavior
 
 ## Run
 
@@ -48,10 +51,22 @@ It includes:
 - hero enter and leave animation
 - continuous orb animator
 - timeline animation
+- scene transition tabs: Flow, Data and Security
+- signal-driven scene step transitions
+- signal-driven stagger insertion and removal
 - signal-driven card insertion
 - signal-driven card removal
 - slow/normal speed toggle
+- performance notes: no polling, no observer, no eval
 - SCSS variables, nesting, keyframes and media queries
+
+Recommended manual checks:
+
+1. Toggle hero and confirm leave animation completes before removal.
+2. Switch Flow/Data/Security and inspect view transitions.
+3. Add and remove stagger items to inspect multiple small animations.
+4. Add and remove cards to inspect `@for` cleanup.
+5. Toggle slow/normal mode and compare CSS-duration-based cleanup.
 
 ## Animation and SCSS lab
 
