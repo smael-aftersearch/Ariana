@@ -4,6 +4,7 @@ const component = readFileSync('examples/admin-panel/src/animate.page.ts', 'utf8
 const template = readFileSync('examples/admin-panel/src/animate.page.html', 'utf8');
 const styles = readFileSync('examples/admin-panel/src/animate.page.scss', 'utf8');
 const main = readFileSync('examples/admin-panel/src/main.ts', 'utf8');
+const viteConfig = readFileSync('examples/admin-panel/vite.config.ts', 'utf8');
 
 const checks = [
   ['animate route component', component.includes("@Route('/animate')")],
@@ -13,7 +14,8 @@ const checks = [
   ['visible slow duration', styles.includes('--motion-duration: 1200ms')],
   ['continuous keyframe animator', styles.includes('@keyframes dot-orbit')],
   ['dev path route', main.includes("path === '/animate'")],
-  ['query route fallback', main.includes("params.get('page') === 'animate'")]
+  ['query route fallback', main.includes("params.get('page') === 'animate'")],
+  ['admin Vite config uses plugin source', viteConfig.includes('../../packages/vite-plugin/src/index.ts')]
 ];
 
 for (const [label, ok] of checks) {
