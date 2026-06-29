@@ -428,6 +428,10 @@ function compileStatement(statement: string, contextName = 'ctx', localAccess: L
   return compileExpression(statement, contextName, localAccess);
 }
 
+function isIdentifierChar(char: string | undefined): boolean {
+  return Boolean(char && /[A-Za-z0-9_$]/.test(char));
+}
+
 function isGlobalFunction(name: string): boolean {
   return new Set(['Number', 'String', 'Boolean', 'Array', 'Object', 'Date', 'Math', 'parseInt', 'parseFloat', 'isNaN', 'isFinite']).has(name);
 }
