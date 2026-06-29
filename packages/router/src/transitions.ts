@@ -32,11 +32,11 @@ export function runRouteLeave(element: Element, transition?: RouteTransition): P
 
   return new Promise(resolve => {
     let settled = false;
-    let timeout = 0;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     const finish = () => {
       if (settled) return;
       settled = true;
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
       resolve();
     };
 
