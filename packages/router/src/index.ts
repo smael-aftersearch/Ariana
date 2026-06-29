@@ -168,5 +168,7 @@ function joinPaths(basePath: string, routePath: string): string {
 export { resolveLazyRoute, resolveLazyRoutes } from './lazy.js';
 export type { LazyRouteDefinition } from './lazy.js';
 export { createLazyRouter } from './lazy-router.js';
+export { createRouterOutlet } from './outlet.js';
+export type { RouterOutlet, RouterOutletOptions } from './outlet.js';
 export { applyRouteEnter, hasRouteTransition, normalizeRouteTransition, replaceWithRouteTransition, runRouteLeave } from './transitions.js';
 export type { RouteTransition, RouteTransitionState } from './transitions.js';
