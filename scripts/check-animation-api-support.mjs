@@ -10,13 +10,21 @@ const checks = [
   ['animation event', 'animationend'],
   ['transition event', 'transitionend'],
   ['class validation', 'normalizeAnimationClassList'],
-  ['validation error', 'Invalid Ariana animation class name']
+  ['validation error', 'Invalid Ariana animation class name'],
+  ['computed style duration', 'getComputedStyle(element)'],
+  ['animation duration parsing', 'style.animationDuration'],
+  ['transition duration parsing', 'style.transitionDuration'],
+  ['bounded fallback cleanup', 'Math.min(Math.max(fallbackMs + 80, 120), 5000)']
 ];
 
 for (const [label, fragment] of checks) {
   if (!source.includes(fragment)) {
     throw new Error(`Animation API check failed: ${label}`);
   }
+}
+
+if (source.includes('}, 350)')) {
+  throw new Error('Animation API check failed: fixed 350ms fallback is not allowed.');
 }
 
 console.log('Animation API check passed.');
