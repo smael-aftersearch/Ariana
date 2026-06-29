@@ -1,6 +1,7 @@
 :root {
   --ari-motion-fast: 140ms;
   --ari-motion-normal: 190ms;
+  --ari-motion-route: 260ms;
 }
 
 .ari-fade-in {
@@ -25,6 +26,26 @@
 
 .ari-scale-out {
   animation: ari-scale-out var(--ari-motion-fast) ease-in both;
+}
+
+.admin-route-enter {
+  animation-duration: var(--ari-motion-route);
+  animation-fill-mode: both;
+}
+
+.admin-route-leave {
+  animation-duration: var(--ari-motion-route);
+  animation-fill-mode: both;
+}
+
+.admin-route-rise {
+  animation-name: ari-route-rise;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+.admin-route-drop {
+  animation-name: ari-route-drop;
+  animation-timing-function: ease-in;
 }
 
 @keyframes ari-fade-in {
@@ -57,13 +78,25 @@
   to { opacity: 0; transform: scale(.96); }
 }
 
+@keyframes ari-route-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ari-route-drop {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(18px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ari-fade-in,
   .ari-fade-out,
   .ari-slide-up,
   .ari-slide-down,
   .ari-scale-in,
-  .ari-scale-out {
+  .ari-scale-out,
+  .admin-route-enter,
+  .admin-route-leave {
     animation-duration: 1ms;
   }
 }
