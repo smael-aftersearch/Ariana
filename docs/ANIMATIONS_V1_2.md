@@ -58,7 +58,21 @@ The generated helper:
 - uses `animationend` and `transitionend` events;
 - does not use a global observer;
 - does not use repeated timers;
-- removes nodes directly when no leave animation is present.
+- removes nodes directly when no leave animation is present;
+- reads computed `animation-duration`, `animation-delay`, `transition-duration`, and `transition-delay` for leave cleanup;
+- bounds the fallback cleanup window so a missing browser event cannot leak DOM nodes.
+
+## Leave cleanup model
+
+When a node leaves:
+
+1. Ariana applies the configured leave classes.
+2. Ariana listens for `animationend` and `transitionend`.
+3. Ariana reads computed CSS motion duration after the class is applied.
+4. Ariana removes the DOM nodes when the event arrives.
+5. If the event never arrives, Ariana uses a bounded fallback based on the computed duration.
+
+This keeps slow inspection animations visible while still preventing stale DOM nodes from staying around indefinitely.
 
 ## Security model
 
@@ -90,6 +104,7 @@ Supported:
 - static `animate.leave`
 - enter animation on initial render and mounted fragments
 - leave animation for removed `@if` and `@for` nodes
+- computed CSS duration based leave cleanup
 
 Not yet supported:
 
