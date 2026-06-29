@@ -1,8 +1,8 @@
 # Ariana 1.2 Route Transitions Plan
 
-The dedicated admin `/animate` page now demonstrates scene transitions with `@if`, `animate.enter`, and `animate.leave`. The next step is to promote the same behavior into a router-level API.
+The dedicated admin `/animate` page demonstrates scene transitions with `@if`, `animate.enter`, and `animate.leave`. Router-level transition metadata and shared helpers are now available in `@ariana/router`.
 
-## Proposed API
+## API
 
 ```ts
 const routes = [
@@ -21,41 +21,74 @@ const routes = [
 
 - Route transition classes are static strings.
 - The router must not evaluate JavaScript strings.
-- Leave cleanup should use the same computed CSS duration model as template animations.
-- Route transition helpers should be emitted or loaded only when routes request transitions.
+- Leave cleanup uses the same computed CSS duration model as template animations.
+- Route transition helpers are separate from the base router state path.
 - No global observer.
 - No polling.
 
-## Implementation stages
+## Implemented
 
 ### Stage 1: Router metadata contract
 
-Add optional route metadata for `transition.enter` and `transition.leave`.
+`RouteDefinition` now supports optional `transition.enter` and `transition.leave` metadata.
 
-### Stage 2: Outlet transition coordinator
+`RouteMatch` exposes the resolved transition, including inherited parent metadata.
 
-Create a small coordinator responsible for:
+`Router` exposes `currentTransition()`.
 
-1. keeping the current route DOM mounted during leave;
-2. applying leave classes;
-3. waiting for `animationend` or `transitionend`;
-4. using computed CSS duration fallback;
-5. mounting the next route DOM and applying enter classes.
+### Stage 2: Shared transition helpers
 
-### Stage 3: Admin sample integration
+`packages/router/src/transitions.ts` includes:
 
-Add route transition classes to the admin sample route definitions and verify lazy chunks still load independently.
+- `normalizeRouteTransition`
+- `hasRouteTransition`
+- `applyRouteEnter`
+- `runRouteLeave`
+- `replaceWithRouteTransition`
 
-### Stage 4: Release gates
+The helper:
 
-Add checks for:
+1. validates transition values as class names;
+2. applies leave classes;
+3. waits for `animationend` or `transitionend`;
+4. reads computed CSS motion duration;
+5. uses a bounded fallback;
+6. replaces route DOM;
+7. applies enter classes to the new route DOM.
+
+### Stage 3: Lazy route metadata preservation
+
+`resolveLazyRoute` preserves route transition metadata.
+
+### Stage 4: Admin sample metadata
+
+Admin routes now define shared transition metadata:
+
+```ts
+const adminRouteTransition = {
+  enter: 'admin-route-enter admin-route-rise',
+  leave: 'admin-route-leave admin-route-drop'
+};
+```
+
+The admin sample keeps that metadata when creating its router instance.
+
+### Stage 5: Release gates
+
+`check-router-transition-support.mjs` checks:
 
 - route transition metadata;
+- lazy route metadata preservation;
 - computed CSS duration cleanup;
-- no fixed fallback duration;
-- no runtime expression evaluation.
+- class-name validation;
+- bounded fallback cleanup;
+- admin sample route transition classes.
 
-## Current manual sample
+## Next step
+
+The next implementation step is a first-class router outlet coordinator. Today, `replaceWithRouteTransition(host, next, transition)` exists as a low-level helper. The next step is to wire it into an outlet/component mounting API so applications do not need to call the helper manually.
+
+## Current manual samples
 
 Use the admin animation page:
 
@@ -69,3 +102,16 @@ Manual checks:
 - toggle slow/normal mode;
 - verify leaving scene stays visible until CSS animation completes;
 - verify no stale DOM remains after cleanup.
+
+Use the admin shell:
+
+```txt
+http://localhost:5173/
+```
+
+Manual checks:
+
+- login with demo credentials;
+- navigate between Users, Orders, Reports, and Settings;
+- verify lazy route metadata remains available;
+- verify route transition class names exist in the admin animation stylesheet.
