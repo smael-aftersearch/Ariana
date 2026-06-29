@@ -119,11 +119,36 @@ function transformControlBlocks(
 }
 
 function findNextControlMarker(source: string, start: number): { kind: 'if' | 'for'; index: number } | undefined {
-  const ifIndex = source.indexOf('@if', start);
-  const forIndex = source.indexOf('@for', start);
-  if (ifIndex === -1 && forIndex === -1) return undefined;
-  if (ifIndex !== -1 && (forIndex === -1 || ifIndex < forIndex)) return { kind: 'if', index: ifIndex };
-  return { kind: 'for', index: forIndex };
+  let cursor = start;
+
+  while (cursor < source.length) {
+    const ifIndex = source.indexOf('@if', cursor);
+    const forIndex = source.indexOf('@for', cursor);
+
+    if (ifIndex === -1 && forIndex === -1) return undefined;
+
+    const useIf = ifIndex !== -1 && (forIndex === -1 || ifIndex < forIndex);
+    const kind: 'if' | 'for' = useIf ? 'if' : 'for';
+    const marker = useIf ? '@if' : '@for';
+    const index = useIf ? ifIndex : forIndex;
+
+    if (isControlBlockMarker(source, index, marker)) {
+      return { kind, index };
+    }
+
+    cursor = index + marker.length;
+  }
+
+  return undefined;
+}
+
+function isControlBlockMarker(source: string, markerIndex: number, marker: '@if' | '@for'): boolean {
+  const before = source[markerIndex - 1];
+  if (isIdentifierChar(before)) return false;
+
+  let cursor = markerIndex + marker.length;
+  while (source[cursor] && /\s/.test(source[cursor])) cursor++;
+  return source[cursor] === '(';
 }
 
 function readControlBlock(source: string, markerIndex: number, marker: '@if' | '@for'): { expression: string; content: string; endIndex: number } {
