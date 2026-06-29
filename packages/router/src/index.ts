@@ -1,5 +1,6 @@
 import { signal } from '@ariana/core';
 import type { Provider } from '@ariana/core';
+import type { RouteTransition } from './transitions.js';
 
 export type RouteData = Record<string, unknown>;
 export type RouteGuard = (context: RouteContext) => boolean | string | Promise<boolean | string>;
@@ -11,6 +12,7 @@ export type RouteDefinition<TComponent = unknown> = {
   data?: RouteData;
   providers?: readonly Provider[];
   guards?: readonly RouteGuard[];
+  transition?: RouteTransition;
   children?: readonly RouteDefinition[];
 };
 
@@ -21,6 +23,7 @@ export type RouteMatch = {
   data: RouteData;
   providers: readonly Provider[];
   guardChain: readonly RouteGuard[];
+  transition?: RouteTransition;
 };
 
 export type RouteContext = {
@@ -43,6 +46,7 @@ export type Router = {
   link(path: string): string;
   currentData(): RouteData;
   currentProviders(): readonly Provider[];
+  currentTransition(): RouteTransition | undefined;
 };
 
 export function createRouter(routes: readonly RouteDefinition[], initialPath = '/', options: RouterOptions = {}): Router {
@@ -81,32 +85,43 @@ export function createRouter(routes: readonly RouteDefinition[], initialPath = '
     navigate,
     link(path: string) { return normalizePath(path); },
     currentData() { return currentMatch()?.data ?? {}; },
-    currentProviders() { return currentMatch()?.providers ?? []; }
+    currentProviders() { return currentMatch()?.providers ?? []; },
+    currentTransition() { return currentMatch()?.transition; }
   };
 }
 
 export function matchRoutes(routes: readonly RouteDefinition[], path: string): RouteMatch | undefined {
   const cleanPath = normalizePath(path);
   for (const route of routes) {
-    const match = matchRouteBranch(route, cleanPath, '', {}, {}, [], []);
+    const match = matchRouteBranch(route, cleanPath, '', {}, {}, [], [], undefined);
     if (match) return match;
   }
   return undefined;
 }
 
-function matchRouteBranch(route: RouteDefinition, path: string, basePath: string, inheritedParams: Record<string, string>, inheritedData: RouteData, inheritedProviders: readonly Provider[], inheritedGuards: readonly RouteGuard[]): RouteMatch | undefined {
+function matchRouteBranch(
+  route: RouteDefinition,
+  path: string,
+  basePath: string,
+  inheritedParams: Record<string, string>,
+  inheritedData: RouteData,
+  inheritedProviders: readonly Provider[],
+  inheritedGuards: readonly RouteGuard[],
+  inheritedTransition: RouteTransition | undefined
+): RouteMatch | undefined {
   const routePath = joinPaths(basePath, route.path);
   const routeMatch = matchPath(routePath, path);
   const data = { ...inheritedData, ...(route.data ?? {}) };
   const providers = [...inheritedProviders, ...(route.providers ?? [])];
   const guardChain = [...inheritedGuards, ...(route.guards ?? [])];
+  const transition = route.transition ?? inheritedTransition;
 
   if (routeMatch) {
-    return { route, path, params: { ...inheritedParams, ...routeMatch }, data, providers, guardChain };
+    return { route, path, params: { ...inheritedParams, ...routeMatch }, data, providers, guardChain, transition };
   }
 
   for (const child of route.children ?? []) {
-    const childMatch = matchRouteBranch(child, path, routePath, inheritedParams, data, providers, guardChain);
+    const childMatch = matchRouteBranch(child, path, routePath, inheritedParams, data, providers, guardChain, transition);
     if (childMatch) return childMatch;
   }
 
@@ -153,3 +168,5 @@ function joinPaths(basePath: string, routePath: string): string {
 export { resolveLazyRoute, resolveLazyRoutes } from './lazy.js';
 export type { LazyRouteDefinition } from './lazy.js';
 export { createLazyRouter } from './lazy-router.js';
+export { applyRouteEnter, hasRouteTransition, normalizeRouteTransition, replaceWithRouteTransition, runRouteLeave } from './transitions.js';
+export type { RouteTransition, RouteTransitionState } from './transitions.js';
