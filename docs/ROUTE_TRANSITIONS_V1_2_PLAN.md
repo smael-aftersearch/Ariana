@@ -1,6 +1,6 @@
 # Ariana 1.2 Route Transitions Plan
 
-The dedicated admin `/animate` page demonstrates scene transitions with `@if`, `animate.enter`, and `animate.leave`. Router-level transition metadata and shared helpers are now available in `@ariana/router`.
+The dedicated admin `/animate` page demonstrates scene transitions with `@if`, `animate.enter`, and `animate.leave`. Router-level transition metadata, shared helpers, and a first router outlet coordinator are now available in `@ariana/router`.
 
 ## API
 
@@ -8,13 +8,24 @@ The dedicated admin `/animate` page demonstrates scene transitions with `@if`, `
 const routes = [
   {
     path: '/users',
-    loadComponent: () => import('./pages/users.page.js'),
+    component: UsersPage,
     transition: {
       enter: 'route-enter route-rise',
       leave: 'route-leave route-drop'
     }
   }
 ];
+```
+
+```ts
+const router = createRouter(routes, '/');
+const outlet = createRouterOutlet(router, '#route-host', {
+  wrapperClass: 'route-view'
+});
+
+await outlet.render();
+await router.navigate('/users');
+await outlet.render();
 ```
 
 ## Runtime rules
@@ -25,6 +36,7 @@ const routes = [
 - Route transition helpers are separate from the base router state path.
 - No global observer.
 - No polling.
+- If no transition exists, outlet replacement remains direct and lightweight.
 
 ## Implemented
 
@@ -60,9 +72,23 @@ The helper:
 
 `resolveLazyRoute` preserves route transition metadata.
 
-### Stage 4: Admin sample metadata
+### Stage 4: Router outlet coordinator
 
-Admin routes now define shared transition metadata:
+`packages/router/src/outlet.ts` includes `createRouterOutlet`.
+
+The outlet coordinator:
+
+1. reads `router.currentMatch()`;
+2. mounts the matched route component into an isolated wrapper;
+3. runs leave transition on the previous wrapper;
+4. destroys the previous component after leave cleanup;
+5. replaces the host with the next wrapper;
+6. applies enter transition to the next wrapper;
+7. avoids host cleanup when destroying a child component.
+
+### Stage 5: Admin sample metadata and manual page
+
+Admin routes define shared transition metadata:
 
 ```ts
 const adminRouteTransition = {
@@ -73,7 +99,13 @@ const adminRouteTransition = {
 
 The admin sample keeps that metadata when creating its router instance.
 
-### Stage 5: Release gates
+A dedicated manual demo is available at:
+
+```txt
+http://localhost:5173/route-outlet
+```
+
+### Stage 6: Release gates
 
 `check-router-transition-support.mjs` checks:
 
@@ -82,11 +114,9 @@ The admin sample keeps that metadata when creating its router instance.
 - computed CSS duration cleanup;
 - class-name validation;
 - bounded fallback cleanup;
-- admin sample route transition classes.
-
-## Next step
-
-The next implementation step is a first-class router outlet coordinator. Today, `replaceWithRouteTransition(host, next, transition)` exists as a low-level helper. The next step is to wire it into an outlet/component mounting API so applications do not need to call the helper manually.
+- router outlet coordinator;
+- admin sample route transition classes;
+- admin route outlet manual page.
 
 ## Current manual samples
 
@@ -102,6 +132,20 @@ Manual checks:
 - toggle slow/normal mode;
 - verify leaving scene stays visible until CSS animation completes;
 - verify no stale DOM remains after cleanup.
+
+Use the route outlet demo:
+
+```txt
+http://localhost:5173/route-outlet
+```
+
+Manual checks:
+
+- click Mount outlet;
+- switch Alpha, Beta, and Gamma;
+- verify previous route waits for leave cleanup;
+- verify next route enters with route transition classes;
+- click Destroy and confirm outlet cleanup.
 
 Use the admin shell:
 
