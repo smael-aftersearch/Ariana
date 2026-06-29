@@ -16,6 +16,7 @@ const commands = [
   ['node', ['scripts/check-animation-api-support.mjs']],
   ['node', ['scripts/check-admin-animation-lab.mjs']],
   ['node', ['scripts/check-admin-animate-page.mjs']],
+  ['node', ['scripts/check-router-transition-support.mjs']],
   ['npm', ['run', 'smoke:runtime-lifecycle']],
   ['npm', ['run', 'smoke:vite-plugin-options']],
   ['npm', ['run', 'bench:smoke']],
