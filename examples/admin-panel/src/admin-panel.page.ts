@@ -19,7 +19,7 @@ const routePaths: Record<AdminRouteKey, string> = {
   dashboard: '/', analytics: '/analytics', users: '/users', roles: '/roles', products: '/products', orders: '/orders', reports: '/reports', calendar: '/calendar', settings: '/settings'
 };
 
-const router = createRouter(adminRoutes.map(route => ({ path: route.path, title: route.title, data: route.data, providers: route.providers, guards: route.guards, component: RoutePlaceholder })) as readonly RouteDefinition[], '/');
+const router = createRouter(adminRoutes.map(route => ({ path: route.path, title: route.title, data: route.data, providers: route.providers, guards: route.guards, transition: route.transition, component: RoutePlaceholder })) as readonly RouteDefinition[], '/');
 
 @Route('/admin')
 @Component({ selector: 'ari-admin-panel-page', templateUrl: './admin-panel.page.html', styleUrl: './admin-panel.page.css' })
@@ -133,6 +133,11 @@ export class AdminPanelPage {
     const titles: Record<ModalType, string> = { user: 'addUser', role: 'addRole', product: 'addProduct', report: 'addReport', order: 'addOrder', note: 'addNote' };
     return modal ? this.t(titles[modal]) : '';
   });
+
+  routeTransitionSummary() {
+    const transition = router.currentTransition();
+    return transition ? `${transition.enter ?? 'none'} -> ${transition.leave ?? 'none'}` : 'none';
+  }
 
   t(key: string) { return this.i18n.t(key); }
   initials(name: string) { return name.split(' ').map(part => part[0] ?? '').join('').slice(0, 2).toUpperCase(); }
