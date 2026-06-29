@@ -26,6 +26,7 @@
     <button (click)="toggleOrb()">Toggle orb</button>
     <button (click)="togglePanel()">Toggle panel</button>
     <button (click)="addCard()">Add card</button>
+    <button (click)="addStaggerItem()">Add stagger item</button>
     <button (click)="toggleSpeed()">{{ speedLabel() }}</button>
   </section>
 
@@ -67,6 +68,76 @@
     }
   </section>
 
+  <section class="scene-panel" animate.enter="animate-enter-slow animate-rise">
+    <header>
+      <div>
+        <span class="eyebrow">Scene transition</span>
+        <h2>{{ sceneTitle() }}</h2>
+        <p>{{ sceneSummary() }}</p>
+      </div>
+      <div class="scene-tabs">
+        <button [class.active]="selectedScene() === 'flow'" (click)="setScene('flow')">Flow</button>
+        <button [class.active]="selectedScene() === 'data'" (click)="setScene('data')">Data</button>
+        <button [class.active]="selectedScene() === 'security'" (click)="setScene('security')">Security</button>
+      </div>
+    </header>
+
+    <div class="scene-stage">
+      @if (selectedScene() === 'flow') {
+        <article class="scene-card flow" animate.enter="animate-enter-slow animate-rise" animate.leave="animate-leave-slow animate-drop">
+          <h3>Compiled runtime flow</h3>
+          <p>Switch tabs to inspect a full view transition driven by @if blocks.</p>
+          <div class="scene-diagram"><span>compile</span><span>mount</span><span>animate</span><span>cleanup</span></div>
+        </article>
+      }
+
+      @if (selectedScene() === 'data') {
+        <article class="scene-card data" animate.enter="animate-enter-slow animate-scale" animate.leave="animate-leave-slow animate-scale-out">
+          <h3>Data transition</h3>
+          <p>This view simulates a dashboard panel that changes when signal state changes.</p>
+          <div class="fake-chart"><i></i><i></i><i></i><i></i><i></i></div>
+        </article>
+      }
+
+      @if (selectedScene() === 'security') {
+        <article class="scene-card security" animate.enter="animate-enter-slow animate-rise" animate.leave="animate-leave-slow animate-drop">
+          <h3>Security transition</h3>
+          <p>Animation values remain CSS class names. There is no JavaScript string evaluation.</p>
+          <div class="security-list"><span>validated classes</span><span>no eval</span><span>bounded cleanup</span></div>
+        </article>
+      }
+    </div>
+
+    <div class="scene-steps">
+      @for (step of sceneSteps(); track step.title) {
+        <article animate.enter="animate-enter-slow animate-rise" animate.leave="animate-leave-slow animate-drop">
+          <strong>{{ step.title }}</strong>
+          <small>{{ step.description }}</small>
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="stagger-panel" animate.enter="animate-enter-slow animate-rise">
+    <header>
+      <div>
+        <span class="eyebrow">Stagger list</span>
+        <h2>Manual stagger inspection</h2>
+        <p>Add and remove items to check how many small leave animations feel in one update.</p>
+      </div>
+      <strong>{{ staggerItems().length }} steps</strong>
+    </header>
+    <div class="stagger-list">
+      @for (item of staggerItems(); track item.id) {
+        <article class="stagger-item" [class.tone-sky]="item.tone === 'sky'" [class.tone-emerald]="item.tone === 'emerald'" [class.tone-amber]="item.tone === 'amber'" animate.enter="animate-enter-slow animate-rise" animate.leave="animate-leave-slow animate-drop">
+          <span>{{ item.id }}</span>
+          <strong>{{ item.label }}</strong>
+          <button (click)="removeStaggerItem(item.id)">Remove</button>
+        </article>
+      }
+    </div>
+  </section>
+
   <section class="cards-panel" animate.enter="animate-enter-slow animate-rise">
     <header>
       <div>
@@ -89,5 +160,11 @@
         </article>
       }
     </div>
+  </section>
+
+  <section class="runtime-notes" animate.enter="animate-enter-slow animate-rise">
+    <article><strong>No polling</strong><span>Cleanup uses CSS events plus a bounded fallback.</span></article>
+    <article><strong>No observer</strong><span>Only mounted fragments are inspected for animation attributes.</span></article>
+    <article><strong>No eval</strong><span>Animation values are validated as class names.</span></article>
   </section>
 </main>
