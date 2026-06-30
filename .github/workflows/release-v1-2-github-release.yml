@@ -30,6 +30,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build package artifacts
+        run: |
+          npm run build
+          npm run build:admin
+          npm run pack:v1.2:candidate
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
+      - name: Run packed candidate smoke
+        run: node scripts/packed-candidate-smoke.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
+      - name: Create release manifest
+        run: node scripts/create-release-manifest.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
@@ -38,3 +64,6 @@ jobs:
           body_path: docs/releases/1.2.0-rc.1.md
           prerelease: true
           draft: true
+          files: |
+            npm-packages/*.tgz
+            release-manifests/*
