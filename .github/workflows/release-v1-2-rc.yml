@@ -65,6 +65,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Create release summary
+        run: node scripts/create-release-summary.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Upload npm package tarballs
         uses: actions/upload-artifact@v4
         with:
