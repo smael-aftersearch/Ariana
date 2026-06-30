@@ -56,6 +56,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Verify release manifest
+        run: node scripts/verify-release-manifest.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
