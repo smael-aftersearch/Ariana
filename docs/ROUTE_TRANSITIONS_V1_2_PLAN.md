@@ -24,8 +24,7 @@ const outlet = createRouterOutlet(router, '#route-host', {
 });
 
 await outlet.render();
-await router.navigate('/users');
-await outlet.render();
+await outlet.navigate('/users');
 ```
 
 ## Runtime rules
@@ -84,7 +83,8 @@ The outlet coordinator:
 4. destroys the previous component after leave cleanup;
 5. replaces the host with the next wrapper;
 6. applies enter transition to the next wrapper;
-7. avoids host cleanup when destroying a child component.
+7. avoids host cleanup when destroying a child component;
+8. exposes `outlet.navigate(path)` for navigate-and-render flows.
 
 ### Stage 5: Admin sample metadata and manual page
 
@@ -115,6 +115,7 @@ http://localhost:5173/route-outlet
 - class-name validation;
 - bounded fallback cleanup;
 - router outlet coordinator;
+- outlet navigate helper;
 - admin sample route transition classes;
 - admin route outlet manual page.
 
