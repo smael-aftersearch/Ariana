@@ -1,0 +1,35 @@
+name: Ariana 1.2 Verify NPM Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Candidate version to verify
+        required: true
+        default: 1.2.0-rc.1
+      dist_tag:
+        description: npm dist tag to verify
+        required: true
+        default: next
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify npm registry state
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify npm release
+        run: node scripts/verify-npm-release.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          NPM_DIST_TAG: ${{ inputs.dist_tag }}
