@@ -1,0 +1,50 @@
+name: Ariana 1.2 NPM Dry Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Candidate version
+        required: true
+        default: 1.2.0-rc.1
+      dist_tag:
+        description: npm dist tag to simulate
+        required: true
+        default: next
+
+permissions:
+  contents: read
+
+jobs:
+  npm-dry-run:
+    name: NPM dry run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run release gates
+        run: npm run release:gates:v1.2
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
+      - name: Run npm package dry run
+        run: npm run publish:v1:dry
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          NPM_DIST_TAG: ${{ inputs.dist_tag }}
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ariana-${{ inputs.version }}-npm-dry-run-artifacts
+          path: npm-packages/*.tgz
+          if-no-files-found: error
