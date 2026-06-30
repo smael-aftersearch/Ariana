@@ -3,8 +3,12 @@ import { readFileSync } from 'node:fs';
 const rootPackage = readFileSync('package.json', 'utf8');
 const releaseNotes = readFileSync('docs/releases/1.2.0-rc.1.md', 'utf8');
 const checklist = readFileSync('docs/releases/1.2.0-rc.1-checklist.md', 'utf8');
+const postRelease = readFileSync('docs/releases/1.2.0-rc.1-post-release.md', 'utf8');
 const workflow = readFileSync('.github/workflows/release-v1-2-rc.yml', 'utf8');
 const dryRunWorkflow = readFileSync('.github/workflows/release-v1-2-npm-dry-run.yml', 'utf8');
+const nextWorkflow = readFileSync('.github/workflows/release-v1-2-next.yml', 'utf8');
+const verifyWorkflow = readFileSync('.github/workflows/release-v1-2-verify.yml', 'utf8');
+const verifyScript = readFileSync('scripts/verify-npm-release.mjs', 'utf8');
 const gates = readFileSync('scripts/v1-release-gates.mjs', 'utf8');
 
 const checks = [
@@ -16,6 +20,9 @@ const checks = [
   ['release notes animation API', 'animate.enter', releaseNotes],
   ['checklist version', '1.2.0-rc.1', checklist],
   ['checklist dry run command', 'npm run publish:v1:dry', checklist],
+  ['checklist protected next release', 'RELEASE_NEXT', checklist],
+  ['post release verification docs', 'verify-npm-release.mjs', postRelease],
+  ['post release rollback docs', 'dist-tag', postRelease],
   ['manual workflow dispatch', 'workflow_dispatch', workflow],
   ['workflow version input', 'default: 1.2.0-rc.1', workflow],
   ['workflow uses lockfile-free install', 'npm install --no-audit --no-fund', workflow],
@@ -26,6 +33,15 @@ const checks = [
   ['dry run workflow version input', 'default: 1.2.0-rc.1', dryRunWorkflow],
   ['dry run workflow command', 'npm run publish:v1:dry', dryRunWorkflow],
   ['dry run workflow tag input', 'dist_tag', dryRunWorkflow],
+  ['next workflow dispatch', 'workflow_dispatch', nextWorkflow],
+  ['next workflow confirmation', 'RELEASE_NEXT', nextWorkflow],
+  ['next workflow environment', 'environment: npm-next', nextWorkflow],
+  ['next workflow token', 'NODE_AUTH_TOKEN', nextWorkflow],
+  ['next workflow next tag', 'NPM_DIST_TAG: next', nextWorkflow],
+  ['verify workflow dispatch', 'workflow_dispatch', verifyWorkflow],
+  ['verify workflow command', 'node scripts/verify-npm-release.mjs', verifyWorkflow],
+  ['verify script package list', '@ariana-framework', verifyScript],
+  ['verify script dist tag check', 'dist-tags.${releaseTag}', verifyScript],
   ['release gates run router transition check', 'check-router-transition-support.mjs', gates],
   ['release gates run candidate check', 'check-v1-2-release-candidate.mjs', gates]
 ];
