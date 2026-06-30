@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 const rootPackage = readFileSync('package.json', 'utf8');
@@ -14,6 +15,7 @@ const githubReleaseWorkflow = readFileSync('.github/workflows/release-v1-2-githu
 const verifyScript = readFileSync('scripts/verify-npm-release.mjs', 'utf8');
 const packedSmoke = readFileSync('scripts/packed-candidate-smoke.mjs', 'utf8');
 const manifestScript = readFileSync('scripts/create-release-manifest.mjs', 'utf8');
+const workflowHygieneScript = readFileSync('scripts/check-workflow-hygiene.mjs', 'utf8');
 const gates = readFileSync('scripts/v1-release-gates.mjs', 'utf8');
 
 const checks = [
@@ -69,6 +71,9 @@ const checks = [
   ['packed smoke imports router', '@ariana-framework/router', packedSmoke],
   ['manifest script writes sha256', 'sha256', manifestScript],
   ['manifest script checks packages', 'expectedPackages', manifestScript],
+  ['workflow hygiene script checks lockfile install', 'npm ci requires a package-lock.json file', workflowHygieneScript],
+  ['workflow hygiene script checks npm cache', 'setup-node npm cache requires a npm lockfile', workflowHygieneScript],
+  ['workflow hygiene script checks Node 22', 'node-version: 22', workflowHygieneScript],
   ['release gates run router transition check', 'check-router-transition-support.mjs', gates],
   ['release gates run candidate check', 'check-v1-2-release-candidate.mjs', gates]
 ];
@@ -78,5 +83,7 @@ for (const [label, fragment, source, shouldInclude = true] of checks) {
   if (shouldInclude && !ok) throw new Error(`Ariana 1.2 release candidate check failed: ${label}`);
   if (!shouldInclude && ok) throw new Error(`Ariana 1.2 release candidate check failed: ${label}`);
 }
+
+execFileSync(process.execPath, ['scripts/check-workflow-hygiene.mjs'], { stdio: 'inherit' });
 
 console.log('Ariana 1.2 release candidate check passed.');
