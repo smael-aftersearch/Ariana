@@ -27,11 +27,14 @@ const checks = [
   ['outlet component mount', 'mountComponent', files.outlet],
   ['outlet enter helper', 'applyRouteEnter', files.outlet],
   ['outlet leave helper', 'runRouteLeave', files.outlet],
+  ['outlet navigate API', 'navigate(path: string)', files.outlet],
+  ['outlet navigate implementation', 'router.navigate(path)', files.outlet],
   ['admin route metadata', 'adminRouteTransition', files.routes],
   ['admin preserves metadata', 'transition: route.transition', files.admin],
   ['admin enter css', '.admin-route-enter', files.styles],
   ['admin leave css', '.admin-route-leave', files.styles],
   ['demo uses outlet', 'createRouterOutlet', files.outletDemo],
+  ['demo uses outlet navigate', 'this.outlet?.navigate(path)', files.outletDemo],
   ['demo route exposed', '/route-outlet', files.main]
 ];
 
