@@ -16,6 +16,7 @@ const hygieneWorkflow = readFileSync('.github/workflows/workflow-hygiene.yml', '
 const verifyScript = readFileSync('scripts/verify-npm-release.mjs', 'utf8');
 const packedSmoke = readFileSync('scripts/packed-candidate-smoke.mjs', 'utf8');
 const packedContents = readFileSync('scripts/verify-packed-tarball-contents.mjs', 'utf8');
+const packedDependencies = readFileSync('scripts/verify-packed-internal-dependencies.mjs', 'utf8');
 const manifestScript = readFileSync('scripts/create-release-manifest.mjs', 'utf8');
 const manifestVerifyScript = readFileSync('scripts/verify-release-manifest.mjs', 'utf8');
 const releaseSummaryScript = readFileSync('scripts/create-release-summary.mjs', 'utf8');
@@ -49,6 +50,7 @@ const checks = [
   ['workflow does not use npm ci', 'npm ci', workflow, false],
   ['workflow runs v1.2 gates', 'npm run release:gates:v1.2', workflow],
   ['workflow verifies packed contents', 'node scripts/verify-packed-tarball-contents.mjs', workflow],
+  ['workflow verifies packed dependencies', 'node scripts/verify-packed-internal-dependencies.mjs', workflow],
   ['workflow runs packed smoke', 'node scripts/packed-candidate-smoke.mjs', workflow],
   ['workflow creates manifest', 'node scripts/create-release-manifest.mjs', workflow],
   ['workflow verifies manifest', 'node scripts/verify-release-manifest.mjs', workflow],
@@ -68,6 +70,7 @@ const checks = [
   ['github release workflow dispatch', 'workflow_dispatch', githubReleaseWorkflow],
   ['github release workflow confirmation', 'CREATE_GITHUB_RELEASE', githubReleaseWorkflow],
   ['github release workflow verifies packed contents', 'node scripts/verify-packed-tarball-contents.mjs', githubReleaseWorkflow],
+  ['github release workflow verifies packed dependencies', 'node scripts/verify-packed-internal-dependencies.mjs', githubReleaseWorkflow],
   ['github release workflow creates manifest', 'node scripts/create-release-manifest.mjs', githubReleaseWorkflow],
   ['github release workflow verifies manifest', 'node scripts/verify-release-manifest.mjs', githubReleaseWorkflow],
   ['github release workflow creates summary', 'node scripts/create-release-summary.mjs', githubReleaseWorkflow],
@@ -97,6 +100,10 @@ const checks = [
   ['packed contents checks missing target', 'target is missing', packedContents],
   ['packed contents checks dist js', 'dist js output is missing', packedContents],
   ['packed contents checks dist types', 'dist type declarations are missing', packedContents],
+  ['packed dependencies checks workspace protocol', 'still uses workspace protocol', packedDependencies],
+  ['packed dependencies checks file protocol', 'still uses file protocol', packedDependencies],
+  ['packed dependencies checks link protocol', 'still uses link protocol', packedDependencies],
+  ['packed dependencies checks internal version', 'must be ${version}', packedDependencies],
   ['manifest script writes sha256', 'sha256', manifestScript],
   ['manifest script checks packages', 'expectedPackages', manifestScript],
   ['manifest verify script reads manifest', 'ariana-${version}-manifest.json', manifestVerifyScript],
