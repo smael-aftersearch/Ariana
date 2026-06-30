@@ -17,10 +17,11 @@ const commands = [
   ['node', ['scripts/check-admin-animation-lab.mjs']],
   ['node', ['scripts/check-admin-animate-page.mjs']],
   ['node', ['scripts/check-router-transition-support.mjs']],
+  ['node', ['scripts/check-v1-2-release-candidate.mjs']],
   ['npm', ['run', 'smoke:runtime-lifecycle']],
   ['npm', ['run', 'smoke:vite-plugin-options']],
   ['npm', ['run', 'bench:smoke']],
-  ['npm', ['run', 'pack:v1:candidate']]
+  ['npm', ['run', 'pack:v1.2:candidate']]
 ];
 
 for (const [command, args] of commands) {
