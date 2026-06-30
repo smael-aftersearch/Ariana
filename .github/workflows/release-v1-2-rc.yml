@@ -1,0 +1,66 @@
+name: Ariana 1.2 RC Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release candidate version
+        required: true
+        default: 1.2.0-rc.1
+      run_gates:
+        description: Run full release gates before packing
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    name: Build release candidate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run release gates
+        if: ${{ inputs.run_gates == 'true' }}
+        run: npm run release:gates:v1.2
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
+      - name: Build package candidate only
+        if: ${{ inputs.run_gates != 'true' }}
+        run: |
+          npm run build
+          npm run build:admin
+          npm run pack:v1.2:candidate
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
+      - name: Upload npm package tarballs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ariana-${{ inputs.version }}-npm-tarballs
+          path: npm-packages/*.tgz
+          if-no-files-found: error
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: ariana-${{ inputs.version }}-release-notes
+          path: docs/releases/1.2.0-rc.1.md
+          if-no-files-found: error
