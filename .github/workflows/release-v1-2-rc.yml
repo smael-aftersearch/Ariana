@@ -60,6 +60,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Verify release manifest
+        run: node scripts/verify-release-manifest.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Upload npm package tarballs
         uses: actions/upload-artifact@v4
         with:
