@@ -20,6 +20,16 @@ try {
   writeFileSync(join(tempDir, 'package.json'), `${JSON.stringify({ private: true, type: 'module' }, null, 2)}\n`);
   run('npm', ['install', '--no-audit', '--no-fund', ...tarballs], { cwd: tempDir });
 
+  for (const name of packageNames) {
+    const packageJsonPath = join(tempDir, 'node_modules', '@ariana-framework', name, 'package.json');
+    const metadata = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+    const expectedName = `@ariana-framework/${name}`;
+    if (metadata.name !== expectedName) throw new Error(`${expectedName}: installed package name mismatch.`);
+    if (metadata.version !== version) throw new Error(`${expectedName}: installed package version mismatch.`);
+    if (metadata.type !== 'module') throw new Error(`${expectedName}: package type must be module.`);
+    if (!metadata.exports) throw new Error(`${expectedName}: package exports are missing.`);
+  }
+
   writeFileSync(join(tempDir, 'smoke.mjs'), `
 import { signal, computed } from '@ariana-framework/core';
 import { createRouter, normalizeRouteTransition } from '@ariana-framework/router';
