@@ -16,6 +16,7 @@ const hygieneWorkflow = readFileSync('.github/workflows/workflow-hygiene.yml', '
 const verifyScript = readFileSync('scripts/verify-npm-release.mjs', 'utf8');
 const packedSmoke = readFileSync('scripts/packed-candidate-smoke.mjs', 'utf8');
 const manifestScript = readFileSync('scripts/create-release-manifest.mjs', 'utf8');
+const manifestVerifyScript = readFileSync('scripts/verify-release-manifest.mjs', 'utf8');
 const workflowHygieneScript = readFileSync('scripts/check-workflow-hygiene.mjs', 'utf8');
 const gates = readFileSync('scripts/v1-release-gates.mjs', 'utf8');
 
@@ -37,6 +38,7 @@ const checks = [
   ['release sequence checksum', 'sha256sum -c', releaseSequence],
   ['artifact verification checksum docs', 'ariana-1.2.0-rc.1-sha256.txt', artifactVerification],
   ['artifact verification manifest docs', 'ariana-1.2.0-rc.1-manifest.json', artifactVerification],
+  ['artifact verification script docs', 'verify-release-manifest.mjs', artifactVerification],
   ['manual workflow dispatch', 'workflow_dispatch', workflow],
   ['workflow version input', 'default: 1.2.0-rc.1', workflow],
   ['workflow uses lockfile-free install', 'npm install --no-audit --no-fund', workflow],
@@ -44,6 +46,7 @@ const checks = [
   ['workflow runs v1.2 gates', 'npm run release:gates:v1.2', workflow],
   ['workflow runs packed smoke', 'node scripts/packed-candidate-smoke.mjs', workflow],
   ['workflow creates manifest', 'node scripts/create-release-manifest.mjs', workflow],
+  ['workflow verifies manifest', 'node scripts/verify-release-manifest.mjs', workflow],
   ['workflow uploads tarballs', 'npm-packages/*.tgz', workflow],
   ['workflow uploads manifest', 'release-manifests/*', workflow],
   ['dry run workflow dispatch', 'workflow_dispatch', dryRunWorkflow],
@@ -59,6 +62,7 @@ const checks = [
   ['github release workflow dispatch', 'workflow_dispatch', githubReleaseWorkflow],
   ['github release workflow confirmation', 'CREATE_GITHUB_RELEASE', githubReleaseWorkflow],
   ['github release workflow creates manifest', 'node scripts/create-release-manifest.mjs', githubReleaseWorkflow],
+  ['github release workflow verifies manifest', 'node scripts/verify-release-manifest.mjs', githubReleaseWorkflow],
   ['github release workflow attaches files', 'release-manifests/*', githubReleaseWorkflow],
   ['github release workflow draft', 'draft: true', githubReleaseWorkflow],
   ['github release workflow prerelease', 'prerelease: true', githubReleaseWorkflow],
@@ -75,6 +79,10 @@ const checks = [
   ['packed smoke imports router', '@ariana-framework/router', packedSmoke],
   ['manifest script writes sha256', 'sha256', manifestScript],
   ['manifest script checks packages', 'expectedPackages', manifestScript],
+  ['manifest verify script reads manifest', 'ariana-${version}-manifest.json', manifestVerifyScript],
+  ['manifest verify script checks size', 'size mismatch', manifestVerifyScript],
+  ['manifest verify script checks sha', 'sha256 mismatch', manifestVerifyScript],
+  ['manifest verify script checks checksum file', 'missing checksum line', manifestVerifyScript],
   ['workflow hygiene script checks lockfile install', 'npm ci requires a package-lock.json file', workflowHygieneScript],
   ['workflow hygiene script checks npm cache', 'setup-node npm cache requires a npm lockfile', workflowHygieneScript],
   ['workflow hygiene script checks Node 22', 'node-version: 22', workflowHygieneScript],
