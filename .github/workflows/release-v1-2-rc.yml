@@ -50,6 +50,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Run packed candidate smoke
+        run: node scripts/packed-candidate-smoke.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Upload npm package tarballs
         uses: actions/upload-artifact@v4
         with:
