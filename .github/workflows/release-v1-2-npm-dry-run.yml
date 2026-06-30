@@ -36,6 +36,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Run packed candidate smoke
+        run: node scripts/packed-candidate-smoke.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Run npm package dry run
         run: npm run publish:v1:dry
         env:
