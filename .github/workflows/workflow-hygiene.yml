@@ -1,0 +1,28 @@
+name: Workflow Hygiene
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'scripts/check-workflow-hygiene.mjs'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    name: Check workflows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check workflow hygiene
+        run: node scripts/check-workflow-hygiene.mjs
