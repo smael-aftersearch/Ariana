@@ -35,11 +35,11 @@ export class RouteOutletDemoPage {
   }
 
   async navigate(path: string) {
+    this.ensureOutlet();
     this.status.set('navigating');
-    const ok = await this.router.navigate(path);
+    const ok = await this.outlet?.navigate(path);
     if (ok) {
       this.currentPath.set(path);
-      await this.renderOutlet();
       this.status.set(`rendered ${path}`);
       return;
     }
@@ -47,13 +47,18 @@ export class RouteOutletDemoPage {
   }
 
   async renderOutlet() {
-    if (!this.outlet) return;
-    await this.outlet.render();
+    this.ensureOutlet();
+    const ok = await this.outlet?.render();
+    this.status.set(ok ? `rendered ${this.currentPath()}` : 'render skipped');
   }
 
   destroyOutlet() {
     this.outlet?.destroy();
     this.outlet = undefined;
     this.status.set('destroyed');
+  }
+
+  private ensureOutlet() {
+    if (!this.outlet) this.outlet = createRouterOutlet(this.router, '#router-outlet-demo-host', { wrapperClass: 'outlet-view' });
   }
 }
