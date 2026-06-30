@@ -12,6 +12,7 @@ const dryRunWorkflow = readFileSync('.github/workflows/release-v1-2-npm-dry-run.
 const nextWorkflow = readFileSync('.github/workflows/release-v1-2-next.yml', 'utf8');
 const verifyWorkflow = readFileSync('.github/workflows/release-v1-2-verify.yml', 'utf8');
 const githubReleaseWorkflow = readFileSync('.github/workflows/release-v1-2-github-release.yml', 'utf8');
+const hygieneWorkflow = readFileSync('.github/workflows/workflow-hygiene.yml', 'utf8');
 const verifyScript = readFileSync('scripts/verify-npm-release.mjs', 'utf8');
 const packedSmoke = readFileSync('scripts/packed-candidate-smoke.mjs', 'utf8');
 const manifestScript = readFileSync('scripts/create-release-manifest.mjs', 'utf8');
@@ -64,6 +65,9 @@ const checks = [
   ['github release workflow notes', 'body_path: docs/releases/1.2.0-rc.1.md', githubReleaseWorkflow],
   ['verify workflow dispatch', 'workflow_dispatch', verifyWorkflow],
   ['verify workflow command', 'node scripts/verify-npm-release.mjs', verifyWorkflow],
+  ['hygiene workflow dispatch', 'workflow_dispatch', hygieneWorkflow],
+  ['hygiene workflow pull request', 'pull_request', hygieneWorkflow],
+  ['hygiene workflow command', 'node scripts/check-workflow-hygiene.mjs', hygieneWorkflow],
   ['verify script package list', '@ariana-framework', verifyScript],
   ['verify script dist tag check', 'dist-tags.${releaseTag}', verifyScript],
   ['packed smoke installs tarballs', 'npm', packedSmoke],
