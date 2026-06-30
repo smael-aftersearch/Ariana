@@ -46,6 +46,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Verify packed tarball contents
+        run: node scripts/verify-packed-tarball-contents.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Run packed candidate smoke
         run: node scripts/packed-candidate-smoke.mjs
         env:
