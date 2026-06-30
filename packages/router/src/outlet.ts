@@ -11,6 +11,7 @@ export type RouterOutlet = {
   readonly host: HTMLElement;
   readonly router: Router;
   render(): Promise<boolean>;
+  navigate(path: string): Promise<boolean>;
   destroy(): void;
 };
 
@@ -59,6 +60,13 @@ export function createRouterOutlet(
     return true;
   }
 
+  async function navigate(path: string): Promise<boolean> {
+    if (destroyed) return false;
+    const ok = await router.navigate(path);
+    if (!ok) return false;
+    return render();
+  }
+
   function destroy() {
     if (destroyed) return;
     destroyed = true;
@@ -77,7 +85,7 @@ export function createRouterOutlet(
     view.element.remove();
   }
 
-  return { host: hostElement, router, render, destroy };
+  return { host: hostElement, router, render, navigate, destroy };
 }
 
 function resolveHost(host: string | HTMLElement): HTMLElement {
