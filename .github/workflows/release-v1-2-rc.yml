@@ -55,11 +55,23 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Create release manifest
+        run: node scripts/create-release-manifest.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Upload npm package tarballs
         uses: actions/upload-artifact@v4
         with:
           name: ariana-${{ inputs.version }}-npm-tarballs
           path: npm-packages/*.tgz
+          if-no-files-found: error
+
+      - name: Upload release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: ariana-${{ inputs.version }}-manifest
+          path: release-manifests/*
           if-no-files-found: error
 
       - name: Upload release notes
