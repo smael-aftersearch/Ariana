@@ -1,0 +1,60 @@
+name: Ariana 1.2 Next Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Candidate version
+        required: true
+        default: 1.2.0-rc.1
+      confirm:
+        description: Type RELEASE_NEXT to confirm npm next release
+        required: true
+        default: NO
+
+permissions:
+  contents: read
+
+jobs:
+  next-release:
+    name: Release candidate to npm next
+    runs-on: ubuntu-latest
+    environment: npm-next
+    steps:
+      - name: Confirm release
+        run: |
+          if [ "${{ inputs.confirm }}" != "RELEASE_NEXT" ]; then
+            echo "Confirmation failed. Type RELEASE_NEXT to continue."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run release gates
+        run: npm run release:gates:v1.2
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
+      - name: Release npm packages with next tag
+        run: npm run publish:v1
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          NPM_DIST_TAG: next
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Upload released package tarballs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ariana-${{ inputs.version }}-next-release-tarballs
+          path: npm-packages/*.tgz
+          if-no-files-found: error
