@@ -51,6 +51,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Verify packed internal dependencies
+        run: node scripts/verify-packed-internal-dependencies.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Run packed candidate smoke
         run: node scripts/packed-candidate-smoke.mjs
         env:
