@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 const rootPackage = readFileSync('package.json', 'utf8');
+const versionTasks = readFileSync('docs/releases/1.2.0-version-tasks.md', 'utf8');
 const releaseNotes = readFileSync('docs/releases/1.2.0-rc.1.md', 'utf8');
 const checklist = readFileSync('docs/releases/1.2.0-rc.1-checklist.md', 'utf8');
 const postRelease = readFileSync('docs/releases/1.2.0-rc.1-post-release.md', 'utf8');
@@ -20,6 +21,7 @@ const packedDependencies = readFileSync('scripts/verify-packed-internal-dependen
 const manifestScript = readFileSync('scripts/create-release-manifest.mjs', 'utf8');
 const manifestVerifyScript = readFileSync('scripts/verify-release-manifest.mjs', 'utf8');
 const releaseSummaryScript = readFileSync('scripts/create-release-summary.mjs', 'utf8');
+const releaseStatusScript = readFileSync('scripts/create-v1-2-release-status.mjs', 'utf8');
 const workflowHygieneScript = readFileSync('scripts/check-workflow-hygiene.mjs', 'utf8');
 const gates = readFileSync('scripts/v1-release-gates.mjs', 'utf8');
 
@@ -27,6 +29,9 @@ const checks = [
   ['root version', '"version": "1.2.0-rc.1"', rootPackage],
   ['v1.2 gate script', 'release:gates:v1.2', rootPackage],
   ['v1.2 pack script', 'pack:v1.2:candidate', rootPackage],
+  ['version tasks current version', '1.2.0-rc.1', versionTasks],
+  ['version tasks stable promotion', 'Stable promotion tasks', versionTasks],
+  ['version tasks npm next path', 'npm next', versionTasks],
   ['release notes version', 'Ariana `1.2.0-rc.1`', releaseNotes],
   ['release notes router outlet', 'createRouterOutlet', releaseNotes],
   ['release notes animation API', 'animate.enter', releaseNotes],
@@ -55,6 +60,7 @@ const checks = [
   ['workflow creates manifest', 'node scripts/create-release-manifest.mjs', workflow],
   ['workflow verifies manifest', 'node scripts/verify-release-manifest.mjs', workflow],
   ['workflow creates summary', 'node scripts/create-release-summary.mjs', workflow],
+  ['workflow creates release status', 'node scripts/create-v1-2-release-status.mjs', workflow],
   ['workflow uploads tarballs', 'npm-packages/*.tgz', workflow],
   ['workflow uploads manifest', 'release-manifests/*', workflow],
   ['dry run workflow dispatch', 'workflow_dispatch', dryRunWorkflow],
@@ -74,6 +80,7 @@ const checks = [
   ['github release workflow creates manifest', 'node scripts/create-release-manifest.mjs', githubReleaseWorkflow],
   ['github release workflow verifies manifest', 'node scripts/verify-release-manifest.mjs', githubReleaseWorkflow],
   ['github release workflow creates summary', 'node scripts/create-release-summary.mjs', githubReleaseWorkflow],
+  ['github release workflow creates release status', 'node scripts/create-v1-2-release-status.mjs', githubReleaseWorkflow],
   ['github release workflow attaches files', 'release-manifests/*', githubReleaseWorkflow],
   ['github release workflow draft', 'draft: true', githubReleaseWorkflow],
   ['github release workflow prerelease', 'prerelease: true', githubReleaseWorkflow],
@@ -112,6 +119,9 @@ const checks = [
   ['manifest verify script checks checksum file', 'missing checksum line', manifestVerifyScript],
   ['release summary script writes summary', 'summary.md', releaseSummaryScript],
   ['release summary script includes table', '| Package | File | Size | SHA256 |', releaseSummaryScript],
+  ['release status script writes status', 'release-status.md', releaseStatusScript],
+  ['release status script tracks stable promotion', 'stable `1.2.0` promotion', releaseStatusScript],
+  ['release status script tracks operator steps', 'Next operator steps', releaseStatusScript],
   ['workflow hygiene script checks lockfile install', 'npm ci requires a package-lock.json file', workflowHygieneScript],
   ['workflow hygiene script checks npm cache', 'setup-node npm cache requires a npm lockfile', workflowHygieneScript],
   ['workflow hygiene script checks Node 22', 'node-version: 22', workflowHygieneScript],
