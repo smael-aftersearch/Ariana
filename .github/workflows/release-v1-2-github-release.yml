@@ -76,6 +76,11 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
 
+      - name: Create release status
+        run: node scripts/create-v1-2-release-status.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
