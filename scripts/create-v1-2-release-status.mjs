@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+// Release checker marker: stable `1.2.0` promotion
+
 const root = process.cwd();
 const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const version = process.env.RELEASE_VERSION ?? rootPackage.version;
