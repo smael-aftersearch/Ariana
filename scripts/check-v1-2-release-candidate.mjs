@@ -3,6 +3,9 @@ import { readFileSync } from 'node:fs';
 
 const rootPackage = readFileSync('package.json', 'utf8');
 const versionTasks = readFileSync('docs/releases/1.2.0-version-tasks.md', 'utf8');
+const manualValidation = readFileSync('docs/releases/1.2.0-rc.1-manual-validation.md', 'utf8');
+const stablePlan = readFileSync('docs/releases/1.2.0-stable-promotion-plan.md', 'utf8');
+const versionTaskCheck = readFileSync('scripts/check-v1-2-version-tasks.mjs', 'utf8');
 const releaseNotes = readFileSync('docs/releases/1.2.0-rc.1.md', 'utf8');
 const checklist = readFileSync('docs/releases/1.2.0-rc.1-checklist.md', 'utf8');
 const postRelease = readFileSync('docs/releases/1.2.0-rc.1-post-release.md', 'utf8');
@@ -32,6 +35,12 @@ const checks = [
   ['version tasks current version', '1.2.0-rc.1', versionTasks],
   ['version tasks stable promotion', 'Stable promotion tasks', versionTasks],
   ['version tasks npm next path', 'npm next', versionTasks],
+  ['manual validation route animate', '/animate', manualValidation],
+  ['manual validation route outlet', '/route-outlet', manualValidation],
+  ['manual validation npm next', 'RELEASE_NEXT', manualValidation],
+  ['stable plan entry criteria', 'Entry criteria', stablePlan],
+  ['stable plan latest publish', 'npm `latest`', stablePlan],
+  ['version task check script', 'Ariana 1.2 version task check passed', versionTaskCheck],
   ['release notes version', 'Ariana `1.2.0-rc.1`', releaseNotes],
   ['release notes router outlet', 'createRouterOutlet', releaseNotes],
   ['release notes animation API', 'animate.enter', releaseNotes],
@@ -122,6 +131,8 @@ const checks = [
   ['release status script writes status', 'release-status.md', releaseStatusScript],
   ['release status script tracks stable promotion', 'stable `1.2.0` promotion', releaseStatusScript],
   ['release status script tracks operator steps', 'Next operator steps', releaseStatusScript],
+  ['release status script tracks manual validation', 'Manual validation template', releaseStatusScript],
+  ['release status script tracks stable plan', 'Stable promotion plan', releaseStatusScript],
   ['workflow hygiene script checks lockfile install', 'npm ci requires a package-lock.json file', workflowHygieneScript],
   ['workflow hygiene script checks npm cache', 'setup-node npm cache requires a npm lockfile', workflowHygieneScript],
   ['workflow hygiene script checks Node 22', 'node-version: 22', workflowHygieneScript],
@@ -136,5 +147,6 @@ for (const [label, fragment, source, shouldInclude = true] of checks) {
 }
 
 execFileSync(process.execPath, ['scripts/check-workflow-hygiene.mjs'], { stdio: 'inherit' });
+execFileSync(process.execPath, ['scripts/check-v1-2-version-tasks.mjs'], { stdio: 'inherit' });
 
 console.log('Ariana 1.2 release candidate check passed.');
