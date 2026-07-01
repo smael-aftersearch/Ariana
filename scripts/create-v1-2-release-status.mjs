@@ -14,6 +14,9 @@ mkdirSync(outDir, { recursive: true });
 const items = [
   ['Root package version', rootPackage.version === version, `package.json version is ${rootPackage.version}`],
   ['Version task list', exists('docs/releases/1.2.0-version-tasks.md'), 'docs/releases/1.2.0-version-tasks.md'],
+  ['Manual validation template', exists('docs/releases/1.2.0-rc.1-manual-validation.md'), 'docs/releases/1.2.0-rc.1-manual-validation.md'],
+  ['Stable promotion plan', exists('docs/releases/1.2.0-stable-promotion-plan.md'), 'docs/releases/1.2.0-stable-promotion-plan.md'],
+  ['Version task checker', exists('scripts/check-v1-2-version-tasks.mjs'), 'scripts/check-v1-2-version-tasks.mjs'],
   ['RC release notes', exists('docs/releases/1.2.0-rc.1.md'), 'docs/releases/1.2.0-rc.1.md'],
   ['RC checklist', exists('docs/releases/1.2.0-rc.1-checklist.md'), 'docs/releases/1.2.0-rc.1-checklist.md'],
   ['Release sequence', exists('docs/releases/1.2.0-rc.1-release-sequence.md'), 'docs/releases/1.2.0-rc.1-release-sequence.md'],
@@ -55,11 +58,12 @@ ${rows.join('\n')}
 1. Run local release gates.
 2. Run the candidate workflow with gates enabled.
 3. Run the npm dry run workflow with the \`next\` tag.
-4. Run manual UI checks for \`/animate\` and \`/route-outlet\`.
-5. Create the GitHub draft release.
-6. Publish the RC to npm \`next\` only after approval.
-7. Verify npm registry state.
-8. Collect feedback before stable \`1.2.0\` promotion.
+4. Fill \`docs/releases/1.2.0-rc.1-manual-validation.md\` after manual checks.
+5. Run manual UI checks for \`/animate\` and \`/route-outlet\`.
+6. Create the GitHub draft release.
+7. Publish the RC to npm \`next\` only after approval.
+8. Verify npm registry state.
+9. Collect feedback before stable \`1.2.0\` promotion.
 `;
 
 writeFileSync(statusPath, report);
